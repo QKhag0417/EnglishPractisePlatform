@@ -1,0 +1,13 @@
+package com.ieltsmastermind.ielts_mastermind;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class IeltsMastermindApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(IeltsMastermindApplication.class, args);
+	}
+
+}
