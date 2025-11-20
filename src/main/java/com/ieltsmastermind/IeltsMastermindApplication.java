@@ -1,4 +1,4 @@
-package com.ieltsmastermind.ielts_mastermind;
+package com.ieltsmastermind;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
