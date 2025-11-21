@@ -1,4 +1,4 @@
-package com.ieltsmastermind.business;
+package com.ieltsmastermind.authentication.business;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

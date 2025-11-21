@@ -1,6 +1,6 @@
-package com.ieltsmastermind.persistence.repositories;
+package com.ieltsmastermind.authentication.repositories;
 
-import com.ieltsmastermind.domain.entities.User;
+import com.ieltsmastermind.authentication.domain.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

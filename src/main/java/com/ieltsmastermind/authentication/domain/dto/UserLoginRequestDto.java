@@ -1,6 +1,6 @@
-package com.ieltsmastermind.domain.dto;
+package com.ieltsmastermind.authentication.domain.dto;
 
-public class UserLoginRequest {
+public class UserLoginRequestDto {
     private String email;
     private String password;
 

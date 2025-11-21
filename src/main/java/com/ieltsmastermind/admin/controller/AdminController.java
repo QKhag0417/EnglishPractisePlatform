@@ -1,7 +1,7 @@
-package com.ieltsmastermind.controller;
+package com.ieltsmastermind.admin.controller;
 
-import com.ieltsmastermind.business.UploadContentService;
-import com.ieltsmastermind.domain.response.ApiResponse;
+import com.ieltsmastermind.authentication.business.UploadContentService;
+import com.ieltsmastermind.common.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

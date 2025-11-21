@@ -1,9 +1,9 @@
-package com.ieltsmastermind.business;
+package com.ieltsmastermind.authentication.business;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import com.ieltsmastermind.domain.dto.UserRegisterRequest;
-import com.ieltsmastermind.domain.entities.User;
-import com.ieltsmastermind.persistence.repositories.UserRepository;
+import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
+import com.ieltsmastermind.authentication.domain.entities.User;
+import com.ieltsmastermind.authentication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public User register(UserRegisterRequest request) {
+    public User register(UserRegisterRequestDto request) {
         // check email
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
             throw new RuntimeException("Email already exists");

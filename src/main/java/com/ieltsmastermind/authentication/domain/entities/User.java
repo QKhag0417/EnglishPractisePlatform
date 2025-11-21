@@ -1,7 +1,6 @@
-package com.ieltsmastermind.domain.entities;
+package com.ieltsmastermind.authentication.domain.entities;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

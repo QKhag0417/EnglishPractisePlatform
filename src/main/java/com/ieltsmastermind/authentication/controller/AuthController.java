@@ -1,12 +1,12 @@
-package com.ieltsmastermind.controller;
+package com.ieltsmastermind.authentication.controller;
 
 
-import com.ieltsmastermind.business.AuthService;
-import com.ieltsmastermind.business.JwtUtils;
-import com.ieltsmastermind.domain.dto.UserLoginRequest;
-import com.ieltsmastermind.domain.dto.UserRegisterRequest;
-import com.ieltsmastermind.domain.entities.User;
-import com.ieltsmastermind.domain.response.ApiResponse;
+import com.ieltsmastermind.authentication.business.AuthService;
+import com.ieltsmastermind.authentication.business.JwtUtils;
+import com.ieltsmastermind.authentication.domain.dto.UserLoginRequestDto;
+import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
+import com.ieltsmastermind.authentication.domain.entities.User;
+import com.ieltsmastermind.common.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Cookie;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> register(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<ApiResponse<User>> register(@RequestBody UserRegisterRequestDto request) {
         try {
             User registeredUser = authService.register(request);
             registeredUser.setPasswordHash(null);
@@ -49,7 +44,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(
-            @RequestBody UserLoginRequest request,
+            @RequestBody UserLoginRequestDto request,
             HttpServletResponse response
     ) {
         try {

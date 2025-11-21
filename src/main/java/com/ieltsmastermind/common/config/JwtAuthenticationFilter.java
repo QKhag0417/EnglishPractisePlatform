@@ -1,7 +1,7 @@
-package com.ieltsmastermind.config;
+package com.ieltsmastermind.common.config;
 
-import com.ieltsmastermind.business.JwtUtils;
-import com.ieltsmastermind.business.SessionManager;
+import com.ieltsmastermind.authentication.business.JwtUtils;
+import com.ieltsmastermind.authentication.business.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

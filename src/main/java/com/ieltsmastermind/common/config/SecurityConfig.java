@@ -1,4 +1,4 @@
-package com.ieltsmastermind.config;
+package com.ieltsmastermind.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

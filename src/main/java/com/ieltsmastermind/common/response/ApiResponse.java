@@ -1,4 +1,4 @@
-package com.ieltsmastermind.domain.response;
+package com.ieltsmastermind.common.response;
 
 public class ApiResponse<T> {
     private String status;

@@ -1,8 +1,6 @@
-package com.ieltsmastermind.domain.dto;
+package com.ieltsmastermind.authentication.domain.dto;
 
-import java.time.LocalDate;
-
-public class UserRegisterRequest {
+public class UserRegisterRequestDto {
     private String email;
     private String password;
     private String firstname;
