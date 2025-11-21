@@ -1,5 +1,6 @@
 package com.ieltsmastermind.authentication.business;
 
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -29,21 +30,15 @@ public class SessionManager {
         sessions.remove(token);
     }
 
+    @Getter
     public static class Session {
-        private String userId;
-        private long expireAt;
+        private final String userId;
+        private final long expireAt;
 
         public Session(String userId, long expireAt) {
             this.userId = userId;
             this.expireAt = expireAt;
         }
 
-        public String getUserId() {
-            return userId;
-        }
-
-        public long getExpireAt() {
-            return expireAt;
-        }
     }
 }

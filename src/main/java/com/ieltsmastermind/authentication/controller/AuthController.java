@@ -1,19 +1,17 @@
 package com.ieltsmastermind.authentication.controller;
 
-
 import com.ieltsmastermind.authentication.business.AuthService;
 import com.ieltsmastermind.authentication.business.JwtUtils;
 import com.ieltsmastermind.authentication.domain.dto.UserLoginRequestDto;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
+import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
 import com.ieltsmastermind.authentication.domain.entities.User;
 import com.ieltsmastermind.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
@@ -29,16 +27,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> register(@RequestBody UserRegisterRequestDto request) {
+    public ResponseEntity<ApiResponse<UserRegisterResponseDto>> register(
+            @RequestBody UserRegisterRequestDto request) {
         try {
-            User registeredUser = authService.register(request);
-            registeredUser.setPasswordHash(null);
-            return ResponseEntity.ok(ApiResponse.success("User registered successfully", registeredUser));
+            UserRegisterResponseDto responseDto = authService.register(request);
+            return ResponseEntity.ok(ApiResponse.success("User registered successfully", responseDto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Internal server error"));
         }
     }
 
@@ -49,7 +46,7 @@ public class AuthController {
     ) {
         try {
             String token = authService.login(request.getEmail(), request.getPassword());
-            // Tạo cookie chứa JWT
+
             int maxAgeSeconds = (int) (jwtUtils.getExpirationMillis() / 1000);
             jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
             cookie.setHttpOnly(true);
@@ -58,8 +55,39 @@ public class AuthController {
             cookie.setMaxAge(maxAgeSeconds);
             response.addCookie(cookie);
 
-
             return ResponseEntity.ok(ApiResponse.success("Login successful", token));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @CookieValue(value = "jwt", required = false) String jwtCookie,
+            HttpServletResponse response
+    ) {
+        try {
+            String token = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            } else if (jwtCookie != null) {
+                token = jwtCookie;
+            }
+
+            authService.logout(token);
+
+            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", null);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false);
+            cookie.setPath("/");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
         } catch (Exception e) {

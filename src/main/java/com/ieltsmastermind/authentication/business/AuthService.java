@@ -1,5 +1,6 @@
 package com.ieltsmastermind.authentication.business;
 
+import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
 import com.ieltsmastermind.authentication.domain.entities.User;
@@ -20,7 +21,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public User register(UserRegisterRequestDto request) {
+    public UserRegisterResponseDto  register(UserRegisterRequestDto request) {
         // check email
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
             throw new RuntimeException("Email already exists");
@@ -33,8 +34,13 @@ public class AuthService {
         user.setLastname(request.getLastname());
         user.setRole("Learner");
 
+        User saved = userRepository.save(user);
 
-        return userRepository.save(user);
+        return new UserRegisterResponseDto(
+                saved.getEmail(),
+                saved.getFirstname(),
+                saved.getLastname()
+        );
     }
 
 
@@ -50,4 +56,11 @@ public class AuthService {
         sessionManager.addSession(token, user.getUserId(), jwtUtils.getExpirationMillis());
         return token;
     }
+
+    public void logout(String token) {
+        if (token != null && sessionManager.isValid(token)) {
+            sessionManager.removeSession(token);
+        }
+    }
+
 }
