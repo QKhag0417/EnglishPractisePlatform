@@ -8,6 +8,7 @@ import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
 import com.ieltsmastermind.authentication.domain.entities.User;
 import com.ieltsmastermind.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserRegisterResponseDto>> register(
-            @RequestBody UserRegisterRequestDto request) {
+            @Valid @RequestBody UserRegisterRequestDto request) {
         try {
             UserRegisterResponseDto responseDto = authService.register(request);
             return ResponseEntity.ok(ApiResponse.success("User registered successfully", responseDto));
@@ -41,7 +42,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(
-            @RequestBody UserLoginRequestDto request,
+            @Valid @RequestBody UserLoginRequestDto request,
             HttpServletResponse response
     ) {
         try {
