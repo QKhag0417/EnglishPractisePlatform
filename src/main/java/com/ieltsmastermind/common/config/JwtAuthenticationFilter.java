@@ -35,27 +35,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = null;
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
-        }
-
-        if (token == null) {
-            jakarta.servlet.http.Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (jakarta.servlet.http.Cookie c : cookies) {
-                    if ("jwt".equals(c.getName())) {
-                        token = c.getValue();
-                        break;
-                    }
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie c : cookies) {
+                if ("jwt".equals(c.getName())) {
+                    token = c.getValue();
+                    break;
                 }
             }
         }
 
-        if (token != null && jwtUtils.validateToken(token) && sessionManager.isValid(token)) {
+        if (token != null && jwtUtils.validateToken(token)
+                && (sessionManager == null || sessionManager.isValid(token))) {
             filterChain.doFilter(request, response);
             return;
         }
+
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.getWriter().write("Unauthorized: invalid or expired token");
     }

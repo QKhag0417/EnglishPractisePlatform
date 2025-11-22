@@ -21,7 +21,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserRegisterResponseDto  register(UserRegisterRequestDto request) {
+    public UserRegisterResponseDto register(UserRegisterRequestDto request) {
         // check email
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
             throw new RuntimeException("Email already exists");
