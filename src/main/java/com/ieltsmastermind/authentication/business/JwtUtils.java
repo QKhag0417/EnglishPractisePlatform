@@ -17,8 +17,9 @@ public class JwtUtils {
     @Value("${jwt.expiration-ms}")
     private long EXPIRATION_MS;
 
-    public String generateToken(String userId) {
+    public String generateToken(String userId, String role) {
         return Jwts.builder()
+                .claim("role", role)
                 .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))

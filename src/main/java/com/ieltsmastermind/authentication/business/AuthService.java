@@ -51,8 +51,10 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new RuntimeException("Incorrect password");
         }
-
-        String token = jwtUtils.generateToken(user.getUserId());
+        String token = jwtUtils.generateToken(
+                user.getUserId(),
+                user.getRole()
+        );
         sessionManager.addSession(token, user.getUserId(), jwtUtils.getExpirationMillis());
         return token;
     }
