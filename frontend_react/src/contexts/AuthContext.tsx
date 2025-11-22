@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastname: string,
     email: string,
     password: string,
-    role: UserRole = "student"
+    role: UserRole = "Learner"
   ) => {
     try {
       const res = await fetch("http://localhost:8080/api/auth/register", {
@@ -89,18 +89,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       });
 
-      if (!res.ok) throw new Error("Registration failed");
+      const api = await res.json();
 
-      const data = await res.json();
+      // ❌ HTTP not OK → validation errors exist
+      if (!res.ok) {
+        if (api.errors) {
+          // directly pass backend error map
+          throw api.errors;
+        }
+
+        throw { error: api.message || "Registration failed" };
+      }
+
+      // SUCCESS
+      const data = api.data;
 
       setUser({
-        id: data.id,
+        id: String(data.id),
         name: `${data.firstname} ${data.lastname}`,
         email: data.email,
         role: data.role,
       });
     } catch (err) {
-      console.error(err);
+      console.error("REGISTER ERROR:", err);
       throw err;
     }
   };
