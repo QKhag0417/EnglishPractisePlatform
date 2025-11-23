@@ -3,8 +3,8 @@ package com.ieltsmastermind.authentication.business;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
-import com.ieltsmastermind.authentication.domain.entities.User;
-import com.ieltsmastermind.authentication.repositories.UserRepository;
+import com.ieltsmastermind.user.entities.User;
+import com.ieltsmastermind.user.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
