@@ -1,5 +1,11 @@
-# IDE settings
-.idea/
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
+*.ipr
 
+# -------------------------
+# Dependencies
+# -------------------------
 node_modules/
+jspm_packages/
