@@ -1,11 +1,12 @@
 {
-  "name": "ielt-mastermind",
+  "name": "ielts-mastermind",
   "private": true,
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
   "scripts": {
-    "dev": "concurrently \"npm --prefix frontend_react run dev\" \"mvn -f ielts-mastermind-backend spring-boot:run\"",
-    "build": "concurrently \"npm --prefix frontend_react run build\" \"mvn -f ielts-mastermind-backend clean install\""
+    "setup": "npm install && npm --prefix frontend_react install",
+    "build": "concurrently \"npm --prefix frontend_react run build\" \"mvn -f ielts-mastermind-backend clean install\"",
+    "dev": "concurrently \"npm --prefix frontend_react run dev\" \"mvn -f ielts-mastermind-backend spring-boot:run\""
   }
 }
