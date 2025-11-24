@@ -12,6 +12,7 @@ import imgImage32 from "figma:asset/e9c4ff12ea38c2a89800b6f3c2055fa2156f37fc.png
 import imgImage33 from "figma:asset/79f59bf5912d98c84c9d2e2055387a0bd9773a30.png";
 import imgImage27 from "figma:asset/55c06027cd33e90b1b09aa4decc6e708327bb372.png";
 import { UserRole } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 
 interface HomePageProps {
   setCurrentPage: (page: Page) => void;
@@ -20,7 +21,9 @@ interface HomePageProps {
   userRole?: UserRole;
 }
 
-export function HomePage({ setCurrentPage, isLoggedIn, onLogout, userRole }: HomePageProps) {
+export function HomePage({ setCurrentPage,  userRole }: HomePageProps) {
+  const { isLoggedIn, logout } = useAuth();
+
   const skills = [
     { name: 'Listening', image: imgImage32, page: 'listening' as Page, highlighted: false },
     { name: 'Reading', image: imgImage29, page: 'reading' as Page, highlighted: false },
@@ -32,10 +35,10 @@ export function HomePage({ setCurrentPage, isLoggedIn, onLogout, userRole }: Hom
     <div className="bg-white min-h-screen">
       {!isLoggedIn ? (
         <NavBarGuest setCurrentPage={setCurrentPage} />
-      ) : userRole === 'administrator' ? (
-        <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="home" />
+      ) : userRole === 'Administrator' ? (
+        <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={logout} currentPage="user-management" />
       ) : (
-        <NavBarLearner setCurrentPage={setCurrentPage} onLogout={onLogout} />
+        <NavBarLearner setCurrentPage={setCurrentPage} onLogout={logout} />
       )}
 
       {/* Hero Section */}

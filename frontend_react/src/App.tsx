@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
@@ -40,6 +40,14 @@ function AppContent() {
   const { user, isLoggedIn, logout } = useAuth();
   // Set default page to home for everyone
   const [currentPage, setCurrentPage] = useState<Page>("home");
+
+  useEffect(() => {
+    if (user?.role === "Administrator") {
+      setCurrentPage("content-management");
+    } else {
+      setCurrentPage("home");
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
