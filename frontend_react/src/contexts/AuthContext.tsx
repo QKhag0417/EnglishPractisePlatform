@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export type UserRole = 'Learner' | 'Administrator';
 
@@ -30,45 +30,82 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // --------------------------
-  // LOGIN
-  // --------------------------
-  const login = async (email: string, password: string) => {
-  try {
-    const res = await fetch("http://localhost:8080/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
+  useEffect(() => { restoreSession(); }, []);
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(errText || "Login failed");
+  // ---------------------------------------------------------
+  // RESTORE SESSION FROM BACKEND (ONLY IF NO LOCAL USER)
+  // ---------------------------------------------------------
+  const restoreSession = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/home", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const api = await res.json();
+      const info = api.data;
+
+      if (info.role !== "guest") {
+        const restoredUser = {
+          id: String(info.id),
+          name: info.fullName || `${info.firstname} ${info.lastname}`,
+          email: info.email,
+          role: info.role,
+        };
+
+        setUser(restoredUser);
+        localStorage.setItem("user", JSON.stringify(restoredUser));
+      } else {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
+    } catch (err) {
+      console.log("Session restore failed:", err);
+      setUser(null);
+      localStorage.removeItem("user");
     }
+  };
 
-    const api = await res.json();             // ApiResponse<LoginResponseDto>
-    const data = api.data;                    // the payload we created above
+  // ---------------------------------------------------------
+  // LOGIN
+  // ---------------------------------------------------------
+  const login = async (email: string, password: string) => {
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
 
-    const loggedInUser = {
-      id: String(data.id || Date.now()),
-      name: `${data.firstname || ""} ${data.lastname || ""}`.trim(),
-      email: data.email,
-      role: data.role,
-    };
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Login failed");
+      }
 
-    setUser(loggedInUser);
-    return loggedInUser;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
+      const api = await res.json();
+      const data = api.data;
 
+      const loggedInUser = {
+        id: String(data.id || Date.now()),
+        name: `${data.firstname || ""} ${data.lastname || ""}`.trim(),
+        email: data.email,
+        role: data.role,
+      };
 
-  // --------------------------
+      setUser(loggedInUser);
+      localStorage.setItem("user", JSON.stringify(loggedInUser)); // ⭐ SAVE ON LOGIN
+      restoreSession();
+      return loggedInUser;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  // ---------------------------------------------------------
   // REGISTER
-  // --------------------------
+  // ---------------------------------------------------------
   const register = async (
     firstname: string,
     lastname: string,
@@ -91,35 +128,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const api = await res.json();
 
-      // ❌ HTTP not OK → validation errors exist
       if (!res.ok) {
         if (api.errors) {
-          // directly pass backend error map
           throw api.errors;
         }
-
         throw { error: api.message || "Registration failed" };
       }
 
-      // SUCCESS
       const data = api.data;
 
-      setUser({
+      const newUser = {
         id: String(data.id),
         name: `${data.firstname} ${data.lastname}`,
         email: data.email,
         role: data.role,
-      });
+      };
+
+      setUser(newUser);
+      localStorage.setItem("user", JSON.stringify(newUser)); // ⭐ SAVE AFTER REGISTER
+
     } catch (err) {
       console.error("REGISTER ERROR:", err);
       throw err;
     }
   };
 
-  const logout = () => setUser(null);
+  // ---------------------------------------------------------
+  // LOGOUT
+  // ---------------------------------------------------------
+  const logout = async () => {
+    try {
+      await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
+    setUser(null);
+    localStorage.removeItem("user"); // ⭐ REMOVE LOCAL STORAGE
+  };
 
   const updateUserRole = (role: UserRole) => {
-    if (user) setUser({ ...user, role });
+    if (user) {
+      const updatedUser = { ...user, role };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
   };
 
   return (

@@ -27,7 +27,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
       const loggedInUser = await login(email, password);
 
       if (loggedInUser.role === "Administrator") {
-        setCurrentPage("user-management");
+        setCurrentPage("content-management");
       } else {
         setCurrentPage("home");
       }

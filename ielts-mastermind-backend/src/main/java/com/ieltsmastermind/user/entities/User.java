@@ -1,4 +1,4 @@
-package com.ieltsmastermind.authentication.domain.entities;
+package com.ieltsmastermind.user.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
