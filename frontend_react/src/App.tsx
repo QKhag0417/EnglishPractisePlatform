@@ -16,6 +16,10 @@ import { AuthPromptPage } from "./pages/AuthPromptPage";
 import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { EvaluationTestPage } from "./pages/EvaluationTestPage";
+import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage";
+import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage";
+import { WritingContentEditorPage } from "./pages/WritingContentEditorPage";
+import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export type Page =
@@ -34,7 +38,15 @@ export type Page =
   | "auth-prompt"
   | "content-management"
   | "user-management"
-  | "evaluation-test";
+  | "evaluation-test"
+  | "add-listening-content"
+  | "add-reading-content"
+  | "add-writing-content"
+  | "add-speaking-content"
+  | "edit-listening-content"
+  | "edit-reading-content"
+  | "edit-writing-content"
+  | "edit-speaking-content";
 
 function AppContent() {
   const { user, isLoggedIn, logout } = useAuth();
@@ -54,7 +66,7 @@ function AppContent() {
     setCurrentPage("home"); // Redirect to home after logout
   };
 
-  return (
+ return (
     <div className="bg-white min-h-screen">
       {currentPage === "login" && (
         <LoginPage setCurrentPage={setCurrentPage} />
@@ -151,7 +163,7 @@ function AppContent() {
       {/* Administrator Routes */}
       {currentPage === "content-management" && (
         <ProtectedRoute
-          allowedRoles={["administrator"]}
+          allowedRoles={["Administrator"]}
           setCurrentPage={setCurrentPage}
         >
           <PracticeContentManagementPage
@@ -160,9 +172,104 @@ function AppContent() {
           />
         </ProtectedRoute>
       )}
+      {currentPage === "add-listening-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <ListeningContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "add-reading-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <ReadingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "add-writing-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <WritingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "add-speaking-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <SpeakingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+          />
+        </ProtectedRoute>
+      )}
+      
+      {/* Edit Exercise Pages */}
+      {currentPage === "edit-listening-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <ListeningContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+            isEditMode={true}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "edit-reading-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <ReadingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+            isEditMode={true}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "edit-writing-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <WritingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+            isEditMode={true}
+          />
+        </ProtectedRoute>
+      )}
+      {currentPage === "edit-speaking-content" && (
+        <ProtectedRoute
+          allowedRoles={["Administrator"]}
+          setCurrentPage={setCurrentPage}
+        >
+          <SpeakingContentEditorPage
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+            isEditMode={true}
+          />
+        </ProtectedRoute>
+      )}
+      
       {currentPage === "user-management" && (
         <ProtectedRoute
-          allowedRoles={["administrator"]}
+          allowedRoles={["Administrator"]}
           setCurrentPage={setCurrentPage}
         >
           <UserManagementPage

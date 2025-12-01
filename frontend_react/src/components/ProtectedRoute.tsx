@@ -32,7 +32,7 @@ export function ProtectedRoute({ children, allowedRoles, setCurrentPage }: Prote
   console.log(user.role);
 
   // If logged in but doesn't have the required role
-  if (allowedRoles.includes(user.role)) {
+  if (!allowedRoles.includes(user.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

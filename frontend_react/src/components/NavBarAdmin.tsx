@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { AdminProfileDropdown } from './AdminProfileDropdown';
 import imgEllipse2 from "figma:asset/9a288964fe3263113bbb7774d6f4ff60e22ab39b.png";
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { IELTSMastermindLogo } from './Logo';
+
 
 interface NavBarAdminProps {
   setCurrentPage: (page: Page) => void;
@@ -21,15 +23,7 @@ export function NavBarAdmin({ setCurrentPage, onLogout, currentPage }: NavBarAdm
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50">
-            <div 
-        className="content-stretch flex gap-[10px] items-center relative shrink-0 cursor-pointer"
-        onClick={() => setCurrentPage('home')}
-      >
-        <div className="font-['Inter'] font-bold leading-[normal] not-italic text-white">
-          <p className="mb-0 text-[28px]">IELTS</p>
-          <p className="text-[16px]">Mastermind Admin</p>
-        </div>
-      </div>
+      <IELTSMastermindLogo setCurrentPage={setCurrentPage} />
 
       <div className="flex gap-[32px] items-center">
         <button
