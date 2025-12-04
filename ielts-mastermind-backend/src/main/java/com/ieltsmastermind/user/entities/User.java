@@ -35,6 +35,4 @@ public class User {
     private String avatarUrl;
     private Integer targetBand;
     private LocalDateTime examDate;
-
-
 }
