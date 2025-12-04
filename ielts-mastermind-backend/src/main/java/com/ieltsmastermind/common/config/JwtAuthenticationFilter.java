@@ -4,6 +4,10 @@ import com.ieltsmastermind.authentication.business.JwtUtils;
 import com.ieltsmastermind.authentication.business.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -12,6 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -47,6 +52,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtils.validateToken(token)
                 && (sessionManager == null || sessionManager.isValid(token))) {
+            String userId = jwtUtils.getUserIdFromToken(token);
+            String role = jwtUtils.getRoleFromToken(token);
+
+            GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userId,            // principal
+                            null,              // no credentials
+                            List.of(authority) // authorities
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             filterChain.doFilter(request, response);
             return;
         }

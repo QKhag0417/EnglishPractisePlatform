@@ -1,11 +1,12 @@
 package com.ieltsmastermind.practice.content.management.business.service;
 
+import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
+import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeAnswer;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeAnswerRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeQuestionRepository;
@@ -18,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 
 @Service
-public class PracticeContentServiceImpl implements com.ieltsmastermind.practice.content.management.business.PracticeContentService {
+public class PracticeContentServiceImpl implements PracticeContentService {
 
     private final PracticeContentRepository practiceContentRepository;
     private final PracticeQuestionRepository practiceQuestionRepository;
@@ -62,7 +63,7 @@ public class PracticeContentServiceImpl implements com.ieltsmastermind.practice.
         content.setCreatedOn(now);
         content.setUpdatedOn(now);
 
-        content.setStatus(PracticeContentStatus.DRAFT);
+        content.setStatus(request.getStatus());
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
@@ -141,5 +142,268 @@ public class PracticeContentServiceImpl implements com.ieltsmastermind.practice.
         responseDto.setQuestions(questionResponseDtos);
 
         return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public List<PracticeContentResponseDto> getAll() {
+        List<PracticeContent> contents = practiceContentRepository.findAll();
+        List<PracticeContentResponseDto> result = new ArrayList<>();
+
+        for (PracticeContent content : contents) {
+            PracticeContentResponseDto dto = mapContentToResponseDto(content);
+
+            // Fetch questions for this content
+            List<PracticeQuestion> questions =
+                    practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
+
+            List<PracticeContentResponseDto.PracticeQuestionResponseDto> questionDtos = new ArrayList<>();
+
+            for (PracticeQuestion question : questions) {
+                PracticeContentResponseDto.PracticeQuestionResponseDto qDto =
+                        mapQuestionToResponseDto(question);
+
+                // Fetch answers for this question
+                List<PracticeAnswer> answers =
+                        practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
+
+                List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerDtos = new ArrayList<>();
+                for (PracticeAnswer answer : answers) {
+                    PracticeContentResponseDto.PracticeAnswerResponseDto aDto =
+                            mapAnswerToResponseDto(answer);
+                    answerDtos.add(aDto);
+                }
+
+                qDto.setAnswers(answerDtos);
+                questionDtos.add(qDto);
+            }
+
+            dto.setQuestions(questionDtos);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public PracticeContentResponseDto getById(String id) {
+        PracticeContent content = practiceContentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
+
+        // Map content -> DTO
+        PracticeContentResponseDto dto = mapContentToResponseDto(content);
+
+        // Fetch questions for this content
+        List<PracticeQuestion> questions =
+                practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
+
+        List<PracticeContentResponseDto.PracticeQuestionResponseDto> questionDtos = new ArrayList<>();
+
+        for (PracticeQuestion question : questions) {
+            PracticeContentResponseDto.PracticeQuestionResponseDto qDto =
+                    mapQuestionToResponseDto(question);
+
+            // Fetch answers for this question
+            List<PracticeAnswer> answers =
+                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
+
+            List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerDtos = new ArrayList<>();
+            for (PracticeAnswer answer : answers) {
+                PracticeContentResponseDto.PracticeAnswerResponseDto aDto =
+                        mapAnswerToResponseDto(answer);
+                answerDtos.add(aDto);
+            }
+
+            qDto.setAnswers(answerDtos);
+            questionDtos.add(qDto);
+        }
+
+        dto.setQuestions(questionDtos);
+
+        return dto;
+    }
+
+    @Override
+    @Transactional
+    public PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request) {
+        // 1) Load existing content
+        PracticeContent content = practiceContentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
+
+        // 2) Update simple fields (PUT = replace)
+        content.setSkill(request.getSkill());
+        content.setTitle(request.getTitle());
+        content.setInstructions(request.getInstructions());
+        content.setTask(request.getTask());
+
+        content.setQuestionTypeTags(
+                request.getQuestionTypeTags() != null
+                        ? new HashSet<>(request.getQuestionTypeTags())
+                        : new HashSet<>()
+        );
+        content.setTopicTags(
+                request.getTopicTags() != null
+                        ? new HashSet<>(request.getTopicTags())
+                        : new HashSet<>()
+        );
+
+        content.setThumbnailUrl(request.getThumbnailUrl());
+        content.setAudioUrl(request.getAudioUrl());
+        content.setDurationMinutes(request.getDurationMinutes());
+        content.setQuestionCount(request.getQuestionCount());
+        content.setUpdatedOn(LocalDateTime.now());
+
+        // 3) Remove existing questions + answers
+        List<PracticeQuestion> existingQuestions =
+                practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
+
+        for (PracticeQuestion q : existingQuestions) {
+            List<PracticeAnswer> answers =
+                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(q);
+            practiceAnswerRepository.deleteAll(answers);
+        }
+        practiceQuestionRepository.deleteAll(existingQuestions);
+
+        // 4) Recreate questions + answers from request
+        List<PracticeContentResponseDto.PracticeQuestionResponseDto> questionResponseDtos = new ArrayList<>();
+
+        if (request.getQuestions() != null) {
+            for (PracticeContentUpdateRequestDto.PracticeQuestionUpdateRequestDto qDto : request.getQuestions()) {
+
+                PracticeQuestion question = new PracticeQuestion();
+                question.setPracticeContent(content);
+                question.setOrderIndex(qDto.getOrderIndex());
+                question.setType(qDto.getType());
+                question.setExplanation(qDto.getExplanation());
+                question.setShuffleOptions(qDto.getShuffleOptions());
+
+                PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
+
+                PracticeContentResponseDto.PracticeQuestionResponseDto questionResponseDto =
+                        new PracticeContentResponseDto.PracticeQuestionResponseDto();
+                questionResponseDto.setId(savedQuestion.getId());
+                questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
+                questionResponseDto.setType(savedQuestion.getType());
+                questionResponseDto.setExplanation(savedQuestion.getExplanation());
+                questionResponseDto.setShuffleOptions(savedQuestion.getShuffleOptions());
+
+                List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerResponseDtos = new ArrayList<>();
+
+                if (qDto.getAnswers() != null) {
+                    for (PracticeContentUpdateRequestDto.PracticeAnswerUpdateRequestDto aDto : qDto.getAnswers()) {
+
+                        PracticeAnswer answer = new PracticeAnswer();
+                        answer.setQuestion(savedQuestion);
+                        answer.setOrderIndex(aDto.getOrderIndex());
+                        answer.setDisplayText(aDto.getDisplayText());
+                        answer.setIsCorrect(Boolean.TRUE.equals(aDto.getIsCorrect()));
+                        answer.setValue(aDto.getValue());
+
+                        PracticeAnswer savedAnswer = practiceAnswerRepository.save(answer);
+
+                        PracticeContentResponseDto.PracticeAnswerResponseDto answerResponseDto =
+                                new PracticeContentResponseDto.PracticeAnswerResponseDto();
+                        answerResponseDto.setId(savedAnswer.getId());
+                        answerResponseDto.setOrderIndex(savedAnswer.getOrderIndex());
+                        answerResponseDto.setDisplayText(savedAnswer.getDisplayText());
+                        answerResponseDto.setIsCorrect(savedAnswer.getIsCorrect());
+                        answerResponseDto.setValue(savedAnswer.getValue());
+
+                        answerResponseDtos.add(answerResponseDto);
+                    }
+                }
+
+                questionResponseDto.setAnswers(answerResponseDtos);
+                questionResponseDtos.add(questionResponseDto);
+            }
+        }
+
+        // 5) Save updated content (fields already attached to managed entity)
+        PracticeContent savedContent = practiceContentRepository.save(content);
+
+        // 6) Build and return full response
+        PracticeContentResponseDto responseDto = mapContentToResponseDto(savedContent);
+        responseDto.setQuestions(questionResponseDtos);
+
+        return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public void delete(String id) {
+        // 1) Load content or throw
+        PracticeContent content = practiceContentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
+
+        // 2) Load all questions for this content
+        List<PracticeQuestion> questions =
+                practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
+
+        // 3) For each question, delete its answers
+        for (PracticeQuestion question : questions) {
+            List<PracticeAnswer> answers =
+                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
+            practiceAnswerRepository.deleteAll(answers);
+        }
+
+        // 4) Delete questions
+        practiceQuestionRepository.deleteAll(questions);
+
+        // 5) Delete the content itself
+        practiceContentRepository.delete(content);
+    }
+
+    private PracticeContentResponseDto mapContentToResponseDto(PracticeContent content) {
+        PracticeContentResponseDto dto = new PracticeContentResponseDto();
+        dto.setId(content.getId());
+        dto.setSkill(content.getSkill());
+        dto.setTitle(content.getTitle());
+        dto.setInstructions(content.getInstructions());
+        dto.setTask(content.getTask());
+        dto.setQuestionTypeTags(
+                content.getQuestionTypeTags() != null
+                        ? new HashSet<>(content.getQuestionTypeTags())
+                        : new HashSet<>()
+        );
+        dto.setTopicTags(
+                content.getTopicTags() != null
+                        ? new HashSet<>(content.getTopicTags())
+                        : new HashSet<>()
+        );
+        dto.setThumbnailUrl(content.getThumbnailUrl());
+        dto.setAudioUrl(content.getAudioUrl());
+        dto.setDurationMinutes(content.getDurationMinutes());
+        dto.setQuestionCount(content.getQuestionCount());
+        dto.setCreatedOn(content.getCreatedOn());
+        dto.setUpdatedOn(content.getUpdatedOn());
+        dto.setStatus(content.getStatus());
+        return dto;
+    }
+
+    private PracticeContentResponseDto.PracticeQuestionResponseDto mapQuestionToResponseDto(
+            PracticeQuestion question
+    ) {
+        PracticeContentResponseDto.PracticeQuestionResponseDto dto =
+                new PracticeContentResponseDto.PracticeQuestionResponseDto();
+        dto.setId(question.getId());
+        dto.setOrderIndex(question.getOrderIndex());
+        dto.setType(question.getType());
+        dto.setExplanation(question.getExplanation());
+        dto.setShuffleOptions(question.getShuffleOptions());
+        return dto;
+    }
+
+    private PracticeContentResponseDto.PracticeAnswerResponseDto mapAnswerToResponseDto(
+            PracticeAnswer answer
+    ) {
+        PracticeContentResponseDto.PracticeAnswerResponseDto dto =
+                new PracticeContentResponseDto.PracticeAnswerResponseDto();
+        dto.setId(answer.getId());
+        dto.setOrderIndex(answer.getOrderIndex());
+        dto.setDisplayText(answer.getDisplayText());
+        dto.setIsCorrect(answer.getIsCorrect());
+        dto.setValue(answer.getValue());
+        return dto;
     }
 }

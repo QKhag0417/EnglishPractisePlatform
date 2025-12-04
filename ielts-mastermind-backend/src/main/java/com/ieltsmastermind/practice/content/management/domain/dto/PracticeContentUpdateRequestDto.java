@@ -12,9 +12,9 @@ import java.util.Set;
 
 @Getter
 @Setter
-public class PracticeContentCreateRequestDto {
+public class PracticeContentUpdateRequestDto {
 
-    // PracticeContent fields
+    // PracticeContent fields (full replace for PUT)
     private PracticeContentSkill skill;
     private String title;
     private String instructions;
@@ -30,25 +30,24 @@ public class PracticeContentCreateRequestDto {
     private Integer questionCount;
     private PracticeContentStatus status;
 
-    // Nested questions + answers
-    private List<PracticeQuestionCreateRequestDto> questions;
+    // Nested questions + answers (replace full set)
+    private List<PracticeQuestionUpdateRequestDto> questions;
 
     @Getter
     @Setter
-    public static class PracticeQuestionCreateRequestDto {
+    public static class PracticeQuestionUpdateRequestDto {
 
         private Integer orderIndex;
         private PracticeQuestionType type;
-        private String stem;
         private String explanation;
         private Boolean shuffleOptions;
 
-        private List<PracticeAnswerCreateRequestDto> answers;
+        private List<PracticeAnswerUpdateRequestDto> answers;
     }
 
     @Getter
     @Setter
-    public static class PracticeAnswerCreateRequestDto {
+    public static class PracticeAnswerUpdateRequestDto {
 
         private Integer orderIndex;
         private String displayText;
