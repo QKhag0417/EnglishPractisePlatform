@@ -3,6 +3,7 @@ import svgPaths from "../imports/svg-ddf272u81r";
 import imgEllipse2 from "figma:asset/9a288964fe3263113bbb7774d6f4ff60e22ab39b.png";
 import { Page } from '../App';
 import { ProfileDropdown } from './ProfileDropdown';
+import { IELTSMastermindLogo } from './Logo';
 
 function Group2() {
   return (
@@ -205,7 +206,7 @@ export function NavBarLearner({ setCurrentPage, onLogout }: NavBarLearnerProps) 
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50">
-      <Logo setCurrentPage={setCurrentPage} />
+      <IELTSMastermindLogo setCurrentPage={setCurrentPage} />
       <NavMenu setCurrentPage={setCurrentPage} />
       <Profile onLogout={handleLogout} />
     </div>

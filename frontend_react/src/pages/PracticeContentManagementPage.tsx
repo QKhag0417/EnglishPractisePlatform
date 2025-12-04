@@ -14,17 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '../components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
-import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Textarea } from '../components/ui/textarea';
+import { SkillSelectionModal } from '../components/SkillSelectionModal';
 
 interface PracticeContent {
   id: string;
@@ -36,6 +27,8 @@ interface PracticeContent {
   questions: number;
   duration: number;
   status: 'Published' | 'Draft';
+  updatedOn: string;
+  attempts: number;
 }
 
 interface PracticeContentManagementPageProps {
@@ -46,8 +39,7 @@ interface PracticeContentManagementPageProps {
 export function PracticeContentManagementPage({ setCurrentPage, onLogout }: PracticeContentManagementPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSkill, setFilterSkill] = useState<string>('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingContent, setEditingContent] = useState<PracticeContent | null>(null);
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
   
   // Mock data
   const [contents, setContents] = useState<PracticeContent[]>([
@@ -61,6 +53,8 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
       questions: 10,
       duration: 15,
       status: 'Published',
+      updatedOn: '15 Mar 2025',
+      attempts: 24,
     },
     {
       id: '2',
@@ -72,6 +66,8 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
       questions: 8,
       duration: 10,
       status: 'Published',
+      updatedOn: '12 Mar 2025',
+      attempts: 10,
     },
     {
       id: '3',
@@ -83,6 +79,8 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
       questions: 1,
       duration: 40,
       status: 'Draft',
+      updatedOn: '10 Mar 2025',
+      attempts: 0,
     },
     {
       id: '4',
@@ -94,6 +92,8 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
       questions: 1,
       duration: 3,
       status: 'Published',
+      updatedOn: '08 Mar 2025',
+      attempts: 3,
     },
   ]);
 
@@ -108,27 +108,45 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
     setContents(contents.filter(c => c.id !== id));
   };
 
+  // Navigate to Edit Exercise screen based on the content's skill
+  // On click: navigate to corresponding Edit [Skill] Exercise screen (no popup)
   const handleEdit = (content: PracticeContent) => {
-    setEditingContent(content);
-    setIsDialogOpen(true);
+    if (content.skill === 'Listening') {
+      setCurrentPage('edit-listening-content');
+    } else if (content.skill === 'Reading') {
+      setCurrentPage('edit-reading-content');
+    } else if (content.skill === 'Writing') {
+      setCurrentPage('edit-writing-content');
+    } else if (content.skill === 'Speaking') {
+      setCurrentPage('edit-speaking-content');
+    }
   };
 
   const handleAddNew = () => {
-    setEditingContent(null);
-    setIsDialogOpen(true);
+    setIsSkillModalOpen(true);
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to the backend
-    setIsDialogOpen(false);
-    setEditingContent(null);
+  const handleSkillSelect = (skill: 'Listening' | 'Reading' | 'Writing' | 'Speaking') => {
+    // Close the modal
+    setIsSkillModalOpen(false);
+    
+    // Navigate to skill-specific content creation page
+    if (skill === 'Listening') {
+      setCurrentPage('add-listening-content');
+    } else if (skill === 'Reading') {
+      setCurrentPage('add-reading-content');
+    } else if (skill === 'Writing') {
+      setCurrentPage('add-writing-content');
+    } else if (skill === 'Speaking') {
+      setCurrentPage('add-speaking-content');
+    }
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen flex flex-col">
       <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="content-management" />
 
-      <div className="pt-[100px] pb-[60px] px-[60px]">
+      <div className="flex-1 pt-[100px] pb-[60px] px-[60px]">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex items-center justify-between mb-[40px]">
             <h1 className="font-['Inter'] text-[#1977f3] text-[36px]">
@@ -172,11 +190,10 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Skill</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Topic</TableHead>
-                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Updated On</TableHead>
                   <TableHead>Questions</TableHead>
                   <TableHead>Duration</TableHead>
+                  <TableHead>Attempts</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -186,23 +203,10 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
                   <TableRow key={content.id}>
                     <TableCell className="font-medium">{content.title}</TableCell>
                     <TableCell>{content.skill}</TableCell>
-                    <TableCell>{content.type}</TableCell>
-                    <TableCell>{content.topic}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          content.difficulty === 'Easy'
-                            ? 'default'
-                            : content.difficulty === 'Medium'
-                            ? 'secondary'
-                            : 'destructive'
-                        }
-                      >
-                        {content.difficulty}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{content.updatedOn}</TableCell>
                     <TableCell>{content.questions}</TableCell>
                     <TableCell>{content.duration} min</TableCell>
+                    <TableCell>{content.attempts}</TableCell>
                     <TableCell>
                       <Badge variant={content.status === 'Published' ? 'default' : 'outline'}>
                         {content.status}
@@ -210,6 +214,7 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
+                        {/* Edit icon: navigates to Edit [Skill] Exercise screen */}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -234,92 +239,12 @@ export function PracticeContentManagementPage({ setCurrentPage, onLogout }: Prac
         </div>
       </div>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{editingContent ? 'Edit Content' : 'Add New Content'}</DialogTitle>
-            <DialogDescription>
-              {editingContent ? 'Update the practice content details.' : 'Create a new practice content.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" defaultValue={editingContent?.title} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="skill">Skill</Label>
-                <Select defaultValue={editingContent?.skill}>
-                  <SelectTrigger id="skill">
-                    <SelectValue placeholder="Select skill" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Listening">Listening</SelectItem>
-                    <SelectItem value="Reading">Reading</SelectItem>
-                    <SelectItem value="Writing">Writing</SelectItem>
-                    <SelectItem value="Speaking">Speaking</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="type">Type</Label>
-                <Input id="type" defaultValue={editingContent?.type} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="topic">Topic</Label>
-                <Input id="topic" defaultValue={editingContent?.topic} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <Select defaultValue={editingContent?.difficulty}>
-                  <SelectTrigger id="difficulty">
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="questions">Number of Questions</Label>
-                <Input id="questions" type="number" defaultValue={editingContent?.questions} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
-                <Input id="duration" type="number" defaultValue={editingContent?.duration} />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select defaultValue={editingContent?.status || 'Draft'}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Published">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} className="bg-[#1977f3] hover:bg-[#1567d3]">
-              {editingContent ? 'Update' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Skill Selection Modal */}
+      <SkillSelectionModal
+        isOpen={isSkillModalOpen}
+        onClose={() => setIsSkillModalOpen(false)}
+        onSkillSelect={handleSkillSelect}
+      />
 
       <Footer />
     </div>
