@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Page } from '../App';
 import { NavBarAdmin } from '../components/NavBarAdmin';
 import { Footer } from '../components/Footer';
-import { 
-  ChevronRight, 
-  Plus, 
-  Trash2, 
-  Upload, 
+import {
+  ChevronRight,
+  Plus,
+  Trash2,
+  Upload,
   X,
   Bold,
   Italic,
@@ -34,7 +34,8 @@ import { ChipInput } from '../components/ChipInput';
 interface ListeningContentEditorPageProps {
   setCurrentPage: (page: Page) => void;
   onLogout?: () => void;
-  isEditMode?: boolean; // Edit mode: pre-filled with existing data. Add mode: blank state.
+  isEditMode?: boolean;
+  editId?: string;
 }
 
 interface Question {
@@ -45,8 +46,6 @@ interface Question {
   correctAnswer: string;
   questionType: QuestionType;
   correctAnswers: string[];
-  ignoreCase: boolean;
-  ignorePunctuation: boolean;
   options: Option[];
   shuffleOptions: boolean;
   explanation: string;
@@ -61,74 +60,26 @@ interface Option {
 
 type QuestionType = 'mcq-single' | 'mcq-multiple' | 'short-text' | 'written-response';
 
-export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMode = false }: ListeningContentEditorPageProps) {
-  // Note: Used when clicking edit from Practice Content Management. Same layout as Add, but pre-filled with existing exercise data.
+export function ListeningContentEditorPage({
+  setCurrentPage,
+  onLogout,
+  isEditMode = false,
+  editId
+}: ListeningContentEditorPageProps) {
+
   const [status, setStatus] = useState<'Draft' | 'Published'>('Draft');
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('1');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveState, setSaveState] = useState<'saved' | 'unsaved' | 'editing'>('saved');
-  const [questions, setQuestions] = useState<Question[]>([
-    { 
-      id: '1', 
-      number: 1, 
-      type: 'MCQ - Single', 
-      points: 1, 
-      correctAnswer: 'Amen', 
-      questionType: 'mcq-single', 
-      correctAnswers: [], 
-      ignoreCase: true, 
-      ignorePunctuation: true, 
-      options: [
-        { id: '1', text: 'Amen', feedback: '', isCorrect: true },
-        { id: '2', text: 'Option B', feedback: '', isCorrect: false },
-        { id: '3', text: 'Option C', feedback: '', isCorrect: false },
-        { id: '4', text: 'Option D', feedback: '', isCorrect: false },
-      ], 
-      shuffleOptions: false, 
-      explanation: '' 
-    },
-    { 
-      id: '2', 
-      number: 2, 
-      type: 'MCQ - Multiple', 
-      points: 1, 
-      correctAnswer: 'Amen, Big', 
-      questionType: 'mcq-multiple', 
-      correctAnswers: [], 
-      ignoreCase: true, 
-      ignorePunctuation: true, 
-      options: [
-        { id: '1', text: 'Amen', feedback: '', isCorrect: true },
-        { id: '2', text: 'Big', feedback: '', isCorrect: true },
-        { id: '3', text: 'Option C', feedback: '', isCorrect: false },
-        { id: '4', text: 'Option D', feedback: '', isCorrect: false },
-      ], 
-      shuffleOptions: false, 
-      explanation: '' 
-    },
-    { id: '3', number: 3, type: 'Short Text', points: 1, correctAnswer: 'Docklands', questionType: 'short-text', correctAnswers: ['Docklands', 'Eastside Docklands'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '4', number: 4, type: 'Short Text', points: 1, correctAnswer: 'warehouse', questionType: 'short-text', correctAnswers: ['warehouse'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '5', number: 5, type: 'Short Text', points: 1, correctAnswer: 'transport', questionType: 'short-text', correctAnswers: ['transport'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '6', number: 6, type: 'Short Text', points: 1, correctAnswer: 'museum', questionType: 'short-text', correctAnswers: ['museum'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '7', number: 7, type: 'MCQ - Single', points: 1, correctAnswer: 'Option C', questionType: 'mcq-single', correctAnswers: [], ignoreCase: true, ignorePunctuation: true, options: [
-      { id: '1', text: '', feedback: '', isCorrect: false },
-      { id: '2', text: '', feedback: '', isCorrect: false },
-      { id: '3', text: '', feedback: '', isCorrect: false },
-      { id: '4', text: '', feedback: '', isCorrect: false },
-    ], shuffleOptions: false, explanation: '' },
-    { id: '8', number: 8, type: 'Short Text', points: 1, correctAnswer: 'community', questionType: 'short-text', correctAnswers: ['community'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '9', number: 9, type: 'Short Text', points: 1, correctAnswer: 'Friday', questionType: 'short-text', correctAnswers: ['Friday'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '10', number: 10, type: 'Short Text', points: 1, correctAnswer: 'website', questionType: 'short-text', correctAnswers: ['website'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-  ]);
-  
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [questionType, setQuestionType] = useState<QuestionType>('short-text');
-  const [correctAnswers, setCorrectAnswers] = useState<string[]>(['Docklands', 'Eastside Docklands']);
-  const [ignoreCase, setIgnoreCase] = useState(true);
-  const [ignorePunctuation, setIgnorePunctuation] = useState(true);
+  const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
   const [newAnswerInput, setNewAnswerInput] = useState('');
   const [currentScore, setCurrentScore] = useState('1');
   const [currentExplanation, setCurrentExplanation] = useState('');
-  
+  const [updatedOn, setUpdatedOn] = useState<string>('');
+
+
   const [options, setOptions] = useState<Option[]>([
     { id: '1', text: '', feedback: '', isCorrect: false },
     { id: '2', text: '', feedback: '', isCorrect: false },
@@ -137,35 +88,239 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
   ]);
   const [shuffleOptions, setShuffleOptions] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
   const [audioFile, setAudioFile] = useState<string | null>(null);
+  const [audioPreview, setAudioPreview] = useState<string | null>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const [questionTypeTags, setQuestionTypeTags] = useState<string[]>([]);
   const [topicTags, setTopicTags] = useState<string[]>([]);
-  
+  const [title, setTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [task, setTask] = useState<'TASK_1' | 'TASK_2' | 'TASK_3' | 'TASK_4'>('TASK_1');
+  const [durationMinutes, setDurationMinutes] = useState(5);
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
+  const mapQuestionsToApi = () => {
+    return questions.map((q, index) => ({
+      orderIndex: index + 1,
+      type:
+        q.questionType === 'mcq-single' ? 'MCQ_SINGLE' :
+        q.questionType === 'mcq-multiple' ? 'MCQ_MULTIPLE' :
+        q.questionType === 'short-text' ? 'SHORT_TEXT' :
+        'WRITTEN_RESPONSE',
+
+      explanation: q.explanation,
+      shuffleOptions: q.shuffleOptions,
+
+      answers:
+        q.questionType === 'short-text'
+          ? q.correctAnswers.map((ans, i) => ({
+              orderIndex: i + 1,
+              displayText: null,
+              isCorrect: true,
+              value: ans,
+            }))
+          : q.options.map((opt, i) => ({
+              orderIndex: i + 1,
+              displayText: opt.text,
+              isCorrect: opt.isCorrect,
+              value: opt.text,
+            })),
+    }));
+  };
+
+  const handleSaveExit = async () => {
+    try {
+      const formData = new FormData();
+
+      // Append text fields
+      formData.append("skill", "LISTENING");
+      formData.append("title", title);
+      formData.append("instructions", instructions);
+      formData.append("task", task);
+      formData.append("questionTypeTags", JSON.stringify(questionTypeTags));
+      formData.append("topicTags", JSON.stringify(topicTags));
+
+      formData.append("durationMinutes", durationMinutes.toString());
+      formData.append("questionCount", questions.length.toString());
+      formData.append("status", status === "Draft" ? "DRAFT" : "PUBLISHED");
+
+      // Append questions
+      formData.append("questions", JSON.stringify(mapQuestionsToApi()));
+
+      // Append files
+      if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
+      if (audioFile) formData.append("audio", audioFile);
+
+      const url = isEditMode
+        ? `http://localhost:8080/api/practice-content/${editId}`
+        : "http://localhost:8080/api/practice-content";
+
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        credentials: "include",
+        body: formData,
+        //KHÔNG được set Content-Type, browser tự thêm boundary
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+      }
+
+      alert(isEditMode ? "Updated successfully!" : "Created successfully!");
+      setCurrentPage("content-management");
+
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert("Save content failed!");
+    }
+  };
   // Load selected question's data into the form
   useEffect(() => {
-    if (selectedQuestion) {
-      setQuestionType(selectedQuestion.questionType);
-      setCorrectAnswers(selectedQuestion.correctAnswers);
-      setIgnoreCase(selectedQuestion.ignoreCase);
-      setIgnorePunctuation(selectedQuestion.ignorePunctuation);
-      setOptions(selectedQuestion.options.length > 0 ? selectedQuestion.options : [
-        { id: '1', text: '', feedback: '', isCorrect: false },
-        { id: '2', text: '', feedback: '', isCorrect: false },
-        { id: '3', text: '', feedback: '', isCorrect: false },
-        { id: '4', text: '', feedback: '', isCorrect: false },
-      ]);
-      setShuffleOptions(selectedQuestion.shuffleOptions);
-      setCurrentExplanation(selectedQuestion.explanation);
-      setCurrentScore(selectedQuestion.points.toString());
-      setSaveState('saved');
-      setHasUnsavedChanges(false);
-    }
-  }, [selectedQuestionId, selectedQuestion]);
+    if (!selectedQuestion) return;
+
+    setQuestionType(selectedQuestion.questionType);
+    setCorrectAnswers(selectedQuestion.correctAnswers || []);
+    setShuffleOptions(selectedQuestion.shuffleOptions);
+    setOptions(
+      selectedQuestion.options.length > 0
+        ? selectedQuestion.options
+        : [
+            { id: '1', text: '', feedback: '', isCorrect: false },
+            { id: '2', text: '', feedback: '', isCorrect: false },
+            { id: '3', text: '', feedback: '', isCorrect: false },
+            { id: '4', text: '', feedback: '', isCorrect: false },
+          ]
+    );
+
+    setCurrentExplanation(selectedQuestion.explanation || '');
+    setCurrentScore(String(selectedQuestion.points || 1));
+
+    setSaveState('saved');
+    setHasUnsavedChanges(false);
+  }, [selectedQuestionId]);
+
+  useEffect(() => {
+    if (!isEditMode || !editId) return;
+
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/practice-content/${editId}`,
+          { credentials: "include" }
+        );
+
+        if (!res.ok) throw new Error("Failed to load detail");
+
+        const result = await res.json();
+        const data = result.data;
+
+        console.log("✅ API /practice-content DETAIL RETURN:");
+        console.log(data);
+        console.table(data?.questions || []);
+
+        // ===========================
+        //  Set basic fields
+        // ===========================
+        setTitle(data.title || "");
+        setInstructions(data.instructions || "");
+        setTask(data.task || "");
+        setQuestionTypeTags(data.questionTypeTags || []);
+        setTopicTags(data.topicTags || []);
+        setThumbnailFile(data.thumbnailUrl || "");
+        setAudioFile(data.audioUrl || "");
+        setDurationMinutes(data.durationMinutes || 0);
+        setStatus(data.status === "DRAFT" ? "Draft" : "Published");
+
+        if (data.updatedOn) {
+          setUpdatedOn(data.updatedOn.split("T")[0]);
+        }
+
+        // ===========================
+        //  Map Questions
+        // ===========================
+        const mappedQuestions = (data.questions || []).map((q: any, index: number) => {
+          const typeLabel =
+            q.type === "MCQ_SINGLE" ? "MCQ - Single" :
+            q.type === "MCQ_MULTIPLE" ? "MCQ - Multiple" :
+            q.type === "SHORT_TEXT" ? "Short Text" :
+            "Written Response";
+
+          const typeKey =
+            q.type === "MCQ_SINGLE" ? "mcq-single" :
+            q.type === "MCQ_MULTIPLE" ? "mcq-multiple" :
+            q.type === "SHORT_TEXT" ? "short-text" :
+            "written-response";
+
+          const correctAnswer =
+            q.type === "SHORT_TEXT"
+              ? q.answers.map((a: any) => a.value).join(", ")
+              : q.answers.find((a: any) => a.isCorrect)?.displayText || "";
+
+          return {
+            id: String(index + 1),
+            number: index + 1,
+            type: typeLabel,
+            points: 1,
+
+            correctAnswer,
+            questionType: typeKey,
+
+            correctAnswers: q.answers.map((a: any) => a.value),
+
+            options: q.answers.map((a: any, i: number) => ({
+              id: String(i + 1),
+              text: a.displayText || "",
+              feedback: "",
+              isCorrect: a.isCorrect
+            })),
+
+            shuffleOptions: q.shuffleOptions,
+            explanation: q.explanation
+          };
+        });
+
+        setQuestions(mappedQuestions);
+        setSelectedQuestionId(mappedQuestions[0]?.id || "1");
+
+      } catch (err) {
+        console.error("Load edit failed:", err);
+        alert("Load content failed!");
+      }
+    };
+
+    fetchDetail();
+  }, [isEditMode, editId]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+
+    const initialQuestion: Question = {
+      id: Date.now().toString(),
+      number: 1,
+      type: 'Short Text',
+      points: 1,
+      correctAnswer: '',
+      questionType: 'short-text',
+      correctAnswers: [],
+
+      options: [],
+      shuffleOptions: false,
+      explanation: ''
+    };
+
+    setQuestions([initialQuestion]);
+    setSelectedQuestionId(initialQuestion.id);
+  }, []);
 
   const addOption = () => {
     const newOption: Option = {
@@ -184,7 +339,7 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
   };
 
   const updateOption = (id: string, field: keyof Option, value: string | boolean) => {
-    setOptions(options.map(opt => 
+    setOptions(options.map(opt =>
       opt.id === id ? { ...opt, [field]: value } : opt
     ));
     markAsUnsaved();
@@ -207,8 +362,7 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
       correctAnswer: '',
       questionType: 'short-text',
       correctAnswers: [],
-      ignoreCase: true,
-      ignorePunctuation: true,
+
       options: [],
       shuffleOptions: false,
       explanation: ''
@@ -253,8 +407,8 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
 
   const handleSaveQuestion = () => {
     // Update the selected question with current form values
-    setQuestions(questions.map(q => 
-      q.id === selectedQuestionId 
+    setQuestions(questions.map(q =>
+      q.id === selectedQuestionId
         ? {
             ...q,
             type: questionType === 'short-text' ? 'Short Text' :
@@ -262,8 +416,8 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                   questionType === 'mcq-multiple' ? 'MCQ - Multiple' :
                   'Written Response',
             points: parseInt(currentScore) || 1,
-            correctAnswer: questionType === 'short-text' 
-              ? correctAnswers.join(', ') 
+            correctAnswer: questionType === 'short-text'
+              ? correctAnswers.join(', ')
               : questionType === 'mcq-single'
               ? options.find(o => o.isCorrect)?.text || ''
               : questionType === 'mcq-multiple'
@@ -271,8 +425,7 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
               : 'Manual marking required',
             questionType: questionType,
             correctAnswers: correctAnswers,
-            ignoreCase: ignoreCase,
-            ignorePunctuation: ignorePunctuation,
+
             options: options,
             shuffleOptions: shuffleOptions,
             explanation: currentExplanation
@@ -310,10 +463,104 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
     }
   };
 
-  const handleSaveExit = () => {
-    // Save logic here
-    setCurrentPage('content-management');
-  };
+    // File upload handlers
+    const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          alert('Please upload a .jpg or .png file');
+          return;
+        }
+
+        // Validate file size (25 MB)
+        if (file.size > 25 * 1024 * 1024) {
+          alert('File size must be less than 25 MB');
+          return;
+        }
+
+        setThumbnailFile(file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setThumbnailPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+
+    const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Validate file type
+      const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a .mp3 or .wav file');
+        return;
+      }
+
+      // Validate file size (25 MB)
+      if (file.size > 25 * 1024 * 1024) {
+        alert('File size must be less than 25 MB');
+        return;
+      }
+
+      // Create audio preview
+      setAudioPreview(URL.createObjectURL(file));
+      setAudioFile(file);
+    };
+
+    const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a .jpg or .png file');
+        return;
+      }
+
+      // Validate file size (25 MB)
+      if (file.size > 25 * 1024 * 1024) {
+        alert('File size must be less than 25 MB');
+        return;
+      }
+
+      // Create preview URL
+      setThumbnailPreview(URL.createObjectURL(file));
+      setThumbnailFile(file); // file thật để gửi backend
+    };
+
+    const handleAudioDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a .mp3 or .wav file');
+        return;
+      }
+
+      if (file.size > 25 * 1024 * 1024) {
+        alert('File size must be less than 25 MB');
+        return;
+      }
+
+      setAudioPreview(URL.createObjectURL(file));
+      setAudioFile(file);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+    };
+
+
 
   const handleCancel = () => {
     // Discard unsaved changes and navigate back to Practice Content Management
@@ -458,6 +705,8 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
 
                 {/* Editor Area */}
                 <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
                   placeholder="Type the shared instructions and notes layout here (e.g., Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer. Use (1), (2)… to mark blanks)."
                   className="min-h-[200px] border-gray-300 border-t-0 rounded-t-none rounded-b-[8px] resize-none font-['Inter']"
                 />
@@ -678,7 +927,7 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                       <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
                         Correct answers
                       </Label>
-                      
+
                       {/* Tags Display */}
                       <div className="flex flex-wrap gap-[8px] mb-[12px]">
                         {correctAnswers.map((answer, index) => (
@@ -716,40 +965,6 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                       <p className="font-['Inter'] text-[12px] text-gray-500 mt-[8px]">
                         Add multiple accepted variations (e.g., "Docklands", "Eastside Docklands")
                       </p>
-                    </div>
-
-                    {/* Validation Options */}
-                    <div className="space-y-[12px] pt-[16px] border-t border-gray-200">
-                      <div className="flex items-center gap-[12px]">
-                        <input
-                          type="checkbox"
-                          id="ignore-case"
-                          checked={ignoreCase}
-                          onChange={(e) => { setIgnoreCase(e.target.checked); markAsUnsaved(); }}
-                          className="w-[18px] h-[18px] cursor-pointer"
-                        />
-                        <label
-                          htmlFor="ignore-case"
-                          className="font-['Inter'] text-[14px] text-gray-700 cursor-pointer"
-                        >
-                          Ignore case
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-[12px]">
-                        <input
-                          type="checkbox"
-                          id="ignore-punctuation"
-                          checked={ignorePunctuation}
-                          onChange={(e) => { setIgnorePunctuation(e.target.checked); markAsUnsaved(); }}
-                          className="w-[18px] h-[18px] cursor-pointer"
-                        />
-                        <label
-                          htmlFor="ignore-punctuation"
-                          className="font-['Inter'] text-[14px] text-gray-700 cursor-pointer"
-                        >
-                          Ignore punctuation
-                        </label>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -802,8 +1017,12 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                   Upload Thumbnail
                 </Label>
 
-                {!thumbnailFile ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer">
+                {!thumbnailPreview  ? (
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleThumbnailDrop}
+                  >
                     <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
                     <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
                       Drop file or browse
@@ -811,16 +1030,32 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                     <p className="font-['Inter'] text-[12px] text-gray-500">
                       Formats: .jpg, .png<br />Max file size: 25 MB
                     </p>
+                    <input
+                      type="file"
+                      ref={thumbnailInputRef}
+                      onChange={handleThumbnailChange}
+                      className="hidden"
+                      accept=".jpg, .png"
+                    />
+                    <Button
+                      onClick={() => thumbnailInputRef.current?.click()}
+                      className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                    >
+                      Browse
+                    </Button>
                   </div>
                 ) : (
                   <div className="relative">
                     <img
-                      src={thumbnailFile}
+                      src={thumbnailPreview}
                       alt="Thumbnail preview"
                       className="w-full h-[180px] object-cover rounded-[8px]"
                     />
                     <button
-                      onClick={() => setThumbnailFile(null)}
+                      onClick={() => {
+                          setThumbnailFile(null);
+                          setThumbnailPreview(null);
+                      }}
                       className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
                     >
                       <X className="w-[16px] h-[16px] text-gray-700" />
@@ -836,7 +1071,11 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                 </Label>
 
                 {!audioFile ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer">
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
+                    onDrop={handleAudioDrop}
+                    onDragOver={handleDragOver}
+                  >
                     <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
                     <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
                       Drop file or browse
@@ -844,34 +1083,39 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                     <p className="font-['Inter'] text-[12px] text-gray-500">
                       Formats: .mp3, .wav<br />Max file size: 25 MB
                     </p>
+
+                    <input
+                      type="file"
+                      ref={audioInputRef}
+                      onChange={handleAudioChange}
+                      className="hidden"
+                      accept=".mp3, .wav"
+                    />
+
+                    <Button
+                      onClick={() => audioInputRef.current?.click()}
+                      className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                    >
+                      Browse
+                    </Button>
                   </div>
                 ) : (
                   <div>
+                    {/* Audio Preview */}
                     <div className="bg-gray-100 rounded-[8px] p-[16px] mb-[12px]">
-                      <div className="flex items-center gap-[12px]">
-                        <button
-                          onClick={() => setIsPlaying(!isPlaying)}
-                          className="w-[40px] h-[40px] bg-[#1977f3] hover:bg-[#1567d3] rounded-full flex items-center justify-center transition-colors"
-                        >
-                          {isPlaying ? (
-                            <Pause className="w-[18px] h-[18px] text-white" />
-                          ) : (
-                            <Play className="w-[18px] h-[18px] text-white ml-[2px]" />
-                          )}
-                        </button>
-                        <div className="flex-1">
-                          <div className="h-[4px] bg-gray-300 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#1977f3] w-[30%]"></div>
-                          </div>
-                          <div className="flex justify-between mt-[8px]">
-                            <span className="font-['Inter'] text-[12px] text-gray-600">0:32</span>
-                            <span className="font-['Inter'] text-[12px] text-gray-600">1:45</span>
-                          </div>
-                        </div>
-                      </div>
+                      <audio
+                        src={audioPreview || undefined}
+                        controls
+                        className="w-full"
+                      />
                     </div>
+
+                    {/* Remove Button */}
                     <button
-                      onClick={() => setAudioFile(null)}
+                      onClick={() => {
+                        setAudioFile(null);
+                        setAudioPreview(null);
+                      }}
                       className="w-full font-['Inter'] text-[14px] text-red-600 hover:text-red-700 transition-colors"
                     >
                       Remove audio
@@ -880,20 +1124,32 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                 )}
               </div>
 
+
               {/* Exercise Info */}
               <div className="bg-white rounded-[12px] p-[24px] shadow-sm border border-gray-200">
                 <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[20px] block">
                   Exercise Info
                 </Label>
-
                 <div className="space-y-[16px]">
+                  {/* Title */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Title
+                    </Label>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter exercise title…"
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                    />
+                  </div>
                   {/* Task */}
                   <div>
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Task
                     </Label>
                     <Select defaultValue="1">
-                      <SelectTrigger>
+                      <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -905,18 +1161,19 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                     </Select>
                   </div>
 
-                  {/* Question Type */}
-                  <div>
-                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-                      Question Type
-                    </Label>
-                    <ChipInput
-                      value={questionTypeTags}
-                      onChange={setQuestionTypeTags}
-                      placeholder="Add tag..."
-                      maxTags={4}
-                    />
-                  </div>
+                    {/* Question Type */}
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Question Type
+                      </Label>
+                      <ChipInput
+                        value={questionTypeTags}
+                        onChange={setQuestionTypeTags}
+                        placeholder="Add tag..."
+                        maxTags={4}
+                        className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900"
+                      />
+                    </div>
 
                   {/* Topic */}
                   <div>
@@ -932,12 +1189,17 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                   </div>
 
                   {/* Updated On */}
-                  <div>
-                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-                      Updated On
-                    </Label>
-                    <Input type="date" defaultValue="2024-03-15" />
-                  </div>
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Updated On
+                      </Label>
+                      <Input
+                        type="date"
+                        value={new Date().toISOString().split('T')[0]}
+                        readOnly
+                        className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                      />
+                    </div>
 
                   {/* Questions */}
                   <div>
@@ -954,7 +1216,13 @@ export function ListeningContentEditorPage({ setCurrentPage, onLogout, isEditMod
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Duration (minutes)
                     </Label>
-                    <Input type="number" defaultValue="5" min="1" />
+                    <Input
+                      type="number"
+                      defaultValue="5"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                      min="1"
+                    />
                   </div>
                 </div>
               </div>

@@ -52,6 +52,7 @@ function AppContent() {
   const { user, isLoggedIn, logout } = useAuth();
   // Set default page to home for everyone
   const [currentPage, setCurrentPage] = useState<Page>("home");
+  const [editId, setEditId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (user?.role === "Administrator") {
@@ -60,6 +61,11 @@ function AppContent() {
       setCurrentPage("home");
     }
   }, [user]);
+
+  const handleSetCurrentPage = (page: Page, id?: string) => {
+    setCurrentPage(page);
+    setEditId(id);
+  };
 
   const handleLogout = () => {
     logout();
@@ -164,10 +170,10 @@ function AppContent() {
       {currentPage === "content-management" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <PracticeContentManagementPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
@@ -175,10 +181,11 @@ function AppContent() {
       {currentPage === "add-listening-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <ListeningContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            isEditMode={false}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
@@ -186,10 +193,11 @@ function AppContent() {
       {currentPage === "add-reading-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <ReadingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            isEditMode={false}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
@@ -197,10 +205,11 @@ function AppContent() {
       {currentPage === "add-writing-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <WritingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            isEditMode={false}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
@@ -208,10 +217,11 @@ function AppContent() {
       {currentPage === "add-speaking-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <SpeakingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            isEditMode={false}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
@@ -221,10 +231,11 @@ function AppContent() {
       {currentPage === "edit-listening-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <ListeningContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            editId={editId}
             onLogout={handleLogout}
             isEditMode={true}
           />
@@ -233,10 +244,11 @@ function AppContent() {
       {currentPage === "edit-reading-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <ReadingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            editId={editId}
             onLogout={handleLogout}
             isEditMode={true}
           />
@@ -245,10 +257,11 @@ function AppContent() {
       {currentPage === "edit-writing-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <WritingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            editId={editId}
             onLogout={handleLogout}
             isEditMode={true}
           />
@@ -257,10 +270,11 @@ function AppContent() {
       {currentPage === "edit-speaking-content" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <SpeakingContentEditorPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
+            editId={editId}
             onLogout={handleLogout}
             isEditMode={true}
           />
@@ -270,10 +284,10 @@ function AppContent() {
       {currentPage === "user-management" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={handleSetCurrentPage}
         >
           <UserManagementPage
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={handleSetCurrentPage}
             onLogout={handleLogout}
           />
         </ProtectedRoute>
