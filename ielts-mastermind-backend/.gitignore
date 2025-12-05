@@ -33,3 +33,6 @@ build/
 .vscode/
 
 **/src/main/resources/env.properties
+
+### Upload Files ###
+/uploads/
