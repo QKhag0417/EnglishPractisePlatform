@@ -1,9 +1,9 @@
-package com.ieltsmastermind.user.business;
+package com.ieltsmastermind.user.management.business;
 
 import com.ieltsmastermind.authentication.business.JwtUtils;
-import com.ieltsmastermind.user.domain.dto.HomePageResponseDto;
-import com.ieltsmastermind.user.entities.User;
-import com.ieltsmastermind.user.repositories.UserRepository;
+import com.ieltsmastermind.user.management.domain.dto.HomePageResponseDto;
+import com.ieltsmastermind.user.management.domain.entity.User;
+import com.ieltsmastermind.user.management.persistence.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.ieltsmastermind.user.entities;
+package com.ieltsmastermind.user.management.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

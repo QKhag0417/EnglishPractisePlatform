@@ -1,10 +1,10 @@
-package com.ieltsmastermind.user.controller;
+package com.ieltsmastermind.user.management.controller;
 
 import com.ieltsmastermind.common.response.ApiResponse;
 
 
-import com.ieltsmastermind.user.business.UserService;
-import com.ieltsmastermind.user.domain.dto.HomePageResponseDto;
+import com.ieltsmastermind.user.management.business.UserService;
+import com.ieltsmastermind.user.management.domain.dto.HomePageResponseDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

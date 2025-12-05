@@ -1,6 +1,6 @@
-package com.ieltsmastermind.user.repositories;
+package com.ieltsmastermind.user.management.persistence;
 
-import com.ieltsmastermind.user.entities.User;
+import com.ieltsmastermind.user.management.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

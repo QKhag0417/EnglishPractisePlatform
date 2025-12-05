@@ -1,4 +1,4 @@
-package com.ieltsmastermind.user.domain.dto;
+package com.ieltsmastermind.user.management.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

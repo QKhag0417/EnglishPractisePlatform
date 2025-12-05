@@ -253,6 +253,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         content.setDurationMinutes(request.getDurationMinutes());
         content.setQuestionCount(request.getQuestionCount());
         content.setUpdatedOn(LocalDateTime.now());
+        content.setStatus(request.getStatus());
 
         // 3) Remove existing questions + answers
         List<PracticeQuestion> existingQuestions =
