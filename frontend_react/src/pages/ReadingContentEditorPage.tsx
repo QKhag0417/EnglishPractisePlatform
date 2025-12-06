@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Page } from '../App';
 import { NavBarAdmin } from '../components/NavBarAdmin';
 import { Footer } from '../components/Footer';
-import { 
-  ChevronRight, 
-  Plus, 
-  Trash2, 
-  Upload, 
+import {
+  ChevronRight,
+  Plus,
+  Trash2,
+  Upload,
   X,
   Bold,
   Italic,
@@ -32,7 +32,8 @@ import { ChipInput } from '../components/ChipInput';
 interface ReadingContentEditorPageProps {
   setCurrentPage: (page: Page) => void;
   onLogout?: () => void;
-  isEditMode?: boolean; // Edit mode: pre-filled with existing data. Add mode: blank state.
+  isEditMode?: boolean;
+  editId?: string;
 }
 
 interface Question {
@@ -43,8 +44,6 @@ interface Question {
   correctAnswer: string;
   questionType: QuestionType;
   correctAnswers: string[];
-  ignoreCase: boolean;
-  ignorePunctuation: boolean;
   options: Option[];
   shuffleOptions: boolean;
   explanation: string;
@@ -59,64 +58,26 @@ interface Option {
 
 type QuestionType = 'mcq-single' | 'mcq-multiple' | 'short-text' | 'written-response';
 
-export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode = false }: ReadingContentEditorPageProps) {
-  // Note: Used when clicking edit from Practice Content Management. Same layout as Add, but pre-filled with existing exercise data.
+export function ReadingContentEditorPage({
+  setCurrentPage,
+  onLogout,
+  isEditMode = false,
+  editId
+}: ReadingContentEditorPageProps) {
+
   const [status, setStatus] = useState<'Draft' | 'Published'>('Draft');
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('1');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveState, setSaveState] = useState<'saved' | 'unsaved' | 'editing'>('saved');
-  const [questions, setQuestions] = useState<Question[]>([
-    { 
-      id: '1', 
-      number: 1, 
-      type: 'MCQ - Single', 
-      points: 1, 
-      correctAnswer: 'Option A', 
-      questionType: 'mcq-single', 
-      correctAnswers: [], 
-      ignoreCase: true, 
-      ignorePunctuation: true, 
-      options: [
-        { id: '1', text: 'Option A', feedback: '', isCorrect: true },
-        { id: '2', text: 'Option B', feedback: '', isCorrect: false },
-        { id: '3', text: 'Option C', feedback: '', isCorrect: false },
-        { id: '4', text: 'Option D', feedback: '', isCorrect: false },
-      ], 
-      shuffleOptions: false, 
-      explanation: '' 
-    },
-    { 
-      id: '2', 
-      number: 2, 
-      type: 'MCQ - Multiple', 
-      points: 1, 
-      correctAnswer: 'Option A, Option C', 
-      questionType: 'mcq-multiple', 
-      correctAnswers: [], 
-      ignoreCase: true, 
-      ignorePunctuation: true, 
-      options: [
-        { id: '1', text: 'Option A', feedback: '', isCorrect: true },
-        { id: '2', text: 'Option B', feedback: '', isCorrect: false },
-        { id: '3', text: 'Option C', feedback: '', isCorrect: true },
-        { id: '4', text: 'Option D', feedback: '', isCorrect: false },
-      ], 
-      shuffleOptions: false, 
-      explanation: '' 
-    },
-    { id: '3', number: 3, type: 'Short Text', points: 1, correctAnswer: 'photosynthesis', questionType: 'short-text', correctAnswers: ['photosynthesis'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '4', number: 4, type: 'Short Text', points: 1, correctAnswer: 'ecosystem', questionType: 'short-text', correctAnswers: ['ecosystem'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-    { id: '5', number: 5, type: 'Short Text', points: 1, correctAnswer: 'biodiversity', questionType: 'short-text', correctAnswers: ['biodiversity'], ignoreCase: true, ignorePunctuation: true, options: [], shuffleOptions: false, explanation: '' },
-  ]);
-  
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [questionType, setQuestionType] = useState<QuestionType>('short-text');
-  const [correctAnswers, setCorrectAnswers] = useState<string[]>(['photosynthesis']);
-  const [ignoreCase, setIgnoreCase] = useState(true);
-  const [ignorePunctuation, setIgnorePunctuation] = useState(true);
+  const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
   const [newAnswerInput, setNewAnswerInput] = useState('');
   const [currentScore, setCurrentScore] = useState('1');
   const [currentExplanation, setCurrentExplanation] = useState('');
-  
+  const [updatedOn, setUpdatedOn] = useState<string>('');
+
+
   const [options, setOptions] = useState<Option[]>([
     { id: '1', text: '', feedback: '', isCorrect: false },
     { id: '2', text: '', feedback: '', isCorrect: false },
@@ -125,31 +86,242 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
   ]);
   const [shuffleOptions, setShuffleOptions] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
   const [questionTypeTags, setQuestionTypeTags] = useState<string[]>([]);
   const [topicTags, setTopicTags] = useState<string[]>([]);
+  const [title, setTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [task, setTask] = useState<'TASK_1' | 'TASK_2' | 'TASK_3'>('');
+  const [durationMinutes, setDurationMinutes] = useState(20);
+
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
+  const mapQuestionsToApi = () => {
+    return questions.map((q, index) => ({
+      orderIndex: index + 1,
+      type:
+        q.questionType === 'mcq-single' ? 'MCQ_SINGLE' :
+        q.questionType === 'mcq-multiple' ? 'MCQ_MULTIPLE' :
+        q.questionType === 'short-text' ? 'SHORT_TEXT' :
+        'WRITTEN_RESPONSE',
+
+      explanation: q.explanation,
+      shuffleOptions: q.shuffleOptions,
+
+      answers:
+        q.questionType === 'short-text'
+          ? q.correctAnswers.map((ans, i) => ({
+              orderIndex: i + 1,
+              displayText: null,
+              isCorrect: true,
+              value: ans,
+            }))
+          : q.options.map((opt, i) => ({
+              orderIndex: i + 1,
+              displayText: opt.text,
+              isCorrect: opt.isCorrect,
+              value: opt.text,
+            })),
+    }));
+  };
+
+  const handleSaveExit = async () => {
+      try {
+        let thumbnailUrl = thumbnailFile;
+
+        if (thumbnailFile instanceof File) {
+          const formData = new FormData();
+          formData.append("file", thumbnailFile);
+
+          const uploadRes = await fetch("http://localhost:8080/api/files/thumbnail", {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const txt = await uploadRes.text();
+            throw new Error("Thumbnail upload failed: " + txt);
+          }
+
+          const uploaded = await uploadRes.json();
+          thumbnailUrl = uploaded.data;
+        }
+
+        const payload = {
+          skill: "READING",
+          title,
+          instructions,
+          task,
+          questionTypeTags,
+          topicTags,
+          thumbnailUrl: thumbnailUrl,
+          audioUrl: null,
+          durationMinutes,
+          questionCount: questions.length,
+          status: status === "Draft" ? "DRAFT" : "PUBLISHED",
+          questions: mapQuestionsToApi(),
+        };
+
+        const url = isEditMode
+          ? `http://localhost:8080/api/practice-content/${editId}`
+          : "http://localhost:8080/api/practice-content";
+
+        const method = isEditMode ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text);
+        }
+
+        alert(isEditMode ? "Updated successfully!" : "Created successfully!");
+        setCurrentPage("content-management");
+
+      } catch (err) {
+        console.error("Save failed:", err);
+        alert("Save content failed!");
+      }
+    };
+
+
+
   // Load selected question's data into the form
   useEffect(() => {
-    if (selectedQuestion) {
-      setQuestionType(selectedQuestion.questionType);
-      setCorrectAnswers(selectedQuestion.correctAnswers);
-      setIgnoreCase(selectedQuestion.ignoreCase);
-      setIgnorePunctuation(selectedQuestion.ignorePunctuation);
-      setOptions(selectedQuestion.options.length > 0 ? selectedQuestion.options : [
-        { id: '1', text: '', feedback: '', isCorrect: false },
-        { id: '2', text: '', feedback: '', isCorrect: false },
-        { id: '3', text: '', feedback: '', isCorrect: false },
-        { id: '4', text: '', feedback: '', isCorrect: false },
-      ]);
-      setShuffleOptions(selectedQuestion.shuffleOptions);
-      setCurrentExplanation(selectedQuestion.explanation);
-      setCurrentScore(selectedQuestion.points.toString());
-      setSaveState('saved');
-      setHasUnsavedChanges(false);
-    }
-  }, [selectedQuestionId, selectedQuestion]);
+    if (!selectedQuestion) return;
+
+    setQuestionType(selectedQuestion.questionType);
+    setCorrectAnswers(selectedQuestion.correctAnswers || []);
+    setShuffleOptions(selectedQuestion.shuffleOptions);
+    setOptions(
+      selectedQuestion.options.length > 0
+        ? selectedQuestion.options
+        : [
+            { id: '1', text: '', feedback: '', isCorrect: false },
+            { id: '2', text: '', feedback: '', isCorrect: false },
+            { id: '3', text: '', feedback: '', isCorrect: false },
+            { id: '4', text: '', feedback: '', isCorrect: false },
+          ]
+    );
+
+    setCurrentExplanation(selectedQuestion.explanation || '');
+    setCurrentScore(String(selectedQuestion.points || 1));
+
+    setSaveState('saved');
+    setHasUnsavedChanges(false);
+  }, [selectedQuestionId]);
+
+  useEffect(() => {
+    if (!isEditMode || !editId) return;
+
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/practice-content/${editId}`,
+          { credentials: "include" }
+        );
+
+        if (!res.ok) throw new Error("Failed to load detail");
+
+        const result = await res.json();
+        const data = result.data;
+
+console.log("✅ API /practice-content DETAIL RETURN:");
+    console.log(data);
+    console.table(data?.questions || []);
+        setTitle(data.title);
+        setInstructions(data.instructions);
+        setTask(data.task);
+        setQuestionTypeTags(data.questionTypeTags);
+        setTopicTags(data.topicTags);
+        setThumbnailFile(data.thumbnailUrl);
+
+        setDurationMinutes(data.durationMinutes);
+        setStatus(data.status === "DRAFT" ? "Draft" : "Published");
+
+        if (data.updatedOn) {
+          setUpdatedOn(data.updatedOn.split("T")[0]);
+        }
+
+        const mappedQuestions = data.questions.map((q: any, index: number) => ({
+          id: String(index + 1),
+          number: index + 1,
+
+          type:
+            q.type === "MCQ_SINGLE" ? "MCQ - Single" :
+            q.type === "MCQ_MULTIPLE" ? "MCQ - Multiple" :
+            q.type === "SHORT_TEXT" ? "Short Text" :
+            "Written Response",
+
+          points: 1,
+
+          correctAnswer:
+            q.type === "SHORT_TEXT"
+              ? q.answers.map((a: any) => a.value).join(", ")
+              : q.answers.find((a: any) => a.isCorrect)?.displayText || "",
+
+          questionType:
+            q.type === "MCQ_SINGLE" ? "mcq-single" :
+            q.type === "MCQ_MULTIPLE" ? "mcq-multiple" :
+            q.type === "SHORT_TEXT" ? "short-text" :
+            "written-response",
+
+          correctAnswers: q.answers.map((a: any) => a.value),
+
+          options: q.answers.map((a: any, i: number) => ({
+            id: String(i + 1),
+            text: a.displayText || "",
+            feedback: "",
+            isCorrect: a.isCorrect
+          })),
+
+          shuffleOptions: q.shuffleOptions,
+          explanation: q.explanation
+        }));
+
+        setQuestions(mappedQuestions);
+        setSelectedQuestionId(mappedQuestions[0]?.id || "1");
+
+      } catch (err) {
+        console.error("Load edit failed:", err);
+        alert("Load content failed!");
+      }
+    };
+
+    fetchDetail();
+  }, [isEditMode, editId]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+
+    const initialQuestion: Question = {
+      id: Date.now().toString(),
+      number: 1,
+      type: 'Short Text',
+      points: 1,
+      correctAnswer: '',
+      questionType: 'short-text',
+      correctAnswers: [],
+
+      options: [],
+      shuffleOptions: false,
+      explanation: ''
+    };
+
+    setQuestions([initialQuestion]);
+    setSelectedQuestionId(initialQuestion.id);
+  }, []);
 
   const addOption = () => {
     const newOption: Option = {
@@ -168,7 +340,7 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
   };
 
   const updateOption = (id: string, field: keyof Option, value: string | boolean) => {
-    setOptions(options.map(opt => 
+    setOptions(options.map(opt =>
       opt.id === id ? { ...opt, [field]: value } : opt
     ));
     markAsUnsaved();
@@ -191,8 +363,7 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
       correctAnswer: '',
       questionType: 'short-text',
       correctAnswers: [],
-      ignoreCase: true,
-      ignorePunctuation: true,
+
       options: [],
       shuffleOptions: false,
       explanation: ''
@@ -237,8 +408,8 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
 
   const handleSaveQuestion = () => {
     // Update the selected question with current form values
-    setQuestions(questions.map(q => 
-      q.id === selectedQuestionId 
+    setQuestions(questions.map(q =>
+      q.id === selectedQuestionId
         ? {
             ...q,
             type: questionType === 'short-text' ? 'Short Text' :
@@ -246,8 +417,8 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                   questionType === 'mcq-multiple' ? 'MCQ - Multiple' :
                   'Written Response',
             points: parseInt(currentScore) || 1,
-            correctAnswer: questionType === 'short-text' 
-              ? correctAnswers.join(', ') 
+            correctAnswer: questionType === 'short-text'
+              ? correctAnswers.join(', ')
               : questionType === 'mcq-single'
               ? options.find(o => o.isCorrect)?.text || ''
               : questionType === 'mcq-multiple'
@@ -255,8 +426,7 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
               : 'Manual marking required',
             questionType: questionType,
             correctAnswers: correctAnswers,
-            ignoreCase: ignoreCase,
-            ignorePunctuation: ignorePunctuation,
+
             options: options,
             shuffleOptions: shuffleOptions,
             explanation: currentExplanation
@@ -294,10 +464,55 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
     }
   };
 
-  const handleSaveExit = () => {
-    // Save logic here
-    setCurrentPage('content-management');
-  };
+    // File upload handlers
+    const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          alert('Please upload a .jpg or .png file');
+          return;
+        }
+
+        // Validate file size (25 MB)
+        if (file.size > 25 * 1024 * 1024) {
+          alert('File size must be less than 25 MB');
+          return;
+        }
+
+        setThumbnailFile(file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setThumbnailPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a .jpg or .png file');
+        return;
+      }
+
+      // Validate file size (25 MB)
+      if (file.size > 25 * 1024 * 1024) {
+        alert('File size must be less than 25 MB');
+        return;
+      }
+
+      // Create preview URL
+      setThumbnailPreview(URL.createObjectURL(file));
+      setThumbnailFile(file); // file thật để gửi backend
+    };
 
   const handleCancel = () => {
     // Discard unsaved changes and navigate back to Practice Content Management
@@ -442,6 +657,8 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
 
                 {/* Editor Area */}
                 <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
                   placeholder="Type the shared instructions and passage text here (e.g., Read the passage below and answer questions 1-5. Choose the correct letter, A, B, C or D)."
                   className="min-h-[200px] border-gray-300 border-t-0 rounded-t-none rounded-b-[8px] resize-none font-['Inter']"
                 />
@@ -662,7 +879,7 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                       <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
                         Correct answers
                       </Label>
-                      
+
                       {/* Tags Display */}
                       <div className="flex flex-wrap gap-[8px] mb-[12px]">
                         {correctAnswers.map((answer, index) => (
@@ -700,40 +917,6 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                       <p className="font-['Inter'] text-[12px] text-gray-500 mt-[8px]">
                         Add multiple accepted variations (e.g., "photosynthesis", "photo synthesis")
                       </p>
-                    </div>
-
-                    {/* Validation Options */}
-                    <div className="space-y-[12px] pt-[16px] border-t border-gray-200">
-                      <div className="flex items-center gap-[12px]">
-                        <input
-                          type="checkbox"
-                          id="ignore-case"
-                          checked={ignoreCase}
-                          onChange={(e) => { setIgnoreCase(e.target.checked); markAsUnsaved(); }}
-                          className="w-[18px] h-[18px] cursor-pointer"
-                        />
-                        <label
-                          htmlFor="ignore-case"
-                          className="font-['Inter'] text-[14px] text-gray-700 cursor-pointer"
-                        >
-                          Ignore case
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-[12px]">
-                        <input
-                          type="checkbox"
-                          id="ignore-punctuation"
-                          checked={ignorePunctuation}
-                          onChange={(e) => { setIgnorePunctuation(e.target.checked); markAsUnsaved(); }}
-                          className="w-[18px] h-[18px] cursor-pointer"
-                        />
-                        <label
-                          htmlFor="ignore-punctuation"
-                          className="font-['Inter'] text-[14px] text-gray-700 cursor-pointer"
-                        >
-                          Ignore punctuation
-                        </label>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -786,8 +969,12 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                   Upload Thumbnail
                 </Label>
 
-                {!thumbnailFile ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer">
+                {!thumbnailPreview  ? (
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleThumbnailDrop}
+                  >
                     <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
                     <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
                       Drop file or browse
@@ -795,16 +982,32 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                     <p className="font-['Inter'] text-[12px] text-gray-500">
                       Formats: .jpg, .png<br />Max file size: 25 MB
                     </p>
+                    <input
+                      type="file"
+                      ref={thumbnailInputRef}
+                      onChange={handleThumbnailChange}
+                      className="hidden"
+                      accept=".jpg, .png"
+                    />
+                    <Button
+                      onClick={() => thumbnailInputRef.current?.click()}
+                      className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                    >
+                      Browse
+                    </Button>
                   </div>
                 ) : (
                   <div className="relative">
                     <img
-                      src={thumbnailFile}
+                      src={thumbnailPreview}
                       alt="Thumbnail preview"
                       className="w-full h-[180px] object-cover rounded-[8px]"
                     />
                     <button
-                      onClick={() => setThumbnailFile(null)}
+                      onClick={() => {
+                          setThumbnailFile(null);
+                          setThumbnailPreview(null);
+                      }}
                       className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
                     >
                       <X className="w-[16px] h-[16px] text-gray-700" />
@@ -813,42 +1016,58 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                 )}
               </div>
 
+
+
+
+
               {/* Exercise Info */}
               <div className="bg-white rounded-[12px] p-[24px] shadow-sm border border-gray-200">
                 <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[20px] block">
                   Exercise Info
                 </Label>
-
                 <div className="space-y-[16px]">
+                  {/* Title */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Title
+                    </Label>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter exercise title…"
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                    />
+                  </div>
                   {/* Task */}
                   <div>
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Task
                     </Label>
-                    <Select defaultValue="1">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Task 1</SelectItem>
-                        <SelectItem value="2">Task 2</SelectItem>
-                        <SelectItem value="3">Task 3</SelectItem>
-                      </SelectContent>
+                    <Select value={task} onValueChange={setTask}>
+                        <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
+                          <SelectValue placeholder="Select a task" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TASK_1">Task 1</SelectItem>
+                          <SelectItem value="TASK_2">Task 2</SelectItem>
+                          <SelectItem value="TASK_3">Task 3</SelectItem>
+                        </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Question Type */}
-                  <div>
-                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-                      Question Type
-                    </Label>
-                    <ChipInput
-                      value={questionTypeTags}
-                      onChange={setQuestionTypeTags}
-                      placeholder="Add tag..."
-                      maxTags={4}
-                    />
-                  </div>
+                    {/* Question Type */}
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Question Type
+                      </Label>
+                      <ChipInput
+                        value={questionTypeTags}
+                        onChange={setQuestionTypeTags}
+                        placeholder="Add tag..."
+                        maxTags={4}
+                        className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900"
+                      />
+                    </div>
 
                   {/* Topic */}
                   <div>
@@ -864,12 +1083,17 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                   </div>
 
                   {/* Updated On */}
-                  <div>
-                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-                      Updated On
-                    </Label>
-                    <Input type="date" defaultValue="2024-03-15" />
-                  </div>
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Updated On
+                      </Label>
+                      <Input
+                        type="date"
+                        value={new Date().toISOString().split('T')[0]}
+                        readOnly
+                        className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                      />
+                    </div>
 
                   {/* Questions */}
                   <div>
@@ -886,7 +1110,13 @@ export function ReadingContentEditorPage({ setCurrentPage, onLogout, isEditMode 
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Duration (minutes)
                     </Label>
-                    <Input type="number" defaultValue="20" min="1" />
+                    <Input
+                      type="number"
+                      defaultValue="20"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                      min="1"
+                    />
                   </div>
                 </div>
               </div>
