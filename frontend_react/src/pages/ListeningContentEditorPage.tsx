@@ -49,6 +49,7 @@ interface Question {
   options: Option[];
   shuffleOptions: boolean;
   explanation: string;
+  questionText?: string;
 }
 
 interface Option {
@@ -78,7 +79,7 @@ export function ListeningContentEditorPage({
   const [currentScore, setCurrentScore] = useState('1');
   const [currentExplanation, setCurrentExplanation] = useState('');
   const [updatedOn, setUpdatedOn] = useState<string>('');
-
+  const [currentQuestionText, setCurrentQuestionText] = useState('');
 
   const [options, setOptions] = useState<Option[]>([
     { id: '1', text: '', feedback: '', isCorrect: false },
@@ -100,8 +101,8 @@ export function ListeningContentEditorPage({
   const [topicTags, setTopicTags] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [task, setTask] = useState<'TASK_1' | 'TASK_2' | 'TASK_3' | 'TASK_4'>('TASK_1');
-  const [durationMinutes, setDurationMinutes] = useState(5);
+  const [task, setTask] = useState(''); // default
+  const [durationMinutes, setDurationMinutes] = useState(15);
 
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -117,7 +118,7 @@ export function ListeningContentEditorPage({
 
       explanation: q.explanation,
       shuffleOptions: q.shuffleOptions,
-
+      questionText: q.questionText,
       answers:
         q.questionType === 'short-text'
           ? q.correctAnswers.map((ans, i) => ({
@@ -137,26 +138,60 @@ export function ListeningContentEditorPage({
 
   const handleSaveExit = async () => {
     try {
-      const formData = new FormData();
+      let thumbnailUrl = thumbnailFile;
+      let audioUrl = audioFile;
 
-      // Append text fields
-      formData.append("skill", "LISTENING");
-      formData.append("title", title);
-      formData.append("instructions", instructions);
-      formData.append("task", task);
-      formData.append("questionTypeTags", JSON.stringify(questionTypeTags));
-      formData.append("topicTags", JSON.stringify(topicTags));
+      if (thumbnailFile instanceof File) {
+        const formData = new FormData();
+        formData.append("file", thumbnailFile);
 
-      formData.append("durationMinutes", durationMinutes.toString());
-      formData.append("questionCount", questions.length.toString());
-      formData.append("status", status === "Draft" ? "DRAFT" : "PUBLISHED");
+        const uploadRes = await fetch("http://localhost:8080/api/files/thumbnail", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
 
-      // Append questions
-      formData.append("questions", JSON.stringify(mapQuestionsToApi()));
+        if (!uploadRes.ok) {
+          const txt = await uploadRes.text();
+          throw new Error("Thumbnail upload failed: " + txt);
+        }
 
-      // Append files
-      if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
-      if (audioFile) formData.append("audio", audioFile);
+        const uploaded = await uploadRes.json();
+        thumbnailUrl = uploaded.data;
+      }
+
+      if (audioFile instanceof File) {
+        const formDataAudio = new FormData();
+        formDataAudio.append("file", audioFile);
+
+        const uploadAudioRes = await fetch("http://localhost:8080/api/files/audio", {
+          method: "POST",
+          credentials: "include",
+          body: formDataAudio,
+        });
+
+        if (!uploadAudioRes.ok) {
+          const txt = await uploadAudioRes.text();
+          throw new Error("Audio upload failed: " + txt);
+        }
+        const audioJson = await uploadAudioRes.json();
+        audioUrl = audioJson.data;
+      }
+
+      const payload = {
+        skill: "LISTENING",
+        title,
+        instructions,
+        task,
+        questionTypeTags,
+        topicTags,
+        thumbnailUrl: thumbnailUrl,
+        audioUrl: audioUrl,
+        durationMinutes,
+        questionCount: questions.length,
+        status: status === "Draft" ? "DRAFT" : "PUBLISHED",
+        questions: mapQuestionsToApi(),
+      };
 
       const url = isEditMode
         ? `http://localhost:8080/api/practice-content/${editId}`
@@ -166,9 +201,9 @@ export function ListeningContentEditorPage({
 
       const res = await fetch(url, {
         method,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: formData,
-        //KHÔNG được set Content-Type, browser tự thêm boundary
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -184,7 +219,7 @@ export function ListeningContentEditorPage({
       alert("Save content failed!");
     }
   };
-  // Load selected question's data into the form
+
   useEffect(() => {
     if (!selectedQuestion) return;
 
@@ -204,7 +239,7 @@ export function ListeningContentEditorPage({
 
     setCurrentExplanation(selectedQuestion.explanation || '');
     setCurrentScore(String(selectedQuestion.points || 1));
-
+    setCurrentQuestionText(selectedQuestion.questionText || '');
     setSaveState('saved');
     setHasUnsavedChanges(false);
   }, [selectedQuestionId]);
@@ -224,70 +259,59 @@ export function ListeningContentEditorPage({
         const result = await res.json();
         const data = result.data;
 
-        console.log("✅ API /practice-content DETAIL RETURN:");
-        console.log(data);
-        console.table(data?.questions || []);
+console.log("✅ API /practice-content DETAIL RETURN:");
+    console.log(data);
+    console.table(data?.questions || []);
+        setTitle(data.title);
+        setInstructions(data.instructions);
+        setTask(data.task);
+        setQuestionTypeTags(data.questionTypeTags);
+        setTopicTags(data.topicTags);
+        setThumbnailFile(data.thumbnailUrl);
+        setAudioFile(data.audioUrl);
+        setDurationMinutes(data.durationMinutes);
 
-        // ===========================
-        //  Set basic fields
-        // ===========================
-        setTitle(data.title || "");
-        setInstructions(data.instructions || "");
-        setTask(data.task || "");
-        setQuestionTypeTags(data.questionTypeTags || []);
-        setTopicTags(data.topicTags || []);
-        setThumbnailFile(data.thumbnailUrl || "");
-        setAudioFile(data.audioUrl || "");
-        setDurationMinutes(data.durationMinutes || 0);
         setStatus(data.status === "DRAFT" ? "Draft" : "Published");
 
         if (data.updatedOn) {
           setUpdatedOn(data.updatedOn.split("T")[0]);
         }
 
-        // ===========================
-        //  Map Questions
-        // ===========================
-        const mappedQuestions = (data.questions || []).map((q: any, index: number) => {
-          const typeLabel =
+        const mappedQuestions = data.questions.map((q: any, index: number) => ({
+          id: String(index + 1),
+          number: index + 1,
+
+          type:
             q.type === "MCQ_SINGLE" ? "MCQ - Single" :
             q.type === "MCQ_MULTIPLE" ? "MCQ - Multiple" :
             q.type === "SHORT_TEXT" ? "Short Text" :
-            "Written Response";
+            "Written Response",
 
-          const typeKey =
+          points: 1,
+
+          correctAnswer:
+            q.type === "SHORT_TEXT"
+              ? q.answers.map((a: any) => a.value).join(", ")
+              : q.answers.find((a: any) => a.isCorrect)?.displayText || "",
+
+          questionType:
             q.type === "MCQ_SINGLE" ? "mcq-single" :
             q.type === "MCQ_MULTIPLE" ? "mcq-multiple" :
             q.type === "SHORT_TEXT" ? "short-text" :
-            "written-response";
+            "written-response",
 
-          const correctAnswer =
-            q.type === "SHORT_TEXT"
-              ? q.answers.map((a: any) => a.value).join(", ")
-              : q.answers.find((a: any) => a.isCorrect)?.displayText || "";
+          correctAnswers: q.answers.map((a: any) => a.value),
 
-          return {
-            id: String(index + 1),
-            number: index + 1,
-            type: typeLabel,
-            points: 1,
+          options: q.answers.map((a: any, i: number) => ({
+            id: String(i + 1),
+            text: a.displayText || "",
+            feedback: "",
+            isCorrect: a.isCorrect
+          })),
 
-            correctAnswer,
-            questionType: typeKey,
-
-            correctAnswers: q.answers.map((a: any) => a.value),
-
-            options: q.answers.map((a: any, i: number) => ({
-              id: String(i + 1),
-              text: a.displayText || "",
-              feedback: "",
-              isCorrect: a.isCorrect
-            })),
-
-            shuffleOptions: q.shuffleOptions,
-            explanation: q.explanation
-          };
-        });
+          shuffleOptions: q.shuffleOptions,
+          explanation: q.explanation
+        }));
 
         setQuestions(mappedQuestions);
         setSelectedQuestionId(mappedQuestions[0]?.id || "1");
@@ -428,7 +452,8 @@ export function ListeningContentEditorPage({
 
             options: options,
             shuffleOptions: shuffleOptions,
-            explanation: currentExplanation
+            explanation: currentExplanation,
+            questionText: currentQuestionText
           }
         : q
     ));
@@ -792,31 +817,44 @@ export function ListeningContentEditorPage({
               </div>
 
               {/* Answer & Scoring Block */}
-              <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-[20px]">
-                  <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900">
-                    Answer & Scoring
-                  </h3>
-                  {selectedQuestion && (
-                    <div className="flex items-center gap-[8px]">
-                      <span className="font-['Inter'] text-[14px] text-gray-600">
-                        Editing: <span className="text-[#1977f3] font-medium">Question {selectedQuestion.number}</span>
-                      </span>
-                      <span className="text-gray-400">·</span>
-                      {saveState === 'saved' ? (
-                        <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-green-600">
-                          <Check className="w-[14px] h-[14px]" />
-                          Saved
+                <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
+                  <div className="flex items-center justify-between mb-[20px]">
+                    <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900">
+                      Answer & Scoring
+                    </h3>
+                    {selectedQuestion && (
+                      <div className="flex items-center gap-[8px]">
+                        <span className="font-['Inter'] text-[14px] text-gray-600">
+                          Editing: <span className="text-[#1977f3] font-medium">Question {selectedQuestion.number}</span>
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-orange-600">
-                          <AlertCircle className="w-[14px] h-[14px]" />
-                          Unsaved changes
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <span className="text-gray-400">·</span>
+                        {saveState === 'saved' ? (
+                          <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-green-600">
+                            <Check className="w-[14px] h-[14px]" />
+                            Saved
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-orange-600">
+                            <AlertCircle className="w-[14px] h-[14px]" />
+                            Unsaved changes
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Question Text Field */}
+                  <div className="mb-[24px]">
+                    <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
+                      Question text
+                    </Label>
+                    <Textarea
+                      placeholder="Type the question learners will see…"
+                      value={currentQuestionText}
+                      onChange={(e) => { setCurrentQuestionText(e.target.value); markAsUnsaved(); }}
+                      className="min-h-[80px] resize-none"
+                    />
+                  </div>
 
                 {/* Question Type Dropdown */}
                 <div className="mb-[24px]">
@@ -1148,16 +1186,16 @@ export function ListeningContentEditorPage({
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Task
                     </Label>
-                    <Select defaultValue="1">
-                      <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Task 1</SelectItem>
-                        <SelectItem value="2">Task 2</SelectItem>
-                        <SelectItem value="3">Task 3</SelectItem>
-                        <SelectItem value="4">Task 4</SelectItem>
-                      </SelectContent>
+                    <Select value={task} onValueChange={setTask}>
+                        <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
+                          <SelectValue placeholder="Select a task" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TASK_1">Task 1</SelectItem>
+                          <SelectItem value="TASK_2">Task 2</SelectItem>
+                          <SelectItem value="TASK_3">Task 3</SelectItem>
+                          <SelectItem value="TASK_4">Task 4</SelectItem>
+                        </SelectContent>
                     </Select>
                   </div>
 

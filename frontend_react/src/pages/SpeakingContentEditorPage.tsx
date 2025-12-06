@@ -1,369 +1,665 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Page } from '../App';
-import { Footer } from '../components/Footer';
 import { NavBarAdmin } from '../components/NavBarAdmin';
-import { Plus, Pencil, Trash2, Search, Mail, Phone } from 'lucide-react';
+import { Footer } from '../components/Footer';
+import {
+  Plus,
+  Trash2,
+  Upload,
+  X,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  List,
+  ListOrdered,
+  Edit2,
+  Image
+} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Textarea } from '../components/ui/textarea';
+import { Badge } from '../components/ui/badge';
+import { ChipInput } from '../components/ChipInput';
 
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Learner' | 'Administrator';
-  status: 'Active' | 'Inactive';
-  joinedDate: string;
-  lastActive: string;
-  testsCompleted: number;
-}
-
-interface  SpeakingContentEditorPageProps {
+interface SpeakingContentEditorPageProps {
   setCurrentPage: (page: Page) => void;
   onLogout?: () => void;
   isEditMode?: boolean;
+  editId?: string;
 }
 
-export function SpeakingContentEditorPage({ setCurrentPage, onLogout }:  SpeakingContentEditorPageProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterRole, setFilterRole] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserData | null>(null);
-  
-  // Mock data
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-01-15',
-      lastActive: '2024-03-20',
-      testsCompleted: 12,
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-02-01',
-      lastActive: '2024-03-19',
-      testsCompleted: 8,
-    },
-    {
-      id: '3',
-      name: 'Michael Chen',
-      email: 'mchen@example.com',
-      role: 'Administrator',
-      status: 'Active',
-      joinedDate: '2023-12-10',
-      lastActive: '2024-03-21',
-      testsCompleted: 0,
-    },
-    {
-      id: '4',
-      name: 'Emily Davis',
-      email: 'emily.d@example.com',
-      role: 'Learner',
-      status: 'Inactive',
-      joinedDate: '2024-01-20',
-      lastActive: '2024-02-15',
-      testsCompleted: 5,
-    },
-    {
-      id: '5',
-      name: 'David Wilson',
-      email: 'dwilson@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-03-01',
-      lastActive: '2024-03-21',
-      testsCompleted: 3,
-    },
-  ]);
+interface SpeakingQuestion {
+  id: string;
+  number: number;
+  questionText: string;
+}
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+export function SpeakingContentEditorPage({
+  setCurrentPage,
+  onLogout,
+  isEditMode = false,
+  editId
+}: SpeakingContentEditorPageProps) {
+  // Note: Used when clicking edit from Practice Content Management. Same layout as Add, but pre-filled with existing exercise data.
+  const [status, setStatus] = useState<'Draft' | 'Published'>('Draft');
+  const [thumbnailFile, setThumbnailFile] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string>('1');
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionTypeTags, setQuestionTypeTags] = useState<string[]>([]);
+  const [updatedOn, setUpdatedOn] = useState<string>('');
+  const [currentQuestionText, setCurrentQuestionText] = useState('');
+  // File upload ref
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const [topicTags, setTopicTags] = useState<string[]>([]);
+  const [title, setTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [task, setTask] = useState<'TASK_1' | 'TASK_2'>('');
+  const [durationMinutes, setDurationMinutes] = useState(10);
 
-  const handleDelete = (id: string) => {
-    setUsers(users.filter(u => u.id !== id));
+  const mapQuestionsToApi = () => {
+    return questions.map(q => ({
+      id: q.id,
+      number: q.number,
+      orderIndex: 1,
+      type: "WRITTEN",
+      questionText: q.questionText
+    }));
   };
 
-  const handleEdit = (user: UserData) => {
-    setEditingUser(user);
-    setIsDialogOpen(true);
+
+  const addNewQuestion = () => {
+    const newQuestion: SpeakingQuestion = {
+      id: Date.now().toString(),
+      number: questions.length + 1,
+      questionText: ''
+    };
+    setQuestions([...questions, newQuestion]);
   };
 
-  const handleAddNew = () => {
-    setEditingUser(null);
-    setIsDialogOpen(true);
+  const deleteQuestion = (id: string) => {
+    if (questions.length > 1) {
+      const filteredQuestions = questions.filter(q => q.id !== id);
+      // Renumber all questions sequentially from 1
+      const renumberedQuestions = filteredQuestions.map((q, index) => ({
+        ...q,
+        number: index + 1
+      }));
+      setQuestions(renumberedQuestions);
+      if (selectedQuestionId === id) {
+        setSelectedQuestionId(renumberedQuestions[0].id);
+      }
+    }
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to the backend
-    setIsDialogOpen(false);
-    setEditingUser(null);
+  const updateQuestionText = (id: string, text: string) => {
+    setQuestions(questions.map(q =>
+      q.id === id ? { ...q, questionText: text } : q
+    ));
+  };
+
+  const handleSaveExit = async () => {
+    try {
+      let thumbnailUrl = thumbnailFile;
+
+      if (thumbnailFile instanceof File) {
+        const formData = new FormData();
+        formData.append("file", thumbnailFile);
+
+        const uploadRes = await fetch("http://localhost:8080/api/files/thumbnail", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const txt = await uploadRes.text();
+          throw new Error("Thumbnail upload failed: " + txt);
+        }
+
+        const uploaded = await uploadRes.json();
+        thumbnailUrl = uploaded.data;
+      }
+
+      const payload = {
+        skill: "SPEAKING",
+        title,
+        instructions,
+        task,
+        questionTypeTags,
+        topicTags,
+        thumbnailUrl: thumbnailUrl,
+        audioUrl: null,
+        durationMinutes,
+        questionCount: questions.length,
+        status: status === "Draft" ? "DRAFT" : "PUBLISHED",
+        questions: mapQuestionsToApi(),
+      };
+
+      const url = isEditMode
+        ? `http://localhost:8080/api/practice-content/${editId}`
+        : "http://localhost:8080/api/practice-content";
+
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+      }
+
+      alert(isEditMode ? "Updated successfully!" : "Created successfully!");
+      setCurrentPage("content-management");
+
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert("Save content failed!");
+    }
+  };
+
+  useEffect(() => {
+      if (!isEditMode || !editId) return;
+
+      const fetchDetail = async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:8080/api/practice-content/${editId}`,
+            { credentials: "include" }
+          );
+
+          if (!res.ok) throw new Error("Failed to load detail");
+
+          const result = await res.json();
+          const data = result.data;
+
+  console.log("✅ API /practice-content DETAIL RETURN:");
+      console.log(data);
+      console.table(data?.questions || []);
+          setTitle(data.title);
+          setInstructions(data.instructions);
+          setTask(data.task);
+          setQuestionTypeTags(data.questionTypeTags);
+          setTopicTags(data.topicTags);
+          setThumbnailFile(data.thumbnailUrl);
+
+          setDurationMinutes(data.durationMinutes);
+          setStatus(data.status === "DRAFT" ? "Draft" : "Published");
+
+          if (data.updatedOn) {
+            setUpdatedOn(data.updatedOn.split("T")[0]);
+          }
+
+          const mappedQuestions: SpeakingQuestion[] = data.questions.map((q: any, index: number) => ({
+            id: String(index + 1),
+            number: index + 1,
+            questionText: q.questionText || ""  // Quan trọng để hiển thị nội dung cũ
+          }));
+
+          setQuestions(mappedQuestions);
+          setSelectedQuestionId(mappedQuestions[0]?.id || "1");
+
+        } catch (err) {
+          console.error("Load edit failed:", err);
+          alert("Load content failed!");
+        }
+      };
+
+      fetchDetail();
+    }, [isEditMode, editId]);
+
+        // File upload handlers
+      const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          // Validate file type
+          const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!validTypes.includes(file.type)) {
+            alert('Please upload a .jpg or .png file');
+            return;
+          }
+
+          // Validate file size (25 MB)
+          if (file.size > 25 * 1024 * 1024) {
+            alert('File size must be less than 25 MB');
+            return;
+          }
+
+          setThumbnailFile(file);
+
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setThumbnailPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          alert('Please upload a .jpg or .png file');
+          return;
+        }
+
+        // Validate file size (25 MB)
+        if (file.size > 25 * 1024 * 1024) {
+          alert('File size must be less than 25 MB');
+          return;
+        }
+
+        // Create preview URL
+        setThumbnailPreview(URL.createObjectURL(file));
+        setThumbnailFile(file); // file thật để gửi backend
+      };
+
+  const handleCancel = () => {
+    // Discard unsaved changes and navigate back to Practice Content Management
+    setCurrentPage('content-management');
   };
 
   return (
-    <div className="bg-white min-h-screen">
-      <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="user-management" />
+    <div className="bg-gray-50 min-h-screen flex flex-col">
+      <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="content-management" />
 
-      <div className="pt-[100px] pb-[60px] px-[60px]">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex items-center justify-between mb-[40px]">
-            <div>
-              <h1 className="font-['Inter'] text-[#1977f3] text-[36px] mb-2">
-                User Management
-              </h1>
-              <p className="text-gray-600 text-[16px]">
-                Manage user accounts and permissions
-              </p>
-            </div>
-            <Button onClick={handleAddNew} className="bg-[#1977f3] hover:bg-[#1567d3]">
-              <Plus className="w-5 h-5 mr-2" />
-              Add New User
-            </Button>
-          </div>
+      {/* Header Section */}
+      <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto">
+          {/* Title and Actions */}
+          <div className="flex items-center justify-between">
+            <h1 className="font-['Inter'] text-[32px] text-gray-900">
+              {isEditMode ? 'Edit Speaking Exercise' : 'Add Speaking Exercise'}
+            </h1>
 
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-4 gap-[20px] mb-[30px]">
-            <div className="bg-blue-50 border border-blue-200 rounded-[12px] p-[20px]">
-              <p className="text-gray-600 text-[14px] mb-1">Total Users</p>
-              <p className="text-[#1977f3] text-[32px]">{users.length}</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-[12px] p-[20px]">
-              <p className="text-gray-600 text-[14px] mb-1">Active Users</p>
-              <p className="text-green-600 text-[32px]">{users.filter(u => u.status === 'Active').length}</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-[12px] p-[20px]">
-              <p className="text-gray-600 text-[14px] mb-1">Learners</p>
-              <p className="text-purple-600 text-[32px]">{users.filter(u => u.role === 'Learner').length}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-[12px] p-[20px]">
-              <p className="text-gray-600 text-[14px] mb-1">Administrators</p>
-              <p className="text-orange-600 text-[32px]">{users.filter(u => u.role === 'Administrator').length}</p>
-            </div>
-          </div>
+            <div className="flex items-center gap-[12px]">
+              {/* Status Pills */}
+              <div className="flex gap-[8px] bg-gray-100 rounded-[8px] p-[4px]">
+                <button
+                  onClick={() => setStatus('Draft')}
+                  className={`px-[16px] py-[6px] rounded-[6px] font-['Inter'] font-medium text-[14px] transition-colors ${
+                    status === 'Draft'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Draft
+                </button>
+                <button
+                  onClick={() => setStatus('Published')}
+                  className={`px-[16px] py-[6px] rounded-[6px] font-['Inter'] font-medium text-[14px] transition-colors ${
+                    status === 'Published'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Published
+                </button>
+              </div>
 
-          {/* Filters */}
-          <div className="flex gap-[20px] mb-[30px]">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              {/* Action Buttons */}
+              <Button
+                onClick={handleCancel}
+                variant="outline"
+                className="font-['Inter'] text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveExit}
+                className="bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+              >
+                Save & Exit
+              </Button>
             </div>
-            <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="Learner">Learner</SelectItem>
-                <SelectItem value="Administrator">Administrator</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* User Table */}
-          <div className="bg-white border rounded-[12px] overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined Date</TableHead>
-                  <TableHead>Last Active</TableHead>
-                  <TableHead>Tests Completed</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-[14px] text-gray-500 flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {user.email}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={user.role === 'Administrator' ? 'default' : 'secondary'}
-                        className={user.role === 'Administrator' ? 'bg-purple-500' : ''}
-                      >
-                        {user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === 'Active' ? 'default' : 'outline'}>
-                        {user.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(user.joinedDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(user.lastActive).toLocaleDateString()}</TableCell>
-                    <TableCell>{user.testsCompleted}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(user)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(user.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
           </div>
         </div>
       </div>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
-            <DialogDescription>
-              {editingUser ? 'Update the user details and permissions.' : 'Create a new user account.'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* First Name and Last Name - side by side */}
-            {/* Behaviour: When editing, these fields are pre-filled with the user's current first and last name */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input 
-                  id="firstName" 
-                  defaultValue={editingUser ? editingUser.name.split(' ')[0] : ''}
-                  placeholder="John"
+      {/* Main Content */}
+      <div className="flex-1 pt-[40px] pb-[60px] px-[60px]">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="grid grid-cols-[1fr_400px] gap-[32px]">
+            {/* Left Column - Instructions & Questions */}
+            <div className="space-y-[24px]">
+              {/* Instructions & Note Layout Block */}
+              <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
+                <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[16px] block">
+                  Instructions & Note Layout
+                </Label>
+
+                {/* Rich Text Editor Toolbar */}
+                <div className="border border-gray-300 rounded-t-[8px] bg-gray-50 p-[8px] flex items-center justify-between gap-[4px]">
+                  <div className="flex items-center gap-[4px] flex-wrap">
+                    <Select defaultValue="inter">
+                      <SelectTrigger className="w-[140px] h-[32px] bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inter">Inter</SelectItem>
+                        <SelectItem value="arial">Arial</SelectItem>
+                        <SelectItem value="times">Times New Roman</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select defaultValue="14">
+                      <SelectTrigger className="w-[80px] h-[32px] bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12</SelectItem>
+                        <SelectItem value="14">14</SelectItem>
+                        <SelectItem value="16">16</SelectItem>
+                        <SelectItem value="18">18</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <div className="w-[1px] h-[24px] bg-gray-300 mx-[4px]" />
+
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <Bold className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <Italic className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <Underline className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+
+                    <div className="w-[1px] h-[24px] bg-gray-300 mx-[4px]" />
+
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <AlignLeft className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <AlignCenter className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <AlignRight className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+
+                    <div className="w-[1px] h-[24px] bg-gray-300 mx-[4px]" />
+
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <List className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                    <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                      <ListOrdered className="w-[16px] h-[16px] text-gray-700" />
+                    </button>
+                  </div>
+
+                  {/* Insert Image Button */}
+                  <button className="p-[6px] hover:bg-gray-200 rounded-[4px] transition-colors">
+                    <Image className="w-[16px] h-[16px] text-gray-700" />
+                  </button>
+                </div>
+
+                {/* Editor Area */}
+                <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="Type the speaking task description and notes here (e.g., Part 2 cue card, examiner script, timing notes…)."
+                  className="min-h-[200px] border-gray-300 border-t-0 rounded-t-none rounded-b-[8px] resize-none font-['Inter']"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input 
-                  id="lastName" 
-                  defaultValue={editingUser ? editingUser.name.split(' ').slice(1).join(' ') : ''}
-                  placeholder="Smith"
-                />
+
+              {/* Questions List - Simplified for Speaking */}
+              <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
+                <div className="flex items-center justify-between mb-[20px]">
+                  <div className="flex items-center gap-[12px]">
+                    <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900">
+                      Questions
+                    </h3>
+                    <Badge variant="secondary" className="font-['Inter']">
+                      {questions.length} {questions.length === 1 ? 'question' : 'questions'}
+                    </Badge>
+                  </div>
+                  <Button
+                    onClick={addNewQuestion}
+                    className="bg-[#1977f3] hover:bg-[#1567d3]"
+                    size="sm"
+                  >
+                    <Plus className="w-[16px] h-[16px] mr-[6px]" />
+                    Add Question
+                  </Button>
+                </div>
+
+                {/* Questions Table */}
+                <div className="border border-gray-200 rounded-[8px] overflow-hidden">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-[80px_1fr_100px] gap-[16px] bg-gray-50 px-[20px] py-[12px] border-b border-gray-200">
+                    <span className="font-['Inter'] font-medium text-[12px] text-gray-600 uppercase">#</span>
+                    <span className="font-['Inter'] font-medium text-[12px] text-gray-600 uppercase">Question Text</span>
+                    <span className="font-['Inter'] font-medium text-[12px] text-gray-600 uppercase text-center">Actions</span>
+                  </div>
+
+                  {/* Table Body */}
+                  <div>
+                    {questions.map((question) => (
+                      <div
+                        key={question.id}
+                        className={`grid grid-cols-[80px_1fr_100px] gap-[16px] px-[20px] py-[16px] border-b border-gray-200 last:border-b-0 transition-colors ${
+                          selectedQuestionId === question.id
+                            ? 'bg-blue-50'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="font-['Inter'] text-[14px] text-gray-900 pt-[8px]">
+                          Q{question.number}
+                        </span>
+                        <Input
+                          value={question.questionText}
+                          onChange={(e) => updateQuestionText(question.id, e.target.value)}
+                          placeholder={`Enter question ${question.number}...`}
+                          className="font-['Inter'] text-[14px]"
+                        />
+                        <div className="flex items-center justify-center gap-[8px]">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedQuestionId(question.id);
+                            }}
+                            className="p-[6px] hover:bg-white rounded-[4px] transition-colors"
+                          >
+                            <Edit2 className="w-[16px] h-[16px] text-[#1977f3]" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteQuestion(question.id);
+                            }}
+                            disabled={questions.length <= 1}
+                            className="p-[6px] hover:bg-white rounded-[4px] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <Trash2 className="w-[16px] h-[16px] text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={editingUser?.email} placeholder="john.smith@example.com" />
+            {/* Right Column - Media & Metadata */}
+            <div className="space-y-[24px]">
+              {/* Upload Thumbnail */}
+              <div className="bg-white rounded-[12px] p-[24px] shadow-sm border border-gray-200">
+                <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[16px] block">
+                  Upload Thumbnail
+                </Label>
+
+                {!thumbnailFile ? (
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
+                      onClick={() => thumbnailInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleThumbnailDrop}
+                    >
+                      <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
+                      <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
+                        Drop file or browse
+                      </p>
+                      <p className="font-['Inter'] text-[12px] text-gray-500">
+                        Formats: .jpg, .png<br />Max file size: 25 MB
+                      </p>
+                      <input
+                        type="file"
+                        ref={thumbnailInputRef}
+                        className="hidden"
+                        accept=".jpg,.png"
+                        onChange={handleThumbnailChange}
+                      />
+                      <Button
+                        type="button"
+                        className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                      >
+                        Browse
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={thumbnailPreview || ''}
+                        alt="Thumbnail preview"
+                        className="w-full h-[180px] object-cover rounded-[8px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThumbnailFile(null);
+                          setThumbnailPreview(null);
+                        }}
+                        className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
+                      >
+                        <X className="w-[16px] h-[16px] text-gray-700" />
+                     </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Exercise Info */}
+              <div className="bg-white rounded-[12px] p-[24px] shadow-sm border border-gray-200">
+                <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[20px] block">
+                  Exercise Info
+                </Label>
+                <div className="space-y-[16px]">
+                  {/* Title */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Title
+                    </Label>
+                    <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter exercise title…"
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                    />
+                  </div>
+
+                  {/* Task */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Task
+                    </Label>
+                    <Select value={task} onValueChange={setTask}>
+                        <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
+                          <SelectValue placeholder="Select a task" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TASK_1">Task 1</SelectItem>
+                          <SelectItem value="TASK_2">Task 2</SelectItem>
+                        </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Question Type */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Question Type
+                    </Label>
+                    <ChipInput
+                      value={questionTypeTags}
+                      onChange={setQuestionTypeTags}
+                      placeholder="Add tag..."
+                      maxTags={4}
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900"
+                    />
+                  </div>
+
+                  {/* Topic */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Topic
+                    </Label>
+                    <ChipInput
+                      value={topicTags}
+                      onChange={setTopicTags}
+                      placeholder="Add tag..."
+                      maxTags={4}
+                    />
+                  </div>
+
+                  {/* Updated On */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Updated On
+                    </Label>
+                    <Input
+                      type="date"
+                      value={new Date().toISOString().split('T')[0]}
+                      readOnly
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+                    />
+                  </div>
+
+                  {/* Questions - Fixed to 1 */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Questions
+                    </Label>
+                    <div className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
+                      {questions.filter(q => q.questionText.trim() !== '').length}
+                    </div>
+                    <p className="font-['Inter'] text-[12px] text-gray-500 mt-[6px]">
+                      Writing exercises always contain a single question.
+                    </p>
+                  </div>
+
+                  {/* Duration */}
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Duration (minutes)
+                      </Label>
+                      <Input
+                        type="number"
+                        defaultValue="20"
+                        value={durationMinutes}
+                        onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                        min="1"
+                      />
+                    </div>
+                </div>
+              </div>
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="role">Role</Label>
-              <Select defaultValue={editingUser?.role || 'Learner'}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Learner">Learner</SelectItem>
-                  <SelectItem value="Administrator">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Password field */}
-            {!editingUser ? (
-              // Add New User: Password is required
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Enter password" />
-              </div>
-            ) : (
-              // Edit User: Password is optional with helper text
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password (optional)</Label>
-                <Input id="password" type="password" placeholder="Enter new password" />
-                <p className="text-[13px] text-gray-500">Leave blank to keep the current password.</p>
-              </div>
-            )}
-
-            {/* Status field - only in Edit User modal */}
-            {editingUser && (
-              <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue={editingUser?.status || 'Active'}>
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} className="bg-[#1977f3] hover:bg-[#1567d3]">
-              {editingUser ? 'Update' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
       <Footer />
     </div>
