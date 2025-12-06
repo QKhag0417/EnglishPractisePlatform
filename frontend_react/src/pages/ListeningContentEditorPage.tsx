@@ -259,16 +259,11 @@ export function ListeningContentEditorPage({
         const result = await res.json();
         const data = result.data;
 
-console.log("✅ API /practice-content DETAIL RETURN:");
-    console.log(data);
-    console.table(data?.questions || []);
         setTitle(data.title);
         setInstructions(data.instructions);
         setTask(data.task);
         setQuestionTypeTags(data.questionTypeTags);
         setTopicTags(data.topicTags);
-        setThumbnailFile(data.thumbnailUrl);
-        setAudioFile(data.audioUrl);
         setDurationMinutes(data.durationMinutes);
 
         setStatus(data.status === "DRAFT" ? "Draft" : "Published");
@@ -277,6 +272,15 @@ console.log("✅ API /practice-content DETAIL RETURN:");
           setUpdatedOn(data.updatedOn.split("T")[0]);
         }
 
+        if (data.thumbnailUrl) {
+            setThumbnailPreview(`http://localhost:8080${data.thumbnailUrl}`);
+            setThumbnailFile(data.thumbnailUrl);
+        }
+
+        if (data.audioUrl) {
+            setAudioPreview(`http://localhost:8080${data.audioUrl}`);
+            setAudioFile(data.audioUrl);
+        }
         const mappedQuestions = data.questions.map((q: any, index: number) => ({
           id: String(index + 1),
           number: index + 1,
@@ -1108,7 +1112,7 @@ console.log("✅ API /practice-content DETAIL RETURN:");
                   Upload Audio
                 </Label>
 
-                {!audioFile ? (
+                {!audioPreview  ? (
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
                     onDrop={handleAudioDrop}
@@ -1142,7 +1146,7 @@ console.log("✅ API /practice-content DETAIL RETURN:");
                     {/* Audio Preview */}
                     <div className="bg-gray-100 rounded-[8px] p-[16px] mb-[12px]">
                       <audio
-                        src={audioPreview || undefined}
+                        src={audioPreview}
                         controls
                         className="w-full"
                       />

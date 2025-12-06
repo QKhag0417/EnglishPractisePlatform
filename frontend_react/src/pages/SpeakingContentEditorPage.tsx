@@ -183,21 +183,21 @@ export function SpeakingContentEditorPage({
           const result = await res.json();
           const data = result.data;
 
-  console.log("✅ API /practice-content DETAIL RETURN:");
-      console.log(data);
-      console.table(data?.questions || []);
           setTitle(data.title);
           setInstructions(data.instructions);
           setTask(data.task);
           setQuestionTypeTags(data.questionTypeTags);
           setTopicTags(data.topicTags);
-          setThumbnailFile(data.thumbnailUrl);
-
           setDurationMinutes(data.durationMinutes);
           setStatus(data.status === "DRAFT" ? "Draft" : "Published");
 
           if (data.updatedOn) {
             setUpdatedOn(data.updatedOn.split("T")[0]);
+          }
+
+          if (data.thumbnailUrl) {
+            setThumbnailPreview(`http://localhost:8080${data.thumbnailUrl}`);
+            setThumbnailFile(data.thumbnailUrl);
           }
 
           const mappedQuestions: SpeakingQuestion[] = data.questions.map((q: any, index: number) => ({
