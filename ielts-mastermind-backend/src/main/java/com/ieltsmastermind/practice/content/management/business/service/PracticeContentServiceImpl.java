@@ -92,6 +92,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(savedContent);
                 question.setOrderIndex(qDto.getOrderIndex());
+                question.setQuestionText(qDto.getQuestionText());
                 question.setType(qDto.getType());
                 question.setExplanation(qDto.getExplanation());
                 question.setShuffleOptions(qDto.getShuffleOptions());
@@ -103,6 +104,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                         new PracticeContentResponseDto.PracticeQuestionResponseDto();
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
+                questionResponseDto.setQuestionText(savedQuestion.getQuestionText());
                 questionResponseDto.setType(savedQuestion.getType());
                 questionResponseDto.setExplanation(savedQuestion.getExplanation());
                 questionResponseDto.setShuffleOptions(savedQuestion.getShuffleOptions());
@@ -275,6 +277,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(content);
                 question.setOrderIndex(qDto.getOrderIndex());
+                question.setQuestionText(qDto.getQuestionText());
                 question.setType(qDto.getType());
                 question.setExplanation(qDto.getExplanation());
                 question.setShuffleOptions(qDto.getShuffleOptions());
@@ -285,6 +288,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                         new PracticeContentResponseDto.PracticeQuestionResponseDto();
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
+                questionResponseDto.setQuestionText(savedQuestion.getQuestionText());
                 questionResponseDto.setType(savedQuestion.getType());
                 questionResponseDto.setExplanation(savedQuestion.getExplanation());
                 questionResponseDto.setShuffleOptions(savedQuestion.getShuffleOptions());
@@ -389,6 +393,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 new PracticeContentResponseDto.PracticeQuestionResponseDto();
         dto.setId(question.getId());
         dto.setOrderIndex(question.getOrderIndex());
+        dto.setQuestionText(question.getQuestionText());
         dto.setType(question.getType());
         dto.setExplanation(question.getExplanation());
         dto.setShuffleOptions(question.getShuffleOptions());
