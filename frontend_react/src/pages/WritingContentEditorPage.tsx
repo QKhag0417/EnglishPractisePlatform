@@ -348,6 +348,8 @@ export function WritingContentEditorPage({
 
                 {/* Editor Area */}
                 <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
                   placeholder="Type the writing prompt and task instructions here (e.g., Write at least 250 words about the advantages and disadvantages of remote work...)."
                   className="min-h-[400px] border-gray-300 border-t-0 rounded-t-none rounded-b-[8px] resize-none font-['Inter']"
                 />

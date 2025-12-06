@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Page } from '../App';
 import { NavBarAdmin } from '../components/NavBarAdmin';
 import { Footer } from '../components/Footer';
@@ -24,11 +24,13 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { ChipInput } from '../components/ChipInput';
 
 interface SpeakingContentEditorPageProps {
   setCurrentPage: (page: Page) => void;
   onLogout?: () => void;
-  isEditMode?: boolean; // Edit mode: pre-filled with existing data. Add mode: blank state.
+  isEditMode?: boolean;
+  editId?: string;
 }
 
 interface SpeakingQuestion {
@@ -37,71 +39,39 @@ interface SpeakingQuestion {
   questionText: string;
 }
 
-export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode = false }: SpeakingContentEditorPageProps) {
+export function SpeakingContentEditorPage({
+  setCurrentPage,
+  onLogout,
+  isEditMode = false,
+  editId
+}: SpeakingContentEditorPageProps) {
   // Note: Used when clicking edit from Practice Content Management. Same layout as Add, but pre-filled with existing exercise data.
   const [status, setStatus] = useState<'Draft' | 'Published'>('Draft');
   const [thumbnailFile, setThumbnailFile] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('1');
-  const [questions, setQuestions] = useState<SpeakingQuestion[]>([
-    { id: '1', number: 1, questionText: 'Can you describe a memorable trip you took?' },
-    { id: '2', number: 2, questionText: 'What did you enjoy most about it?' },
-    { id: '3', number: 3, questionText: 'How has traveling changed your perspective?' },
-  ]);
-
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionTypeTags, setQuestionTypeTags] = useState<string[]>([]);
+  const [updatedOn, setUpdatedOn] = useState<string>('');
+  const [currentQuestionText, setCurrentQuestionText] = useState('');
   // File upload ref
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const [topicTags, setTopicTags] = useState<string[]>([]);
+  const [title, setTitle] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [task, setTask] = useState<'TASK_1' | 'TASK_2'>('');
+  const [durationMinutes, setDurationMinutes] = useState(10);
 
-  // File upload handlers
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(file.type)) {
-        alert('Please upload a .jpg or .png file');
-        return;
-      }
-      // Validate file size (25 MB = 25 * 1024 * 1024 bytes)
-      if (file.size > 25 * 1024 * 1024) {
-        alert('File size must be less than 25 MB');
-        return;
-      }
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailFile(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const mapQuestionsToApi = () => {
+    return questions.map(q => ({
+      id: q.id,
+      number: q.number,
+      orderIndex: 1,
+      type: "WRITTEN",
+      questionText: q.questionText
+    }));
   };
 
-  const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(file.type)) {
-        alert('Please upload a .jpg or .png file');
-        return;
-      }
-      // Validate file size (25 MB = 25 * 1024 * 1024 bytes)
-      if (file.size > 25 * 1024 * 1024) {
-        alert('File size must be less than 25 MB');
-        return;
-      }
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailFile(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
 
   const addNewQuestion = () => {
     const newQuestion: SpeakingQuestion = {
@@ -133,10 +103,170 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
     ));
   };
 
-  const handleSaveExit = () => {
-    // Save logic here
-    setCurrentPage('content-management');
+  const handleSaveExit = async () => {
+    try {
+      let thumbnailUrl = thumbnailFile;
+
+      if (thumbnailFile instanceof File) {
+        const formData = new FormData();
+        formData.append("file", thumbnailFile);
+
+        const uploadRes = await fetch("http://localhost:8080/api/files/thumbnail", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const txt = await uploadRes.text();
+          throw new Error("Thumbnail upload failed: " + txt);
+        }
+
+        const uploaded = await uploadRes.json();
+        thumbnailUrl = uploaded.data;
+      }
+
+      const payload = {
+        skill: "SPEAKING",
+        title,
+        instructions,
+        task,
+        questionTypeTags,
+        topicTags,
+        thumbnailUrl: thumbnailUrl,
+        audioUrl: null,
+        durationMinutes,
+        questionCount: questions.length,
+        status: status === "Draft" ? "DRAFT" : "PUBLISHED",
+        questions: mapQuestionsToApi(),
+      };
+
+      const url = isEditMode
+        ? `http://localhost:8080/api/practice-content/${editId}`
+        : "http://localhost:8080/api/practice-content";
+
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+      }
+
+      alert(isEditMode ? "Updated successfully!" : "Created successfully!");
+      setCurrentPage("content-management");
+
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert("Save content failed!");
+    }
   };
+
+  useEffect(() => {
+      if (!isEditMode || !editId) return;
+
+      const fetchDetail = async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:8080/api/practice-content/${editId}`,
+            { credentials: "include" }
+          );
+
+          if (!res.ok) throw new Error("Failed to load detail");
+
+          const result = await res.json();
+          const data = result.data;
+
+  console.log("✅ API /practice-content DETAIL RETURN:");
+      console.log(data);
+      console.table(data?.questions || []);
+          setTitle(data.title);
+          setInstructions(data.instructions);
+          setTask(data.task);
+          setQuestionTypeTags(data.questionTypeTags);
+          setTopicTags(data.topicTags);
+          setThumbnailFile(data.thumbnailUrl);
+
+          setDurationMinutes(data.durationMinutes);
+          setStatus(data.status === "DRAFT" ? "Draft" : "Published");
+
+          if (data.updatedOn) {
+            setUpdatedOn(data.updatedOn.split("T")[0]);
+          }
+
+          const mappedQuestions: SpeakingQuestion[] = data.questions.map((q: any, index: number) => ({
+            id: String(index + 1),
+            number: index + 1,
+            questionText: q.questionText || ""  // Quan trọng để hiển thị nội dung cũ
+          }));
+
+          setQuestions(mappedQuestions);
+          setSelectedQuestionId(mappedQuestions[0]?.id || "1");
+
+        } catch (err) {
+          console.error("Load edit failed:", err);
+          alert("Load content failed!");
+        }
+      };
+
+      fetchDetail();
+    }, [isEditMode, editId]);
+
+        // File upload handlers
+      const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          // Validate file type
+          const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!validTypes.includes(file.type)) {
+            alert('Please upload a .jpg or .png file');
+            return;
+          }
+
+          // Validate file size (25 MB)
+          if (file.size > 25 * 1024 * 1024) {
+            alert('File size must be less than 25 MB');
+            return;
+          }
+
+          setThumbnailFile(file);
+
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setThumbnailPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          alert('Please upload a .jpg or .png file');
+          return;
+        }
+
+        // Validate file size (25 MB)
+        if (file.size > 25 * 1024 * 1024) {
+          alert('File size must be less than 25 MB');
+          return;
+        }
+
+        // Create preview URL
+        setThumbnailPreview(URL.createObjectURL(file));
+        setThumbnailFile(file); // file thật để gửi backend
+      };
 
   const handleCancel = () => {
     // Discard unsaved changes and navigate back to Practice Content Management
@@ -281,6 +411,8 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
 
                 {/* Editor Area */}
                 <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
                   placeholder="Type the speaking task description and notes here (e.g., Part 2 cue card, examiner script, timing notes…)."
                   className="min-h-[200px] border-gray-300 border-t-0 rounded-t-none rounded-b-[8px] resize-none font-['Inter']"
                 />
@@ -373,45 +505,50 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
                 </Label>
 
                 {!thumbnailFile ? (
-                  <div
-                    className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
-                    onDrop={handleThumbnailDrop}
-                    onDragOver={handleDragOver}
-                  >
-                    <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
-                    <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
-                      Drop file or browse
-                    </p>
-                    <p className="font-['Inter'] text-[12px] text-gray-500">
-                      Formats: .jpg, .png<br />Max file size: 25 MB
-                    </p>
-                    <input
-                      type="file"
-                      accept=".jpg, .jpeg, .png"
-                      className="hidden"
-                      ref={thumbnailInputRef}
-                      onChange={handleThumbnailChange}
-                    />
-                    <Button
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-[8px] p-[32px] text-center hover:border-[#1977f3] hover:bg-blue-50/30 transition-colors cursor-pointer"
                       onClick={() => thumbnailInputRef.current?.click()}
-                      className="mt-[16px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleThumbnailDrop}
                     >
-                      Browse
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={thumbnailFile}
-                      alt="Thumbnail preview"
-                      className="w-full h-[180px] object-cover rounded-[8px]"
-                    />
-                    <button
-                      onClick={() => setThumbnailFile(null)}
-                      className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
-                    >
-                      <X className="w-[16px] h-[16px] text-gray-700" />
-                    </button>
+                      <Upload className="w-[48px] h-[48px] text-gray-400 mx-auto mb-[12px]" />
+                      <p className="font-['Inter'] text-[14px] text-gray-700 mb-[4px]">
+                        Drop file or browse
+                      </p>
+                      <p className="font-['Inter'] text-[12px] text-gray-500">
+                        Formats: .jpg, .png<br />Max file size: 25 MB
+                      </p>
+                      <input
+                        type="file"
+                        ref={thumbnailInputRef}
+                        className="hidden"
+                        accept=".jpg,.png"
+                        onChange={handleThumbnailChange}
+                      />
+                      <Button
+                        type="button"
+                        className="mt-[12px] bg-[#1977f3] hover:bg-[#1567d3] font-['Inter']"
+                      >
+                        Browse
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={thumbnailPreview || ''}
+                        alt="Thumbnail preview"
+                        className="w-full h-[180px] object-cover rounded-[8px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThumbnailFile(null);
+                          setThumbnailPreview(null);
+                        }}
+                        className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
+                      >
+                        <X className="w-[16px] h-[16px] text-gray-700" />
+                     </button>
                   </div>
                 )}
               </div>
@@ -421,7 +558,6 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
                 <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[20px] block">
                   Exercise Info
                 </Label>
-
                 <div className="space-y-[16px]">
                   {/* Title */}
                   <div>
@@ -429,6 +565,8 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
                       Title
                     </Label>
                     <Input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       placeholder="Enter exercise title…"
                       className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
                     />
@@ -439,16 +577,42 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Task
                     </Label>
-                    <Select defaultValue="1">
-                      <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Part 1</SelectItem>
-                        <SelectItem value="2">Part 2</SelectItem>
-                        <SelectItem value="3">Part 3</SelectItem>
-                      </SelectContent>
+                    <Select value={task} onValueChange={setTask}>
+                        <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
+                          <SelectValue placeholder="Select a task" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TASK_1">Task 1</SelectItem>
+                          <SelectItem value="TASK_2">Task 2</SelectItem>
+                        </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Question Type */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Question Type
+                    </Label>
+                    <ChipInput
+                      value={questionTypeTags}
+                      onChange={setQuestionTypeTags}
+                      placeholder="Add tag..."
+                      maxTags={4}
+                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900"
+                    />
+                  </div>
+
+                  {/* Topic */}
+                  <div>
+                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                      Topic
+                    </Label>
+                    <ChipInput
+                      value={topicTags}
+                      onChange={setTopicTags}
+                      placeholder="Add tag..."
+                      maxTags={4}
+                    />
                   </div>
 
                   {/* Updated On */}
@@ -464,28 +628,32 @@ export function SpeakingContentEditorPage({ setCurrentPage, onLogout, isEditMode
                     />
                   </div>
 
-                  {/* Questions - Auto-counted */}
+                  {/* Questions - Fixed to 1 */}
                   <div>
                     <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
                       Questions
                     </Label>
                     <div className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
-                      {questions.length}
+                      {questions.filter(q => q.questionText.trim() !== '').length}
                     </div>
+                    <p className="font-['Inter'] text-[12px] text-gray-500 mt-[6px]">
+                      Writing exercises always contain a single question.
+                    </p>
                   </div>
 
                   {/* Duration */}
-                  <div>
-                    <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-                      Duration (minutes)
-                    </Label>
-                    <Input
-                      type="number"
-                      defaultValue="4"
-                      min="1"
-                      className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
-                    />
-                  </div>
+                    <div>
+                      <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
+                        Duration (minutes)
+                      </Label>
+                      <Input
+                        type="number"
+                        defaultValue="20"
+                        value={durationMinutes}
+                        onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                        min="1"
+                      />
+                    </div>
                 </div>
               </div>
             </div>

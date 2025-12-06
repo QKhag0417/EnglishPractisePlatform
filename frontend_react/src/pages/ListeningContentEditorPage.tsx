@@ -49,6 +49,7 @@ interface Question {
   options: Option[];
   shuffleOptions: boolean;
   explanation: string;
+  questionText?: string;
 }
 
 interface Option {
@@ -78,7 +79,7 @@ export function ListeningContentEditorPage({
   const [currentScore, setCurrentScore] = useState('1');
   const [currentExplanation, setCurrentExplanation] = useState('');
   const [updatedOn, setUpdatedOn] = useState<string>('');
-
+  const [currentQuestionText, setCurrentQuestionText] = useState('');
 
   const [options, setOptions] = useState<Option[]>([
     { id: '1', text: '', feedback: '', isCorrect: false },
@@ -117,7 +118,7 @@ export function ListeningContentEditorPage({
 
       explanation: q.explanation,
       shuffleOptions: q.shuffleOptions,
-
+      questionText: q.questionText,
       answers:
         q.questionType === 'short-text'
           ? q.correctAnswers.map((ans, i) => ({
@@ -238,7 +239,7 @@ export function ListeningContentEditorPage({
 
     setCurrentExplanation(selectedQuestion.explanation || '');
     setCurrentScore(String(selectedQuestion.points || 1));
-
+    setCurrentQuestionText(selectedQuestion.questionText || '');
     setSaveState('saved');
     setHasUnsavedChanges(false);
   }, [selectedQuestionId]);
@@ -269,6 +270,7 @@ console.log("✅ API /practice-content DETAIL RETURN:");
         setThumbnailFile(data.thumbnailUrl);
         setAudioFile(data.audioUrl);
         setDurationMinutes(data.durationMinutes);
+
         setStatus(data.status === "DRAFT" ? "Draft" : "Published");
 
         if (data.updatedOn) {
@@ -450,7 +452,8 @@ console.log("✅ API /practice-content DETAIL RETURN:");
 
             options: options,
             shuffleOptions: shuffleOptions,
-            explanation: currentExplanation
+            explanation: currentExplanation,
+            questionText: currentQuestionText
           }
         : q
     ));
@@ -814,31 +817,44 @@ console.log("✅ API /practice-content DETAIL RETURN:");
               </div>
 
               {/* Answer & Scoring Block */}
-              <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-[20px]">
-                  <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900">
-                    Answer & Scoring
-                  </h3>
-                  {selectedQuestion && (
-                    <div className="flex items-center gap-[8px]">
-                      <span className="font-['Inter'] text-[14px] text-gray-600">
-                        Editing: <span className="text-[#1977f3] font-medium">Question {selectedQuestion.number}</span>
-                      </span>
-                      <span className="text-gray-400">·</span>
-                      {saveState === 'saved' ? (
-                        <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-green-600">
-                          <Check className="w-[14px] h-[14px]" />
-                          Saved
+                <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
+                  <div className="flex items-center justify-between mb-[20px]">
+                    <h3 className="font-['Inter'] font-semibold text-[18px] text-gray-900">
+                      Answer & Scoring
+                    </h3>
+                    {selectedQuestion && (
+                      <div className="flex items-center gap-[8px]">
+                        <span className="font-['Inter'] text-[14px] text-gray-600">
+                          Editing: <span className="text-[#1977f3] font-medium">Question {selectedQuestion.number}</span>
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-orange-600">
-                          <AlertCircle className="w-[14px] h-[14px]" />
-                          Unsaved changes
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <span className="text-gray-400">·</span>
+                        {saveState === 'saved' ? (
+                          <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-green-600">
+                            <Check className="w-[14px] h-[14px]" />
+                            Saved
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-[6px] font-['Inter'] text-[14px] text-orange-600">
+                            <AlertCircle className="w-[14px] h-[14px]" />
+                            Unsaved changes
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Question Text Field */}
+                  <div className="mb-[24px]">
+                    <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
+                      Question text
+                    </Label>
+                    <Textarea
+                      placeholder="Type the question learners will see…"
+                      value={currentQuestionText}
+                      onChange={(e) => { setCurrentQuestionText(e.target.value); markAsUnsaved(); }}
+                      className="min-h-[80px] resize-none"
+                    />
+                  </div>
 
                 {/* Question Type Dropdown */}
                 <div className="mb-[24px]">

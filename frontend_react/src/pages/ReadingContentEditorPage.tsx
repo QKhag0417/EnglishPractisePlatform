@@ -47,6 +47,7 @@ interface Question {
   options: Option[];
   shuffleOptions: boolean;
   explanation: string;
+  questionText: string;
 }
 
 interface Option {
@@ -76,7 +77,7 @@ export function ReadingContentEditorPage({
   const [currentScore, setCurrentScore] = useState('1');
   const [currentExplanation, setCurrentExplanation] = useState('');
   const [updatedOn, setUpdatedOn] = useState<string>('');
-
+  const [currentQuestionText, setCurrentQuestionText] = useState('');
 
   const [options, setOptions] = useState<Option[]>([
     { id: '1', text: '', feedback: '', isCorrect: false },
@@ -112,7 +113,7 @@ export function ReadingContentEditorPage({
 
       explanation: q.explanation,
       shuffleOptions: q.shuffleOptions,
-
+      questionText: q.questionText,
       answers:
         q.questionType === 'short-text'
           ? q.correctAnswers.map((ans, i) => ({
@@ -217,7 +218,7 @@ export function ReadingContentEditorPage({
 
     setCurrentExplanation(selectedQuestion.explanation || '');
     setCurrentScore(String(selectedQuestion.points || 1));
-
+    setCurrentQuestionText(selectedQuestion.questionText || '');
     setSaveState('saved');
     setHasUnsavedChanges(false);
   }, [selectedQuestionId]);
@@ -426,7 +427,7 @@ console.log("✅ API /practice-content DETAIL RETURN:");
               : 'Manual marking required',
             questionType: questionType,
             correctAnswers: correctAnswers,
-
+            questionText: currentQuestionText,
             options: options,
             shuffleOptions: shuffleOptions,
             explanation: currentExplanation
@@ -768,6 +769,19 @@ console.log("✅ API /practice-content DETAIL RETURN:");
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* Question Text Field */}
+                <div className="mb-[24px]">
+                  <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
+                    Question text
+                  </Label>
+                  <Textarea
+                    placeholder="Type the question learners will see…"
+                    value={currentQuestionText}
+                    onChange={(e) => { setCurrentQuestionText(e.target.value); markAsUnsaved(); }}
+                    className="min-h-[80px] resize-none"
+                  />
                 </div>
 
                 {/* Question Type Dropdown */}
