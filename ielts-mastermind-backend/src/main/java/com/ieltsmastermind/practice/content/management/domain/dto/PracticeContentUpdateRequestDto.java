@@ -38,6 +38,7 @@ public class PracticeContentUpdateRequestDto {
     public static class PracticeQuestionUpdateRequestDto {
 
         private Integer orderIndex;
+        private String questionText;
         private PracticeQuestionType type;
         private String explanation;
         private Boolean shuffleOptions;
