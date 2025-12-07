@@ -3,7 +3,7 @@ package com.ieltsmastermind.user.management.controller;
 import com.ieltsmastermind.common.response.ApiResponse;
 
 
-import com.ieltsmastermind.user.management.business.UserService;
+import com.ieltsmastermind.user.management.business.interfaces.HomeService;
 import com.ieltsmastermind.user.management.domain.dto.HomePageResponseDto;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final UserService homeService;
+    private final HomeService homeService;
 
     @GetMapping("")
     public ResponseEntity<ApiResponse<HomePageResponseDto>> getUserInfo(HttpServletRequest request) {

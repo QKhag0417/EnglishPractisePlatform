@@ -12,7 +12,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "user")
 public class User {
+
     @Id
+    @Column(name = "user_id", nullable = false, updatable = false)
     private String userId = UUID.randomUUID().toString();
 
     @Column(nullable = false, unique = true)
@@ -21,18 +23,39 @@ public class User {
     @Column(unique = true)
     private String phone;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "is_active")
     private Boolean isActive;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
+
+    @Column(name = "role")
     private String role;
+
+    @Column(name = "firstname")
     private String firstname;
+
+    @Column(name = "lastname")
     private String lastname;
+
+    @Column(name = "country")
     private String country;
+
+    @Column(name = "timezone")
     private String timezone;
+
+    @Column(name = "avatar_url")
     private String avatarUrl;
+
+    @Column(name = "target_band")
     private Integer targetBand;
+
+    @Column(name = "exam_date")
     private LocalDateTime examDate;
 }

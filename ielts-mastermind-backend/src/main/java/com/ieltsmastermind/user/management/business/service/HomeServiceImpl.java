@@ -1,19 +1,25 @@
-package com.ieltsmastermind.user.management.business;
+package com.ieltsmastermind.user.management.business.service;
+
 
 import com.ieltsmastermind.authentication.business.JwtUtils;
+import com.ieltsmastermind.user.management.business.interfaces.HomeService;
 import com.ieltsmastermind.user.management.domain.dto.HomePageResponseDto;
 import com.ieltsmastermind.user.management.domain.entity.User;
 import com.ieltsmastermind.user.management.persistence.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class UserService {
+public class HomeServiceImpl implements HomeService {
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
+
+    public HomeServiceImpl(UserRepository userRepository,
+                           JwtUtils jwtUtils) {
+        this.userRepository = userRepository;
+        this.jwtUtils = jwtUtils;
+    }
 
     public HomePageResponseDto getHomeUserInfo(HttpServletRequest request) {
 
