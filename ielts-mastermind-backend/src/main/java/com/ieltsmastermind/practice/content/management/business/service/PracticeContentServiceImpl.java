@@ -331,9 +331,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
-        // cleanup old files
-        fileUploadService.cleanupOldThumbnail(oldThumbnailUrl, savedContent.getThumbnailUrl());
-        fileUploadService.cleanupOldAudio(oldAudioUrl, savedContent.getAudioUrl());
+        fileUploadService.cleanupOldThumbnail(oldThumbnailUrl);
+        fileUploadService.cleanupOldAudio(oldAudioUrl);
 
         PracticeContentResponseDto responseDto = mapContentToResponseDto(savedContent);
         responseDto.setQuestions(questionResponseDtos);
@@ -344,26 +343,28 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public void delete(String id) {
-        // 1) Load content or throw
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
-        // 2) Load all questions for this content
+        String oldThumbnailUrl = content.getThumbnailUrl();
+        String oldAudioUrl = content.getAudioUrl();
+
         List<PracticeQuestion> questions =
                 practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
 
-        // 3) For each question, delete its answers
+        // For each question, delete its answers
         for (PracticeQuestion question : questions) {
             List<PracticeAnswer> answers =
                     practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
             practiceAnswerRepository.deleteAll(answers);
         }
 
-        // 4) Delete questions
         practiceQuestionRepository.deleteAll(questions);
 
-        // 5) Delete the content itself
         practiceContentRepository.delete(content);
+
+        fileUploadService.cleanupOldThumbnail(oldThumbnailUrl);
+        fileUploadService.cleanupOldAudio(oldAudioUrl);
     }
 
     private PracticeContentResponseDto mapContentToResponseDto(PracticeContent content) {

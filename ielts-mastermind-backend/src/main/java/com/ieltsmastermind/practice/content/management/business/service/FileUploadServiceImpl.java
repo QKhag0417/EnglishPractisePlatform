@@ -45,9 +45,8 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     @Override
-    public void cleanupOldThumbnail(String oldUrl, String newUrl) {
+    public void cleanupOldThumbnail(String oldUrl) {
         if (oldUrl == null || oldUrl.isBlank()) return;
-        if (oldUrl.equals(newUrl)) return;
 
         String prefix = "/files/thumbnails/";
         if (!oldUrl.startsWith(prefix)) return;
@@ -63,9 +62,8 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     @Override
-    public void cleanupOldAudio(String oldUrl, String newUrl) {
+    public void cleanupOldAudio(String oldUrl) {
         if (oldUrl == null || oldUrl.isBlank()) return;
-        if (oldUrl.equals(newUrl)) return;
 
         String prefix = "/files/audio/";
         if (!oldUrl.startsWith(prefix)) return;

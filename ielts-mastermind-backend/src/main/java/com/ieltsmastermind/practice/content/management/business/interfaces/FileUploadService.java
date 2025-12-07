@@ -9,7 +9,7 @@ public interface FileUploadService {
 
     String uploadAudio(MultipartFile file);
 
-    void cleanupOldThumbnail(String oldUrl, String newUrl);
+    void cleanupOldThumbnail(String oldUrl);
 
-    void cleanupOldAudio(String oldUrl, String newUrl);
+    void cleanupOldAudio(String oldUrl);
 }
