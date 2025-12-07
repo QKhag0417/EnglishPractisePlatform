@@ -1,5 +1,6 @@
 package com.ieltsmastermind.practice.content.management.business.service;
 
+import com.ieltsmastermind.practice.content.management.business.interfaces.FileUploadService;
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
@@ -24,13 +25,16 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     private final PracticeContentRepository practiceContentRepository;
     private final PracticeQuestionRepository practiceQuestionRepository;
     private final PracticeAnswerRepository practiceAnswerRepository;
+    private final FileUploadService fileUploadService;
 
     public PracticeContentServiceImpl(PracticeContentRepository practiceContentRepository,
                                       PracticeQuestionRepository practiceQuestionRepository,
-                                      PracticeAnswerRepository practiceAnswerRepository) {
+                                      PracticeAnswerRepository practiceAnswerRepository,
+                                      FileUploadService fileUploadService) {
         this.practiceContentRepository = practiceContentRepository;
         this.practiceQuestionRepository = practiceQuestionRepository;
         this.practiceAnswerRepository = practiceAnswerRepository;
+        this.fileUploadService = fileUploadService;
     }
 
     @Override
@@ -229,11 +233,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request) {
-        // 1) Load existing content
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
-        // 2) Update simple fields (PUT = replace)
+        String oldThumbnailUrl = content.getThumbnailUrl();
+        String oldAudioUrl = content.getAudioUrl();
+
         content.setSkill(request.getSkill());
         content.setTitle(request.getTitle());
         content.setInstructions(request.getInstructions());
@@ -257,7 +262,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         content.setUpdatedOn(LocalDateTime.now());
         content.setStatus(request.getStatus());
 
-        // 3) Remove existing questions + answers
+        // Remove existing questions + answers
         List<PracticeQuestion> existingQuestions =
                 practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
 
@@ -268,7 +273,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         }
         practiceQuestionRepository.deleteAll(existingQuestions);
 
-        // 4) Recreate questions + answers from request
+        // Recreate questions + answers from request
         List<PracticeContentResponseDto.PracticeQuestionResponseDto> questionResponseDtos = new ArrayList<>();
 
         if (request.getQuestions() != null) {
@@ -324,10 +329,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             }
         }
 
-        // 5) Save updated content (fields already attached to managed entity)
         PracticeContent savedContent = practiceContentRepository.save(content);
 
-        // 6) Build and return full response
+        // cleanup old files
+        fileUploadService.cleanupOldThumbnail(oldThumbnailUrl, savedContent.getThumbnailUrl());
+        fileUploadService.cleanupOldAudio(oldAudioUrl, savedContent.getAudioUrl());
+
         PracticeContentResponseDto responseDto = mapContentToResponseDto(savedContent);
         responseDto.setQuestions(questionResponseDtos);
 

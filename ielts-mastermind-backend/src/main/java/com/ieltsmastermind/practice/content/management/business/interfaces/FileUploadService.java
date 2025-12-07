@@ -8,4 +8,8 @@ public interface FileUploadService {
     String uploadThumbnail(MultipartFile file);
 
     String uploadAudio(MultipartFile file);
+
+    void cleanupOldThumbnail(String oldUrl, String newUrl);
+
+    void cleanupOldAudio(String oldUrl, String newUrl);
 }
