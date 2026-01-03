@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Page } from '../App';
 import { Footer } from '../components/Footer';
 import { NavBarAdmin } from '../components/NavBarAdmin';
@@ -48,59 +48,240 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   
-  // Mock data
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-01-15',
-      lastActive: '2024-03-20',
-      testsCompleted: 12,
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-02-01',
-      lastActive: '2024-03-19',
-      testsCompleted: 8,
-    },
-    {
-      id: '3',
-      name: 'Michael Chen',
-      email: 'mchen@example.com',
-      role: 'Administrator',
-      status: 'Active',
-      joinedDate: '2023-12-10',
-      lastActive: '2024-03-21',
-      testsCompleted: 0,
-    },
-    {
-      id: '4',
-      name: 'Emily Davis',
-      email: 'emily.d@example.com',
-      role: 'Learner',
-      status: 'Inactive',
-      joinedDate: '2024-01-20',
-      lastActive: '2024-02-15',
-      testsCompleted: 5,
-    },
-    {
-      id: '5',
-      name: 'David Wilson',
-      email: 'dwilson@example.com',
-      role: 'Learner',
-      status: 'Active',
-      joinedDate: '2024-03-01',
-      lastActive: '2024-03-21',
-      testsCompleted: 3,
-    },
-  ]);
+  // Form state
+  const [formFirstName, setFormFirstName] = useState('');
+  const [formLastName, setFormLastName] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formRole, setFormRole] = useState<'Learner' | 'Administrator'>('Learner');
+  const [formPassword, setFormPassword] = useState('');
+  const [formStatus, setFormStatus] = useState<'Active' | 'Inactive'>('Active');
+  const [formError, setFormError] = useState<string>("");
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const API_BASE = "http://localhost:8080/api/user";
+
+  // fetch all users on mount
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function fetchUsers() {
+    setLoading(true);
+    try {
+      const res = await fetch(API_BASE, {
+        method: "GET",
+        credentials: "include", // send cookies (jwt)
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      if (res.status === 401) {
+        // unauthorized -> call onLogout if provided
+        onLogout?.();
+        return;
+      }
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.error("Failed to fetch users:", res.status, text);
+        return;
+      }
+
+      const json = await res.json(); // expected ApiResponse { success, message, data }
+      const backendUsers: any[] = json.data ?? [];
+
+      const mapped: UserData[] = backendUsers.map((u: any) => ({
+        id: String(u.userId),
+        name: `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim(),
+        email: u.email ?? '',
+        role: (u.role === 'Administrator' ? 'Administrator' : 'Learner'),
+        status: u.isActive ? 'Active' : 'Inactive',
+        joinedDate: u.createdAt ?? new Date().toISOString(),
+        lastActive: u.lastLoginAt ?? (u.createdAt ?? new Date().toISOString()),
+        testsCompleted: (u.testsCompleted ?? 0),
+      }));
+
+      setUsers(mapped);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Delete user
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Accept": "application/json" },
+      });
+
+      if (res.status === 401) {
+        onLogout?.();
+        return;
+      }
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        console.error("Delete failed", res.status, txt);
+        alert("Failed to delete user");
+        return;
+      }
+
+      // optimistic UI update
+      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete user");
+    }
+  };
+
+  // Open edit dialog and populate form
+  const handleEdit = (user: UserData) => {
+    setEditingUser(user);
+    setIsDialogOpen(true);
+    const parts = user.name.split(' ');
+    setFormFirstName(parts[0] ?? '');
+    setFormLastName(parts.slice(1).join(' ') ?? '');
+    setFormEmail(user.email);
+    setFormRole(user.role);
+    setFormStatus(user.status);
+    setFormPassword('');
+    setFormError("");
+  };
+
+  // Open create dialog
+  const handleAddNew = () => {
+    setEditingUser(null);
+    setIsDialogOpen(true);
+    setFormFirstName('');
+    setFormLastName('');
+    setFormEmail('');
+    setFormRole('Learner');
+    setFormError("");
+    setFormPassword('');
+    setFormStatus('Active');
+  };
+
+  // Save (create or update)
+  const handleSave = async () => {
+    // basic validation
+    setFormError(""); // clear previous errors
+
+    if (!formFirstName.trim() || !formLastName.trim() || !formEmail.trim() || !formPassword.trim()) {
+      setFormError("Please fill in all required fields.");
+      return;
+    }
+
+    const payloadCreate: any = {
+      firstname: formFirstName.trim(),
+      lastname: formLastName.trim(),
+      email: formEmail.trim(),
+      password: formPassword || undefined,
+      role: formRole,
+    };
+
+    const payloadUpdate: any = {
+      firstname: formFirstName.trim(),
+      lastname: formLastName.trim(),
+      email: formEmail.trim(),
+      role: formRole,
+      isActive: formStatus === 'Active',
+    };
+    if (formPassword && formPassword.trim() !== '') {
+      payloadUpdate.password = formPassword;
+    }
+
+    try {
+      if (editingUser) {
+        // update
+        const res = await fetch(`${API_BASE}/${editingUser.id}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payloadUpdate),
+        });
+
+        if (res.status === 401) {
+          onLogout?.();
+          return;
+        }
+
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          console.error("Update failed", res.status, txt);
+          alert("Failed to update user");
+          return;
+        }
+
+        const json = await res.json();
+        const u = json.data;
+        // update local list
+        setUsers(prev => prev.map(item => item.id === editingUser.id ? {
+          id: String(u.userId),
+          name: `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim(),
+          email: u.email ?? '',
+          role: u.role === 'Administrator' ? 'Administrator' : 'Learner',
+          status: u.isActive ? 'Active' : 'Inactive',
+          joinedDate: u.createdAt ?? item.joinedDate,
+          lastActive: u.lastLoginAt ?? new Date().toISOString(),
+          testsCompleted: u.testsCompleted ?? item.testsCompleted,
+        } : item));
+      } else {
+        // create
+        const res = await fetch(API_BASE, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payloadCreate),
+        });
+
+        if (res.status === 401) {
+          onLogout?.();
+          return;
+        }
+
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          console.error("Create failed", res.status, txt);
+          alert("Failed to create user");
+          return;
+        }
+
+        const json = await res.json();
+        const u = json.data;
+        const newUser: UserData = {
+          id: String(u.userId),
+          name: `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim(),
+          email: u.email ?? '',
+          role: u.role === 'Administrator' ? 'Administrator' : 'Learner',
+          status: u.isActive ? 'Active' : 'Inactive',
+          joinedDate: u.createdAt ?? new Date().toISOString(),
+          lastActive: u.lastLoginAt ?? (u.createdAt ?? new Date().toISOString()),
+          testsCompleted: u.testsCompleted ?? 0,
+        };
+        setUsers(prev => [...prev, newUser]);
+      }
+
+      // close dialog & reset form
+      setIsDialogOpen(false);
+      setEditingUser(null);
+      setFormFirstName('');
+      setFormLastName('');
+      setFormEmail('');
+      setFormPassword('');
+      setFormRole('Learner');
+      setFormStatus('Active');
+
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Failed to save user");
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -110,31 +291,11 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleDelete = (id: string) => {
-    setUsers(users.filter(u => u.id !== id));
-  };
-
-  const handleEdit = (user: UserData) => {
-    setEditingUser(user);
-    setIsDialogOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setEditingUser(null);
-    setIsDialogOpen(true);
-  };
-
-  const handleSave = () => {
-    // In a real app, this would save to the backend
-    setIsDialogOpen(false);
-    setEditingUser(null);
-  };
-
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen flex flex-col">
       <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="user-management" />
 
-      <div className="pt-[100px] pb-[60px] px-[60px]">
+      <div className="pt-[100px] pb-[60px] px-[60px] flex-1">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex items-center justify-between mb-[40px]">
             <div>
@@ -182,7 +343,7 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
                 className="pl-10"
               />
             </div>
-            <Select value={filterRole} onValueChange={setFilterRole}>
+            <Select value={filterRole} onValueChange={(v: string) => setFilterRole(v)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -192,7 +353,7 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
                 <SelectItem value="Administrator">Administrator</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={filterStatus} onValueChange={(v: string) => setFilterStatus(v)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -281,18 +442,40 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
               {editingUser ? 'Update the user details and permissions.' : 'Create a new user account.'}
             </DialogDescription>
           </DialogHeader>
+
+
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" defaultValue={editingUser?.name} />
+            {/* First Name and Last Name - side by side */}
+            {/* Behaviour: When editing, these fields are pre-filled with the user's current first and last name */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input 
+                  id="firstName" 
+                  value={formFirstName}
+                  onChange={(e) => setFormFirstName(e.target.value)}
+                  placeholder="John"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input 
+                  id="lastName" 
+                  value={formLastName}
+                  onChange={(e) => setFormLastName(e.target.value)}
+                  placeholder="Smith"
+                />
+              </div>
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={editingUser?.email} />
+              <Input id="email" type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="john.smith@example.com" />
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="role">Role</Label>
-              <Select defaultValue={editingUser?.role || 'Learner'}>
+              <Select value={formRole} onValueChange={(v: any) => setFormRole(v)}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
@@ -302,24 +485,44 @@ export function UserManagementPage({ setCurrentPage, onLogout }: UserManagementP
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select defaultValue={editingUser?.status || 'Active'}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {!editingUser && (
+
+            {/* Password field */}
+            {!editingUser ? (
+              // Add New User: Password is required
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" />
+                <Input id="password" type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder="Enter password" />
+              </div>
+            ) : (
+              // Edit User: Password is optional with helper text
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder="Enter new password" />
               </div>
             )}
+
+            {/* Status field - only in Edit User modal */}
+            {editingUser && (
+              <div className="grid gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={formStatus} onValueChange={(v: any) => setFormStatus(v)}>
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {formError && (
+              <div className="text-red-600 text-center font-semibold text-[16px] mb-3">
+                {formError}
+              </div>
+            )}
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
