@@ -12,6 +12,7 @@ import { SpeakingPage } from "./pages/SpeakingPage";
 import { SpeakingOverviewPage } from "./pages/SpeakingOverviewPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { AuthPromptPage } from "./pages/AuthPromptPage";
 import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
@@ -35,6 +36,7 @@ export type Page =
   | "speaking-overview"
   | "login"
   | "register"
+  | "forgot-password"
   | "auth-prompt"
   | "content-management"
   | "user-management"
@@ -79,6 +81,9 @@ function AppContent() {
       )}
       {currentPage === "register" && (
         <RegisterPage setCurrentPage={setCurrentPage} />
+      )}
+      {currentPage === "forgot-password" && (
+        <ForgotPasswordPage setCurrentPage={setCurrentPage} />
       )}
       {currentPage === "auth-prompt" && (
         <AuthPromptPage setCurrentPage={setCurrentPage} />

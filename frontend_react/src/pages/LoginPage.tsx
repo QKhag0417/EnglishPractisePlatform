@@ -33,7 +33,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
       }
 
     } catch (err) {
-      setError("Invalid email or password");
+      setError("Invalid email or password!!");
     }
   };
 
@@ -48,7 +48,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
           className="w-full h-full object-cover"
         />
         
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1977f3]/90 via-[#4a9fff]/85 to-[#77cbf2]/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
 
         <div className="absolute inset-0 opacity-10"
           style={{
@@ -83,7 +83,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
             </div>
 
             {/* Password */}
-            <div className="mb-[40px]">
+            <div className="mb-[20px]">
               <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
                 Password
               </label>
@@ -109,12 +109,22 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
               </div>
             </div>
 
+            <div className="mb-[20px] text-right">
+              <button
+                onClick={() => setCurrentPage('forgot-password')}
+                className="font-['Inter'] font-semibold text-[20px] text-red-500 hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+
             {/* Error message */}
             {error && (
               <p className="text-red-500 text-center text-[20px] mb-[20px]">
                 {error}
               </p>
             )}
+
 
             {/* Login Button */}
             <button
