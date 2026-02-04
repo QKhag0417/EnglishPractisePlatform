@@ -38,7 +38,7 @@ public class PasswordResetService {
     public void sendResetCode(String email) {
         try {
             userRepository.findByEmail(email).ifPresent(user -> {
-                String otp = String.format("%06d", new SecureRandom().nextInt(1_000_000));
+                String otp = String.format("%04d", new SecureRandom().nextInt(10_000));
                 String key = "pwd_code:" + email;
 
                 redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(5));

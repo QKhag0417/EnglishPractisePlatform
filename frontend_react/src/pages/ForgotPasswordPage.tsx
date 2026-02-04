@@ -20,25 +20,42 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Mock verification code for testing (in real app, this would be sent via email)
-  const mockCode = '1234';
-
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (!email) {
       setError('Please enter your email address');
       return;
     }
-    // Email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address');
       return;
     }
-    setError('');
-    // In a real app, send code to email via API
-    console.log('Sending verification code to:', email);
-    setCurrentStep('code');
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const res = await fetch('http://localhost:8080/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to send reset code');
+      }
+
+      setCode(['', '', '', '']);
+      setCurrentStep('code');
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCodeChange = (index: number, value: string) => {
@@ -63,46 +80,90 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
     }
   };
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     const enteredCode = code.join('');
+
     if (enteredCode.length !== 4) {
       setError('Please enter the 4-digit code');
       return;
     }
-    // In a real app, verify code with backend
-    if (enteredCode !== mockCode) {
-      setError('Invalid code. Please try again.');
-      return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const res = await fetch('http://localhost:8080/api/auth/verify-reset-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          code: enteredCode,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Invalid or expired code');
+      }
+
+      setResetToken(data.data.resetToken);
+      setCurrentStep('new-password');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setError('');
-    setCurrentStep('new-password');
   };
 
-  const handleResetPassword = () => {
-    setError('');
+  const handleResetPassword = async () => {
+    if (!resetToken) {
+      setError('Reset token missing. Please retry forgot password.');
+      return;
+    }
 
-    if (!newPassword) {
-      setError('Please enter a new password');
+    if (!newPassword || !confirmPassword) {
+      setError('Please fill all fields');
       return;
     }
-    if (!confirmPassword) {
-      setError('Please confirm your password');
-      return;
-    }
+
     if (newPassword.length < 8) {
       setError('Password must be at least 8 characters long');
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    // In a real app, update password via API
-    console.log('Password reset successful for:', email);
-    setError('');
-    setCurrentStep('success');
+    try {
+      setLoading(true);
+      setError('');
+
+      const res = await fetch('http://localhost:8080/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resetToken,
+          newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Failed to reset password');
+      }
+
+      setCurrentStep('success');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const handleContinue = () => {
     setCurrentPage('login');
@@ -166,9 +227,10 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                 {/* Send Code Button */}
                 <button
                   onClick={handleSendCode}
+                  disabled={loading}
                   className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px]"
                 >
-                  Send Code
+                  {loading ? 'Processing...' : 'Send Code'}
                 </button>
 
                 {/* Back to Login */}
