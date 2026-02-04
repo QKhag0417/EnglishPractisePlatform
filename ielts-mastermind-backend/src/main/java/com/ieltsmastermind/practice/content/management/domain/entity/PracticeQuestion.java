@@ -25,16 +25,7 @@ public class PracticeQuestion {
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
 
-    @Column(name = "question_text", columnDefinition = "TEXT")
-    private String questionText;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PracticeQuestionType type;
-
-    @Column(columnDefinition = "TEXT")
-    private String explanation;
-
-    @Column(name = "shuffle_options")
-    private Boolean shuffleOptions;
 }

@@ -42,17 +42,5 @@ public class PracticeContentUpdateRequestDto {
         private PracticeQuestionType type;
         private String explanation;
         private Boolean shuffleOptions;
-
-        private List<PracticeAnswerUpdateRequestDto> answers;
-    }
-
-    @Getter
-    @Setter
-    public static class PracticeAnswerUpdateRequestDto {
-
-        private Integer orderIndex;
-        private String displayText;
-        private Boolean isCorrect;
-        private String value;
     }
 }

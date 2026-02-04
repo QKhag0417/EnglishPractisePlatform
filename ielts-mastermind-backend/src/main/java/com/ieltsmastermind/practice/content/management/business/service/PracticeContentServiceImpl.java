@@ -5,10 +5,8 @@ import com.ieltsmastermind.practice.content.management.business.interfaces.Pract
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
-import com.ieltsmastermind.practice.content.management.domain.entity.PracticeAnswer;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
-import com.ieltsmastermind.practice.content.management.persistence.PracticeAnswerRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeQuestionRepository;
 import jakarta.transaction.Transactional;
@@ -24,16 +22,13 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
     private final PracticeContentRepository practiceContentRepository;
     private final PracticeQuestionRepository practiceQuestionRepository;
-    private final PracticeAnswerRepository practiceAnswerRepository;
     private final FileUploadService fileUploadService;
 
     public PracticeContentServiceImpl(PracticeContentRepository practiceContentRepository,
                                       PracticeQuestionRepository practiceQuestionRepository,
-                                      PracticeAnswerRepository practiceAnswerRepository,
                                       FileUploadService fileUploadService) {
         this.practiceContentRepository = practiceContentRepository;
         this.practiceQuestionRepository = practiceQuestionRepository;
-        this.practiceAnswerRepository = practiceAnswerRepository;
         this.fileUploadService = fileUploadService;
     }
 
@@ -96,10 +91,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(savedContent);
                 question.setOrderIndex(qDto.getOrderIndex());
-                question.setQuestionText(qDto.getQuestionText());
                 question.setType(qDto.getType());
-                question.setExplanation(qDto.getExplanation());
-                question.setShuffleOptions(qDto.getShuffleOptions());
 
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
 
@@ -108,39 +100,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                         new PracticeContentResponseDto.PracticeQuestionResponseDto();
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
-                questionResponseDto.setQuestionText(savedQuestion.getQuestionText());
                 questionResponseDto.setType(savedQuestion.getType());
-                questionResponseDto.setExplanation(savedQuestion.getExplanation());
-                questionResponseDto.setShuffleOptions(savedQuestion.getShuffleOptions());
 
-                List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerResponseDtos = new ArrayList<>();
-
-                if (qDto.getAnswers() != null) {
-                    for (PracticeContentCreateRequestDto.PracticeAnswerCreateRequestDto aDto : qDto.getAnswers()) {
-
-                        PracticeAnswer answer = new PracticeAnswer();
-                        answer.setQuestion(savedQuestion);
-                        answer.setOrderIndex(aDto.getOrderIndex());
-                        answer.setDisplayText(aDto.getDisplayText());
-                        // avoid NPE: treat null as false
-                        answer.setIsCorrect(Boolean.TRUE.equals(aDto.getIsCorrect()));
-                        answer.setValue(aDto.getValue());
-
-                        PracticeAnswer savedAnswer = practiceAnswerRepository.save(answer);
-
-                        PracticeContentResponseDto.PracticeAnswerResponseDto answerResponseDto =
-                                new PracticeContentResponseDto.PracticeAnswerResponseDto();
-                        answerResponseDto.setId(savedAnswer.getId());
-                        answerResponseDto.setOrderIndex(savedAnswer.getOrderIndex());
-                        answerResponseDto.setDisplayText(savedAnswer.getDisplayText());
-                        answerResponseDto.setIsCorrect(savedAnswer.getIsCorrect());
-                        answerResponseDto.setValue(savedAnswer.getValue());
-
-                        answerResponseDtos.add(answerResponseDto);
-                    }
-                }
-
-                questionResponseDto.setAnswers(answerResponseDtos);
                 questionResponseDtos.add(questionResponseDto);
             }
         }
@@ -169,18 +130,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 PracticeContentResponseDto.PracticeQuestionResponseDto qDto =
                         mapQuestionToResponseDto(question);
 
-                // Fetch answers for this question
-                List<PracticeAnswer> answers =
-                        practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
-
-                List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerDtos = new ArrayList<>();
-                for (PracticeAnswer answer : answers) {
-                    PracticeContentResponseDto.PracticeAnswerResponseDto aDto =
-                            mapAnswerToResponseDto(answer);
-                    answerDtos.add(aDto);
-                }
-
-                qDto.setAnswers(answerDtos);
                 questionDtos.add(qDto);
             }
 
@@ -210,18 +159,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             PracticeContentResponseDto.PracticeQuestionResponseDto qDto =
                     mapQuestionToResponseDto(question);
 
-            // Fetch answers for this question
-            List<PracticeAnswer> answers =
-                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
-
-            List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerDtos = new ArrayList<>();
-            for (PracticeAnswer answer : answers) {
-                PracticeContentResponseDto.PracticeAnswerResponseDto aDto =
-                        mapAnswerToResponseDto(answer);
-                answerDtos.add(aDto);
-            }
-
-            qDto.setAnswers(answerDtos);
             questionDtos.add(qDto);
         }
 
@@ -266,11 +203,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         List<PracticeQuestion> existingQuestions =
                 practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
 
-        for (PracticeQuestion q : existingQuestions) {
-            List<PracticeAnswer> answers =
-                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(q);
-            practiceAnswerRepository.deleteAll(answers);
-        }
         practiceQuestionRepository.deleteAll(existingQuestions);
 
         // Recreate questions + answers from request
@@ -282,10 +214,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(content);
                 question.setOrderIndex(qDto.getOrderIndex());
-                question.setQuestionText(qDto.getQuestionText());
                 question.setType(qDto.getType());
-                question.setExplanation(qDto.getExplanation());
-                question.setShuffleOptions(qDto.getShuffleOptions());
 
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
 
@@ -293,38 +222,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                         new PracticeContentResponseDto.PracticeQuestionResponseDto();
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
-                questionResponseDto.setQuestionText(savedQuestion.getQuestionText());
                 questionResponseDto.setType(savedQuestion.getType());
-                questionResponseDto.setExplanation(savedQuestion.getExplanation());
-                questionResponseDto.setShuffleOptions(savedQuestion.getShuffleOptions());
 
-                List<PracticeContentResponseDto.PracticeAnswerResponseDto> answerResponseDtos = new ArrayList<>();
-
-                if (qDto.getAnswers() != null) {
-                    for (PracticeContentUpdateRequestDto.PracticeAnswerUpdateRequestDto aDto : qDto.getAnswers()) {
-
-                        PracticeAnswer answer = new PracticeAnswer();
-                        answer.setQuestion(savedQuestion);
-                        answer.setOrderIndex(aDto.getOrderIndex());
-                        answer.setDisplayText(aDto.getDisplayText());
-                        answer.setIsCorrect(Boolean.TRUE.equals(aDto.getIsCorrect()));
-                        answer.setValue(aDto.getValue());
-
-                        PracticeAnswer savedAnswer = practiceAnswerRepository.save(answer);
-
-                        PracticeContentResponseDto.PracticeAnswerResponseDto answerResponseDto =
-                                new PracticeContentResponseDto.PracticeAnswerResponseDto();
-                        answerResponseDto.setId(savedAnswer.getId());
-                        answerResponseDto.setOrderIndex(savedAnswer.getOrderIndex());
-                        answerResponseDto.setDisplayText(savedAnswer.getDisplayText());
-                        answerResponseDto.setIsCorrect(savedAnswer.getIsCorrect());
-                        answerResponseDto.setValue(savedAnswer.getValue());
-
-                        answerResponseDtos.add(answerResponseDto);
-                    }
-                }
-
-                questionResponseDto.setAnswers(answerResponseDtos);
                 questionResponseDtos.add(questionResponseDto);
             }
         }
@@ -351,13 +250,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         List<PracticeQuestion> questions =
                 practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
-
-        // For each question, delete its answers
-        for (PracticeQuestion question : questions) {
-            List<PracticeAnswer> answers =
-                    practiceAnswerRepository.findByQuestionOrderByOrderIndexAsc(question);
-            practiceAnswerRepository.deleteAll(answers);
-        }
 
         practiceQuestionRepository.deleteAll(questions);
 
@@ -401,23 +293,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 new PracticeContentResponseDto.PracticeQuestionResponseDto();
         dto.setId(question.getId());
         dto.setOrderIndex(question.getOrderIndex());
-        dto.setQuestionText(question.getQuestionText());
         dto.setType(question.getType());
-        dto.setExplanation(question.getExplanation());
-        dto.setShuffleOptions(question.getShuffleOptions());
-        return dto;
-    }
 
-    private PracticeContentResponseDto.PracticeAnswerResponseDto mapAnswerToResponseDto(
-            PracticeAnswer answer
-    ) {
-        PracticeContentResponseDto.PracticeAnswerResponseDto dto =
-                new PracticeContentResponseDto.PracticeAnswerResponseDto();
-        dto.setId(answer.getId());
-        dto.setOrderIndex(answer.getOrderIndex());
-        dto.setDisplayText(answer.getDisplayText());
-        dto.setIsCorrect(answer.getIsCorrect());
-        dto.setValue(answer.getValue());
         return dto;
     }
 }

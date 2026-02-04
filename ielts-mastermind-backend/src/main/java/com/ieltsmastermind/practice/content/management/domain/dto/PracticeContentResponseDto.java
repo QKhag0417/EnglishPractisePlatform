@@ -50,18 +50,5 @@ public class PracticeContentResponseDto {
         private PracticeQuestionType type;
         private String explanation;
         private Boolean shuffleOptions;
-
-        private List<PracticeAnswerResponseDto> answers;
-    }
-
-    @Getter
-    @Setter
-    public static class PracticeAnswerResponseDto {
-
-        private String id;
-        private Integer orderIndex;
-        private String displayText;
-        private Boolean isCorrect;
-        private String value;
     }
 }
