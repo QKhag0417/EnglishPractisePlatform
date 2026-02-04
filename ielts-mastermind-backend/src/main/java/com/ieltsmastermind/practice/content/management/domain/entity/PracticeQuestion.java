@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -28,4 +30,13 @@ public class PracticeQuestion {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PracticeQuestionType type;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "practice_question_answer",
+            joinColumns = @JoinColumn(name = "practice_question_id")
+    )
+    @Column(name = "answer_value", nullable = false)
+    @OrderColumn(name = "answer_index")
+    private List<String> correctAnswers = new ArrayList<>();
 }

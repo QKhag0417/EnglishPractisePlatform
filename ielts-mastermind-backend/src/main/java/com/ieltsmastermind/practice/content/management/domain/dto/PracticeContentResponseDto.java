@@ -47,5 +47,6 @@ public class PracticeContentResponseDto {
         private String id;
         private Integer orderIndex;
         private PracticeQuestionType type;
+        private List<String> correctAnswers;
     }
 }

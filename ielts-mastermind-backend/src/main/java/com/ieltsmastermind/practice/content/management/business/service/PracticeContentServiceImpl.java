@@ -93,6 +93,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 question.setOrderIndex(qDto.getOrderIndex());
                 question.setType(qDto.getType());
 
+                question.setCorrectAnswers(
+                        qDto.getCorrectAnswers() != null
+                                ? new ArrayList<>(qDto.getCorrectAnswers())
+                                : new ArrayList<>()
+                );
+
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
 
                 // Build question response DTO
@@ -101,6 +107,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
                 questionResponseDto.setType(savedQuestion.getType());
+
+                questionResponseDto.setCorrectAnswers(
+                        savedQuestion.getCorrectAnswers() != null
+                                ? new ArrayList<>(savedQuestion.getCorrectAnswers())
+                                : new ArrayList<>()
+                );
 
                 questionResponseDtos.add(questionResponseDto);
             }
@@ -216,6 +228,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 question.setOrderIndex(qDto.getOrderIndex());
                 question.setType(qDto.getType());
 
+                question.setCorrectAnswers(
+                        qDto.getCorrectAnswers() != null
+                                ? new ArrayList<>(qDto.getCorrectAnswers())
+                                : new ArrayList<>()
+                );
+
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
 
                 PracticeContentResponseDto.PracticeQuestionResponseDto questionResponseDto =
@@ -223,6 +241,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 questionResponseDto.setId(savedQuestion.getId());
                 questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
                 questionResponseDto.setType(savedQuestion.getType());
+
+                questionResponseDto.setCorrectAnswers(
+                        savedQuestion.getCorrectAnswers() != null
+                                ? new ArrayList<>(savedQuestion.getCorrectAnswers())
+                                : new ArrayList<>()
+                );
 
                 questionResponseDtos.add(questionResponseDto);
             }
@@ -294,6 +318,11 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         dto.setId(question.getId());
         dto.setOrderIndex(question.getOrderIndex());
         dto.setType(question.getType());
+        dto.setCorrectAnswers(
+                question.getCorrectAnswers() != null
+                        ? new ArrayList<>(question.getCorrectAnswers())
+                        : new ArrayList<>()
+        );
 
         return dto;
     }

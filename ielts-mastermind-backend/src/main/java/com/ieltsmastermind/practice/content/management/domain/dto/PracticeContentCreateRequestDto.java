@@ -39,5 +39,6 @@ public class PracticeContentCreateRequestDto {
 
         private Integer orderIndex;
         private PracticeQuestionType type;
+        private List<String> correctAnswers;
     }
 }
