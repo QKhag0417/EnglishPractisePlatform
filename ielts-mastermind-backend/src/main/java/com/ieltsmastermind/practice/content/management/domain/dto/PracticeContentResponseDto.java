@@ -46,9 +46,6 @@ public class PracticeContentResponseDto {
 
         private String id;
         private Integer orderIndex;
-        private String questionText;
         private PracticeQuestionType type;
-        private String explanation;
-        private Boolean shuffleOptions;
     }
 }

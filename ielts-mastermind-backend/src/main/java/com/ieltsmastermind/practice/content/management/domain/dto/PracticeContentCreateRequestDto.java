@@ -38,9 +38,6 @@ public class PracticeContentCreateRequestDto {
     public static class PracticeQuestionCreateRequestDto {
 
         private Integer orderIndex;
-        private String questionText;
         private PracticeQuestionType type;
-        private String explanation;
-        private Boolean shuffleOptions;
     }
 }
