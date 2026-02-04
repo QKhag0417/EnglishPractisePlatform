@@ -8,6 +8,8 @@ import com.ieltsmastermind.user.management.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Random;
+
 @Service
 public class AuthService {
     @Autowired
@@ -55,7 +57,7 @@ public class AuthService {
                 user.getUserId(),
                 user.getRole()
         );
-        sessionManager.addSession(token, user.getUserId(), jwtUtils.getExpirationMillis());
+        sessionManager.addSession(token, user.getUserId(),user.getRole(), jwtUtils.getExpirationMillis());
         return token;
     }
 
@@ -64,5 +66,7 @@ public class AuthService {
             sessionManager.removeSession(token);
         }
     }
+
+
 
 }

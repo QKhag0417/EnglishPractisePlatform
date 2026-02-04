@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null
                 && jwtUtils.validateToken(token)
-                && (sessionManager == null || sessionManager.isValid(token))) {
+                && (sessionManager.isValid(token))) {
             String userId = jwtUtils.getUserIdFromToken(token);
             String role = jwtUtils.getRoleFromToken(token);
 
