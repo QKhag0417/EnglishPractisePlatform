@@ -49,9 +49,9 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         PracticeContent content = new PracticeContent();
         content.setSkill(request.getSkill());
         content.setTitle(request.getTitle());
-        content.setInstructions(request.getInstructions());
         content.setTask(request.getTask());
 
+        content.setInstructions(request.getInstructions());
         List<DocNode> parsed = instructionParser.parseInstruction(request.getInstructions());
         JsonNode parsedJson = jsonConverter.toJsonNode(parsed);
         content.setInstructionsParsed(parsedJson);
@@ -76,38 +76,18 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         LocalDateTime now = LocalDateTime.now();
         content.setCreatedOn(now);
         content.setUpdatedOn(now);
-
         content.setStatus(request.getStatus());
 
         PracticeContent savedContent = practiceContentRepository.save(content);
-
-        // We’ll build response DTOs while we create & save questions/answers
-        PracticeContentResponseDto responseDto = new PracticeContentResponseDto();
-        responseDto.setId(savedContent.getId());
-        responseDto.setSkill(savedContent.getSkill());
-        responseDto.setTitle(savedContent.getTitle());
-        responseDto.setInstructions(savedContent.getInstructions());
-        responseDto.setTask(savedContent.getTask());
-        responseDto.setQuestionTypeTags(savedContent.getQuestionTypeTags());
-        responseDto.setTopicTags(savedContent.getTopicTags());
-        responseDto.setThumbnailUrl(savedContent.getThumbnailUrl());
-        responseDto.setAudioUrl(savedContent.getAudioUrl());
-        responseDto.setDurationMinutes(savedContent.getDurationMinutes());
-        responseDto.setQuestionCount(savedContent.getQuestionCount());
-        responseDto.setCreatedOn(savedContent.getCreatedOn());
-        responseDto.setUpdatedOn(savedContent.getUpdatedOn());
-        responseDto.setStatus(savedContent.getStatus());
 
         List<PracticeContentResponseDto.PracticeQuestionResponseDto> questionResponseDtos = new ArrayList<>();
 
         if (request.getQuestions() != null) {
             for (PracticeContentCreateRequestDto.PracticeQuestionCreateRequestDto qDto : request.getQuestions()) {
-
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(savedContent);
                 question.setOrderIndex(qDto.getOrderIndex());
                 question.setType(qDto.getType());
-
                 question.setCorrectAnswers(
                         qDto.getCorrectAnswers() != null
                                 ? new ArrayList<>(qDto.getCorrectAnswers())
@@ -115,26 +95,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 );
 
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
-
-                // Build question response DTO
-                PracticeContentResponseDto.PracticeQuestionResponseDto questionResponseDto =
-                        new PracticeContentResponseDto.PracticeQuestionResponseDto();
-                questionResponseDto.setId(savedQuestion.getId());
-                questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
-                questionResponseDto.setType(savedQuestion.getType());
-
-                questionResponseDto.setCorrectAnswers(
-                        savedQuestion.getCorrectAnswers() != null
-                                ? new ArrayList<>(savedQuestion.getCorrectAnswers())
-                                : new ArrayList<>()
-                );
-
-                questionResponseDtos.add(questionResponseDto);
+                questionResponseDtos.add(mapQuestionToResponseDto(savedQuestion));
             }
         }
 
+        PracticeContentResponseDto responseDto = mapContentToResponseDto(savedContent);
         responseDto.setQuestions(questionResponseDtos);
-
         return responseDto;
     }
 
@@ -205,8 +171,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         content.setSkill(request.getSkill());
         content.setTitle(request.getTitle());
-        content.setInstructions(request.getInstructions());
         content.setTask(request.getTask());
+
+        content.setInstructions(request.getInstructions());
+        List<DocNode> parsed = instructionParser.parseInstruction(request.getInstructions());
+        JsonNode parsedJson = jsonConverter.toJsonNode(parsed);
+        content.setInstructionsParsed(parsedJson);
 
         content.setQuestionTypeTags(
                 request.getQuestionTypeTags() != null
@@ -229,7 +199,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         // Remove existing questions + answers
         List<PracticeQuestion> existingQuestions =
                 practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
-
         practiceQuestionRepository.deleteAll(existingQuestions);
 
         // Recreate questions + answers from request
@@ -237,12 +206,10 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         if (request.getQuestions() != null) {
             for (PracticeContentUpdateRequestDto.PracticeQuestionUpdateRequestDto qDto : request.getQuestions()) {
-
                 PracticeQuestion question = new PracticeQuestion();
                 question.setPracticeContent(content);
                 question.setOrderIndex(qDto.getOrderIndex());
                 question.setType(qDto.getType());
-
                 question.setCorrectAnswers(
                         qDto.getCorrectAnswers() != null
                                 ? new ArrayList<>(qDto.getCorrectAnswers())
@@ -251,19 +218,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
                 PracticeQuestion savedQuestion = practiceQuestionRepository.save(question);
 
-                PracticeContentResponseDto.PracticeQuestionResponseDto questionResponseDto =
-                        new PracticeContentResponseDto.PracticeQuestionResponseDto();
-                questionResponseDto.setId(savedQuestion.getId());
-                questionResponseDto.setOrderIndex(savedQuestion.getOrderIndex());
-                questionResponseDto.setType(savedQuestion.getType());
-
-                questionResponseDto.setCorrectAnswers(
-                        savedQuestion.getCorrectAnswers() != null
-                                ? new ArrayList<>(savedQuestion.getCorrectAnswers())
-                                : new ArrayList<>()
-                );
-
-                questionResponseDtos.add(questionResponseDto);
+                questionResponseDtos.add(mapQuestionToResponseDto(savedQuestion));
             }
         }
 
@@ -304,6 +259,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         dto.setSkill(content.getSkill());
         dto.setTitle(content.getTitle());
         dto.setInstructions(content.getInstructions());
+        dto.setInstructionsParsed(content.getInstructionsParsed());
         dto.setTask(content.getTask());
         dto.setQuestionTypeTags(
                 content.getQuestionTypeTags() != null
