@@ -1,11 +1,14 @@
 package com.ieltsmastermind.practice.content.management.domain.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentSkill;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeTaskType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -30,6 +33,10 @@ public class PracticeContent {
 
     @Column(columnDefinition = "TEXT")
     private String instructions;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "instructions_parsed", columnDefinition = "JSON")
+    private JsonNode instructionsParsed;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

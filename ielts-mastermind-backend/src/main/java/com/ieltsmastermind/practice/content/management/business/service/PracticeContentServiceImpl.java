@@ -1,12 +1,17 @@
 package com.ieltsmastermind.practice.content.management.business.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ieltsmastermind.common.json.JsonConverter;
 import com.ieltsmastermind.practice.content.management.business.interfaces.FileUploadService;
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
+import com.ieltsmastermind.practice.content.management.business.parser.InstructionParser;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
+import com.ieltsmastermind.practice.content.management.domain.model.doc.DocNode;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeQuestionRepository;
 import jakarta.transaction.Transactional;
@@ -23,13 +28,19 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     private final PracticeContentRepository practiceContentRepository;
     private final PracticeQuestionRepository practiceQuestionRepository;
     private final FileUploadService fileUploadService;
+    private final InstructionParser instructionParser;
+    private final JsonConverter jsonConverter;
 
     public PracticeContentServiceImpl(PracticeContentRepository practiceContentRepository,
                                       PracticeQuestionRepository practiceQuestionRepository,
-                                      FileUploadService fileUploadService) {
+                                      FileUploadService fileUploadService,
+                                      InstructionParser instructionParser,
+                                      JsonConverter jsonConverter) {
         this.practiceContentRepository = practiceContentRepository;
         this.practiceQuestionRepository = practiceQuestionRepository;
         this.fileUploadService = fileUploadService;
+        this.instructionParser = instructionParser;
+        this.jsonConverter = jsonConverter;
     }
 
     @Override
@@ -40,6 +51,10 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         content.setTitle(request.getTitle());
         content.setInstructions(request.getInstructions());
         content.setTask(request.getTask());
+
+        List<DocNode> parsed = instructionParser.parseInstruction(request.getInstructions());
+        JsonNode parsedJson = jsonConverter.toJsonNode(parsed);
+        content.setInstructionsParsed(parsedJson);
 
         // handle null sets safely
         content.setQuestionTypeTags(
