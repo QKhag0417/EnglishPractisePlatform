@@ -1,19 +1,6 @@
-import { useState } from 'react';
-import { Bookmark } from 'lucide-react';
-
-interface Exercise {
-  id: number;
-  title: string;
-  attempts: string;
-  image: string;
-  task?: number[];
-  questionTypes?: string[];
-  topics?: string[];
-  status?: 'not-started' | 'in-progress' | 'completed';
-  updated?: string;
-  questions?: number;
-  duration?: number;
-}
+import { useState } from "react";
+import { Bookmark } from "lucide-react";
+import { Exercise } from "../types/exercise";
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -21,7 +8,11 @@ interface ExerciseCardProps {
   isLoggedIn?: boolean;
 }
 
-export function ExerciseCard({ exercise, onSelect, isLoggedIn = false }: ExerciseCardProps) {
+export function ExerciseCard({
+  exercise,
+  onSelect,
+  isLoggedIn = false,
+}: ExerciseCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -30,10 +21,7 @@ export function ExerciseCard({ exercise, onSelect, isLoggedIn = false }: Exercis
   };
 
   return (
-    <div
-      className="cursor-pointer group"
-      onClick={onSelect}
-    >
+    <div className="cursor-pointer group" onClick={onSelect}>
       <div className="relative w-full aspect-[4/3] rounded-[8px] overflow-hidden mb-[10px]">
         <img
           src={exercise.image}
@@ -48,14 +36,20 @@ export function ExerciseCard({ exercise, onSelect, isLoggedIn = false }: Exercis
           >
             <Bookmark
               className={`w-[20px] h-[20px] transition-colors ${
-                isBookmarked ? 'fill-[#fcbf65] stroke-[#fcbf65]' : 'stroke-gray-700'
+                isBookmarked
+                  ? "fill-[#fcbf65] stroke-[#fcbf65]"
+                  : "stroke-gray-700"
               }`}
             />
           </button>
         )}
       </div>
-      <h3 className="font-['Inter'] font-semibold text-[14px] mb-[4px]">{exercise.title}</h3>
-      <p className="font-['Inter'] text-[12px] text-[rgba(0,0,0,0.47)]">{exercise.attempts}</p>
+      <h3 className="font-['Inter'] font-semibold text-[14px] mb-[4px]">
+        {exercise.title}
+      </h3>
+      <p className="font-['Inter'] text-[12px] text-[rgba(0,0,0,0.47)]">
+        {exercise.attempts}
+      </p>
     </div>
   );
 }

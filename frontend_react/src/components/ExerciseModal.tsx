@@ -1,19 +1,14 @@
-import { X, Clock, FileText, Calendar, CheckCircle, Circle, PlayCircle } from 'lucide-react';
-import { Page } from '../App';
-
-interface Exercise {
-  id: number;
-  title: string;
-  attempts: string;
-  image: string;
-  task: number[];
-  questionTypes: string[];
-  topics: string[];
-  status: 'not-started' | 'in-progress' | 'completed';
-  updated: string;
-  questions: number;
-  duration: number;
-}
+import {
+  X,
+  Clock,
+  FileText,
+  Calendar,
+  CheckCircle,
+  Circle,
+  PlayCircle,
+} from "lucide-react";
+import { Page } from "../App";
+import { Exercise } from "../types/exercise";
 
 interface ExerciseModalProps {
   exercise: Exercise;
@@ -23,56 +18,62 @@ interface ExerciseModalProps {
   setCurrentPage: (page: Page) => void;
 }
 
-export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurrentPage }: ExerciseModalProps) {
-  const getStatusColor = () => {
-    switch (exercise.status) {
-      case 'completed':
-        return 'text-green-600';
-      case 'in-progress':
-        return 'text-orange-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
+export function ExerciseModal({
+  exercise,
+  onClose,
+  onStart,
+  isLoggedIn,
+  setCurrentPage,
+}: ExerciseModalProps) {
+  // const getStatusColor = () => {
+  //   switch (exercise.status) {
+  //     case "completed":
+  //       return "text-green-600";
+  //     case "in-progress":
+  //       return "text-orange-600";
+  //     default:
+  //       return "text-gray-600";
+  //   }
+  // };
 
-  const getStatusIcon = () => {
-    switch (exercise.status) {
-      case 'completed':
-        return <CheckCircle className="w-[20px] h-[20px]" />;
-      case 'in-progress':
-        return <PlayCircle className="w-[20px] h-[20px]" />;
-      default:
-        return <Circle className="w-[20px] h-[20px]" />;
-    }
-  };
+  // const getStatusIcon = () => {
+  //   switch (exercise.status) {
+  //     case "completed":
+  //       return <CheckCircle className="w-[20px] h-[20px]" />;
+  //     case "in-progress":
+  //       return <PlayCircle className="w-[20px] h-[20px]" />;
+  //     default:
+  //       return <Circle className="w-[20px] h-[20px]" />;
+  //   }
+  // };
 
-  const getStatusText = () => {
-    switch (exercise.status) {
-      case 'completed':
-        return 'Completed';
-      case 'in-progress':
-        return 'In Progress';
-      default:
-        return 'Not Started';
-    }
-  };
+  // const getStatusText = () => {
+  //   switch (exercise.status) {
+  //     case "completed":
+  //       return "Completed";
+  //     case "in-progress":
+  //       return "In Progress";
+  //     default:
+  //       return "Not Started";
+  //   }
+  // };
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
         onClick={onClose}
       >
         {/* Modal */}
-        <div 
+        <div
           className="bg-white rounded-[12px] w-[800px] max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header with Image */}
           <div className="relative h-[300px]">
-            <img 
-              src={exercise.image} 
+            <img
+              src={exercise.image}
               alt={exercise.title}
               className="w-full h-full object-cover rounded-t-[12px]"
             />
@@ -100,7 +101,7 @@ export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurre
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
                   {exercise.task.map((t) => (
-                    <span 
+                    <span
                       key={t}
                       className="px-[12px] py-[4px] bg-[#fcbf65] rounded-[6px] font-['Inter'] text-[14px] text-black"
                     >
@@ -117,7 +118,7 @@ export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurre
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
                   {exercise.questionTypes.map((type) => (
-                    <span 
+                    <span
                       key={type}
                       className="px-[12px] py-[4px] bg-gray-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
                     >
@@ -134,7 +135,7 @@ export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurre
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
                   {exercise.topics.map((topic) => (
-                    <span 
+                    <span
                       key={topic}
                       className="px-[12px] py-[4px] bg-blue-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
                     >
@@ -149,12 +150,14 @@ export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurre
                 <p className="font-['Inter'] font-semibold text-[14px] text-gray-600 mb-[8px]">
                   Status
                 </p>
-                <div className={`flex items-center gap-[8px] ${getStatusColor()}`}>
+                {/* <div
+                  className={`flex items-center gap-[8px] ${getStatusColor()}`}
+                >
                   {getStatusIcon()}
                   <span className="font-['Inter'] font-medium text-[14px]">
                     {getStatusText()}
                   </span>
-                </div>
+                </div> */}
               </div>
 
               {/* Updated On */}
@@ -214,14 +217,18 @@ export function ExerciseModal({ exercise, onClose, onStart, isLoggedIn, setCurre
               onClick={() => {
                 if (!isLoggedIn) {
                   onClose();
-                  setCurrentPage('auth-prompt');
+                  setCurrentPage("auth-prompt");
                 } else {
                   onStart();
                 }
               }}
               className="w-full h-[56px] bg-[#fcbf65] hover:bg-[#e5ab52] rounded-[12px] font-['Inter'] font-bold text-[18px] text-black transition-colors"
             >
-              {exercise.status === 'completed' ? 'Practice Again' : exercise.status === 'in-progress' ? 'Continue' : 'Start Practice'}
+              {/* {exercise.status === "completed"
+                ? "Practice Again"
+                : exercise.status === "in-progress"
+                  ? "Continue"
+                  : "Start Practice"} */}
             </button>
           </div>
         </div>
