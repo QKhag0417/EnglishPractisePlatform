@@ -1,43 +1,60 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ prefer react-router-dom
 import { NavBarGuest } from "../components/NavBar";
 import { Footer } from "../components/Footer";
-import { Page } from "../App";
 import { Eye, EyeOff } from "lucide-react";
 import imgGoogle from "figma:asset/0fc5f61d030fba7f22a0e8832857641f73b1429d.png";
 import imgFacebook from "figma:asset/87f8e5f96448d8585bf2ee689bd3cf9d28c432bb.png";
 import { useAuth } from "../contexts/AuthContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
-interface LoginPageProps {
-  setCurrentPage: (page: Page) => void;
-}
-
-export function LoginPage({ setCurrentPage }: LoginPageProps) {
+export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError("");
 
+    if (!email || !password) {
+      setError("Please enter email and password.");
+      return;
+    }
+
     try {
+      setLoading(true);
+
       const loggedInUser = await login(email, password);
 
-      if (loggedInUser.role === "Administrator") {
-        setCurrentPage("content-management");
+      const role = String(loggedInUser.role).toLowerCase();
+      if (
+        role === "administrator" ||
+        role === "admin" ||
+        role === "administrator"
+      ) {
+        navigate("/admin/content-management");
       } else {
-        setCurrentPage("home");
+        navigate("/");
       }
-    } catch (err) {
-      setError("Invalid email or password!!");
+    } catch (err: any) {
+      // If backend returns a message, show it; otherwise fallback
+      const msg =
+        typeof err === "string" ? err : err?.message ? String(err.message) : "";
+      setError(msg || "Invalid email or password!!");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative flex flex-col">
       {/* Background with gradient overlay */}
       <div className="absolute inset-0 z-0">
         <ImageWithFallback
@@ -45,9 +62,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
           alt="Background"
           className="w-full h-full object-cover"
         />
-
-        <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
-
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e8f4f8]/95 via-[#f0f9ff]/90 to-[#dbeafe]/95"></div>
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -59,10 +74,10 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
-        <NavBarGuest setCurrentPage={setCurrentPage} />
+      <div className="relative z-10 flex-1 flex flex-col">
+        <NavBarGuest />
 
-        <div className="pt-[100px] pb-[60px] flex items-center justify-center min-h-[calc(100vh-66px-400px)]">
+        <div className="flex-1 flex items-center justify-center px-8 py-[80px]">
           <div className="bg-white rounded-[12px] border-4 border-[#4880ff] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-[60px] w-[738px]">
             <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[40px]">
               Login
@@ -83,7 +98,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
             </div>
 
             {/* Password */}
-            <div className="mb-[20px]">
+            <div className="mb-[15px]">
               <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
                 Password
               </label>
@@ -109,16 +124,17 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
               </div>
             </div>
 
+            {/* Forgot Password Link */}
             <div className="mb-[20px] text-right">
               <button
-                onClick={() => setCurrentPage("forgot-password")}
-                className="font-['Inter'] font-semibold text-[20px] text-red-500 hover:underline"
+                onClick={() => navigate("/forgot-password")}
+                className="font-['Inter'] font-semibold text-[20px] text-[#dc3545] hover:underline"
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Error message */}
+            {/* Error message (from OLD logic) */}
             {error && (
               <p className="text-red-500 text-center text-[20px] mb-[20px]">
                 {error}
@@ -127,10 +143,11 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
 
             {/* Login Button */}
             <button
-              onClick={handleLogin}
-              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px]"
+              onClick={() => handleLogin()}
+              disabled={loading}
+              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
 
             {/* Divider */}
@@ -169,9 +186,9 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
 
             {/* Register Link */}
             <p className="font-['Inter'] text-[22px] text-black text-center">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <button
-                onClick={() => setCurrentPage("register")}
+                onClick={() => navigate("/register")}
                 className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
               >
                 Register
