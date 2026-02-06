@@ -32,6 +32,7 @@ interface ExerciseModalProps {
   onStart: () => void;
   isLoggedIn: boolean;
   setCurrentPage: (page: Page) => void;
+  setExerciseId: (id: string | null) => void;
   pageType?: "listening" | "reading" | "writing" | "speaking";
 }
 
@@ -41,6 +42,7 @@ export function ExerciseModal({
   onStart,
   isLoggedIn,
   setCurrentPage,
+  setExerciseId,
   pageType,
 }: ExerciseModalProps) {
   const [learnerExerciseStatus, setLearnerExerciseStatus] =
@@ -238,6 +240,8 @@ export function ExerciseModal({
             {/* Start Button */}
             <button
               onClick={() => {
+                setExerciseId(exerciseMetadata.id);
+
                 if (!isLoggedIn) {
                   onClose();
                   setCurrentPage("auth-prompt");

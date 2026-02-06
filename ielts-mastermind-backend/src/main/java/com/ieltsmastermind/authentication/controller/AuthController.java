@@ -7,6 +7,7 @@ import com.ieltsmastermind.authentication.domain.dto.UserLoginResponseDto;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
 import com.ieltsmastermind.common.response.ApiResponse;
+import com.ieltsmastermind.user.management.domain.entity.User;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,8 @@ public class AuthController {
             response.addCookie(cookie);
 
             String role = jwtUtils.getRoleFromToken(token);
-            UserLoginResponseDto dto = new UserLoginResponseDto(role);
+            String userId = jwtUtils.getUserIdFromToken(token);
+            UserLoginResponseDto dto = new UserLoginResponseDto(userId, role);
 
             return ResponseEntity.ok(ApiResponse.success("Login successful", dto));
         } catch (RuntimeException e) {

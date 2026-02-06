@@ -102,8 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       setUser(loggedInUser);
-      localStorage.setItem("user", JSON.stringify(loggedInUser)); // ⭐ SAVE ON LOGIN
-      restoreSession();
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
+
       return loggedInUser;
     } catch (err) {
       console.error(err);

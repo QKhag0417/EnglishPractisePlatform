@@ -11,12 +11,14 @@ import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
 
 interface ListeningPageProps {
   setCurrentPage: (page: Page) => void;
+  setExerciseId: (id: string | null) => void;
   isLoggedIn: boolean;
   onLogout: () => void;
 }
 
 export function ListeningPage({
   setCurrentPage,
+  setExerciseId,
   isLoggedIn,
   onLogout,
 }: ListeningPageProps) {
@@ -68,7 +70,7 @@ export function ListeningPage({
     };
   }
 
-  function mapEExerciseMetadaDtosToExerciseMetadata(
+  function mapExerciseMetadaDtosToExerciseMetadata(
     dtos: ExerciseMetadaDto[],
   ): ExerciseMetadata[] {
     return (dtos ?? []).map(mapExerciseMetadaDtoToExerciseMetadata);
@@ -89,7 +91,7 @@ export function ListeningPage({
   //         ? json
   //         : (json.data ?? []);
   //       const fetchedExercises: ExerciseMetadata[] =
-  //         mapEExerciseMetadaDtosToExerciseMetadata(dtos);
+  //         mapExerciseMetadaDtosToExerciseMetadata(dtos);
 
   //       setExercises((prev) => fetchedExercises);
   //     } catch (err) {
@@ -447,9 +449,7 @@ export function ListeningPage({
                 <ExerciseCard
                   key={exercise.id}
                   exercise={exercise}
-                  onSelect={() => {
-                    setSelectedExercise(exercise);
-                  }}
+                  onSelect={() => setSelectedExercise(exercise)}
                   isLoggedIn={isLoggedIn}
                 />
               ))}
@@ -501,10 +501,9 @@ export function ListeningPage({
       {selectedExercise && (
         <ExerciseModal
           exerciseMetadata={selectedExercise}
+          setExerciseId={setExerciseId}
           onClose={() => setSelectedExercise(null)}
-          onStart={() => {
-            setSelectedExercise(null);
-          }}
+          onStart={() => setSelectedExercise(null)}
           isLoggedIn={isLoggedIn}
           setCurrentPage={setCurrentPage}
         />

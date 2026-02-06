@@ -55,12 +55,15 @@ export type Page =
 function AppContent() {
   const { user, isLoggedIn, logout } = useAuth();
 
+  console.log("Current User in App.tsx:", localStorage.getItem("user"));
+
   // Set default page to home for everyone
   const [currentPage, setCurrentPage] = useState<Page>("home");
 
   const [editId, setEditId] = useState<string | undefined>(undefined);
   const [exerciseId, setExerciseId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+
+  console.log("Current Exercise Id:", exerciseId);
 
   useEffect(() => {
     if (user?.role === "Administrator") {
@@ -107,6 +110,7 @@ function AppContent() {
       {currentPage === "listening" && (
         <ListeningPage
           setCurrentPage={setCurrentPage}
+          setExerciseId={setExerciseId}
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
         />
@@ -292,7 +296,6 @@ function AppContent() {
           />
         </ProtectedRoute>
       )}
-
       {currentPage === "user-management" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}

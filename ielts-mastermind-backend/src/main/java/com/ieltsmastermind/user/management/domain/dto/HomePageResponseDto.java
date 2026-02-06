@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class HomePageResponseDto {
+    private String id;
     private String email;
     private String fullName;
     private String role;
