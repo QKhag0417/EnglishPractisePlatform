@@ -13,57 +13,78 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class SessionManager {
+
     private final StringRedisTemplate redisTemplate;
 
     public SessionManager(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
+    private String buildSessionKey(String token) {
+        return "session:" + token;
+    }
+
+    private String buildUserSessionsKey(String userId) {
+        return "user_sessions:" + userId;
+    }
+
+    /**
+     * Lưu session khi login
+     */
     public void addSession(String token, String userId, String role, long expirationMillis) {
-        String key = buildKey(token);
+        String sessionKey = buildSessionKey(token);
 
         Map<String, String> sessionData = new HashMap<>();
         sessionData.put("userId", userId);
         sessionData.put("role", role);
         sessionData.put("loginAt", String.valueOf(System.currentTimeMillis()));
 
-        redisTemplate.opsForHash().putAll(key, sessionData);
-        redisTemplate.expire(key, Duration.ofMillis(expirationMillis));
+        // Lưu session info
+        redisTemplate.opsForHash().putAll(sessionKey, sessionData);
+        redisTemplate.expire(sessionKey, Duration.ofMillis(expirationMillis));
+
+        // 🔥 Track danh sách session của user
+        String userSessionsKey = buildUserSessionsKey(userId);
+        redisTemplate.opsForSet().add(userSessionsKey, token);
+        redisTemplate.expire(userSessionsKey, Duration.ofMillis(expirationMillis));
     }
 
-    private String buildKey(String token) {
-        return "session:" + token;
-    }
-
+    /**
+     * Kiểm tra session còn hợp lệ không
+     */
     public boolean isValid(String token) {
-        return redisTemplate.hasKey(buildKey(token));
+        return redisTemplate.hasKey(buildSessionKey(token));
     }
 
-
+    /**
+     * Logout 1 session
+     */
     public void removeSession(String token) {
-        redisTemplate.delete(buildKey(token));
+        String sessionKey = buildSessionKey(token);
+
+        Object userId = redisTemplate.opsForHash().get(sessionKey, "userId");
+
+        redisTemplate.delete(sessionKey);
+
+        // Xóa token khỏi danh sách session của user
+        if (userId != null) {
+            redisTemplate.opsForSet().remove(buildUserSessionsKey(userId.toString()), token);
+        }
     }
 
+    /**
+     * Logout toàn bộ thiết bị của user
+     */
     public void invalidateAllSessionsOfUser(String userId) {
-        Set<String> keys = redisTemplate.keys("session:*");
-        if (keys == null || keys.isEmpty()) return;
+        String userSessionsKey = buildUserSessionsKey(userId);
 
-        for (String key : keys) {
-            Object sessionUserId = redisTemplate.opsForHash().get(key, "userId");
-            if (userId.equals(sessionUserId)) {
-                redisTemplate.delete(key);
-            }
-        }
-    }
-    @Getter
-    public static class Session {
-        private final String userId;
-        private final long expireAt;
+        Set<String> tokens = redisTemplate.opsForSet().members(userSessionsKey);
+        if (tokens == null || tokens.isEmpty()) return;
 
-        public Session(String userId, long expireAt) {
-            this.userId = userId;
-            this.expireAt = expireAt;
+        for (String token : tokens) {
+            redisTemplate.delete(buildSessionKey(token));
         }
 
+        redisTemplate.delete(userSessionsKey);
     }
 }

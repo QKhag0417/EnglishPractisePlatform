@@ -3,6 +3,7 @@ package com.ieltsmastermind.authentication.business;
 import com.ieltsmastermind.authentication.domain.entity.PasswordResetToken;
 import com.ieltsmastermind.authentication.persistence.PasswordResetTokenRepository;
 import com.ieltsmastermind.user.management.domain.entity.User;
+import com.ieltsmastermind.user.management.domain.enums.AuthProvider;
 import com.ieltsmastermind.user.management.persistence.UserRepository;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +38,22 @@ public class PasswordResetService {
 
     public void sendResetCode(String email) {
         try {
-            userRepository.findByEmail(email).ifPresent(user -> {
-                String otp = String.format("%04d", new SecureRandom().nextInt(10_000));
-                String key = "pwd_code:" + email;
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Email not found"));
 
-                redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(5));
-                sendOtpEmail(email, otp);
-            });
+            if (user.getProvider() != AuthProvider.LOCAL) {
+                throw new RuntimeException(
+                        "This account uses " + user.getProvider() + " login. Please sign in using that provider."
+                );
+            }
+
+            String otp = String.format("%04d", new SecureRandom().nextInt(10_000));
+            String key = "pwd_code:" + email;
+
+            redisTemplate.opsForValue().set(key, otp, Duration.ofMinutes(5));
+            sendOtpEmail(email, otp);
+
         } catch (Exception e) {
-
             throw new RuntimeException("SYSTEM_ERROR", e);
         }
     }
@@ -89,12 +97,17 @@ public class PasswordResetService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (user.getProvider() != AuthProvider.LOCAL) {
+            throw new RuntimeException(
+                    "This account uses " + user.getProvider() + " login and cannot reset password."
+            );
+        }
+
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
         sessionManager.invalidateAllSessionsOfUser(user.getUserId());
-        redisTemplate.delete(key); // token chỉ dùng 1 lần
-
+        redisTemplate.delete(key);
     }
 
     public void sendOtpEmail(String to, String otp) {

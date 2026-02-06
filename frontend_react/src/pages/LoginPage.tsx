@@ -36,7 +36,13 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
       setError("Invalid email or password!!");
     }
   };
+    const handleGoogleLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    };
 
+    const handleFacebookLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
+    };
 
   return (
     <div className="min-h-screen relative">
@@ -143,12 +149,18 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
 
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleGoogleLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img src={imgGoogle} alt="Google" className="w-[43px] h-[43px]" />
                 <span className="font-['Inter'] font-semibold text-[24px] text-black">Google</span>
               </button>
 
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleFacebookLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img src={imgFacebook} alt="Facebook" className="w-[43px] h-[43px]" />
                 <span className="font-['Inter'] font-semibold text-[24px] text-black">Facebook</span>
               </button>

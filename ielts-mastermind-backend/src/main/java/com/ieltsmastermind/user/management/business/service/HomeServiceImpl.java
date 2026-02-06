@@ -28,7 +28,7 @@ public class HomeServiceImpl implements HomeService {
             return new HomePageResponseDto(null, null, "guest", null);
         }
 
-        String userId = jwtUtils.extractUserId(token);
+        String userId = jwtUtils.getUserIdFromToken(token);
 
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
