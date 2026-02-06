@@ -54,9 +54,13 @@ export type Page =
 
 function AppContent() {
   const { user, isLoggedIn, logout } = useAuth();
+
   // Set default page to home for everyone
   const [currentPage, setCurrentPage] = useState<Page>("home");
+
   const [editId, setEditId] = useState<string | undefined>(undefined);
+  const [exerciseId, setExerciseId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.role === "Administrator") {
@@ -99,14 +103,7 @@ function AppContent() {
         />
       )}
 
-      {/* Learner Routes - Accessible to everyone, but actions require login */}
-      {currentPage === "mocktest" && (
-        <MockTestPage
-          setCurrentPage={setCurrentPage}
-          isLoggedIn={isLoggedIn}
-          onLogout={handleLogout}
-        />
-      )}
+      {/* Learner Routes */}
       {currentPage === "listening" && (
         <ListeningPage
           setCurrentPage={setCurrentPage}
@@ -161,6 +158,13 @@ function AppContent() {
       )}
       {currentPage === "speaking-overview" && (
         <SpeakingOverviewPage
+          setCurrentPage={setCurrentPage}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+        />
+      )}
+      {currentPage === "mocktest" && (
+        <MockTestPage
           setCurrentPage={setCurrentPage}
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}

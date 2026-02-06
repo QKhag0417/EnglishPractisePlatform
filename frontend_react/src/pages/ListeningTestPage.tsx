@@ -4,6 +4,16 @@ import { Page } from "../App";
 import { IELTSMastermindLogo } from "../components/Logo";
 import { TestResultScreen } from "../components/TestResultScreen.tsx";
 import { InstructionRenderer } from "../components/listening/InstructionParser.tsx";
+import {
+  ExerciseInstruction,
+  mockExerciseInstruction1,
+} from "../mocks/instructions.mock";
+import {
+  ExercisePrompt,
+  mockExercisePrompt1,
+} from "../mocks/exercisePrompts.mock";
+
+type UserAnswers = Record<number, string | string[]>;
 
 interface ListeningTestPageProps {
   setCurrentPage: (page: Page) => void;
@@ -11,118 +21,26 @@ interface ListeningTestPageProps {
   onLogout?: () => void;
 }
 
-interface Question {
-  id: number;
-  questionNumber: number;
-  text: string;
-  type: "multiple-choice" | "gap-filling" | "choose-two";
-  options?: string[];
-  answer: string | string[];
-}
-
-const emptyQuestion: Question[] = [
-  {
-    id: 0,
-    questionNumber: 0,
-    text: "",
-    type: "multiple-choice",
-    answer: "",
-  },
-];
-
-type UserAnswers = Record<number, string | string[]>;
-
-interface TestData {
-  title: string;
-  task: number;
-  duration: number;
-  audioUrl: string; // Audio file URL
-  instructions: {
-    title: string;
-    timeInfo: string;
-    candidateInstructions: string[];
-    candidateInfo: string[];
-  };
-  examText: string;
-  correctAnswers: { [key: number]: string };
-}
-
-const questionsSample: Question[] = [
-  {
-    id: 1,
-    questionNumber: 1,
-    text: "What is the name of the student?",
-    type: "gap-filling",
-    answer: "",
-  },
-];
-
-// Mock data for Transport Survey exercise
-const mockTestData: TestData = {
-  title: "Mini Listening Practice",
-  task: 2,
-  duration: 12,
-  audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  instructions: {
-    title: "IELTS Academic Listening",
-    timeInfo: "Time: Approximately 3 minutes",
-    candidateInstructions: ["Answer all the questions."],
-    candidateInfo: ["There are 3 questions in this test."],
-  },
-  examText: `
-Complete the table below.
-
-[table]
-  [row][cell]Name[/cell][cell][gap:1][/cell][/row]
-  [row][cell]Course[/cell][cell][gap:2][/cell][/row]
-[/table]
-
-Look at the image.
-
-[img src="https://www.gstatic.com/webp/gallery3/1.png" alt="Sample photo" width="240"]
-
-Choose ONE answer.
-
-[multiple-choice n="3" pick="1"]
-[option key="A"]Dog[/option]
-[option key="B"]Cat[/option]
-[option key="C"]Bird[/option]
-[option key="D"]Bird[/option]
-[/multiple-choice]
-
-Choose [f weight="700" style="italic" color="blue" size="16"]TWO[/f] answers.
-
-[multiple-choice n="4" pick="2"]
-[option key="A"]Bus[/option]
-[option key="B"]Train[/option]
-[option key="C"]Taxi[/option]
-[option key="D"]Bicycle[/option]
-[/multiple-choice]
-`.trim(),
-
-  correctAnswers: {
-    1: "Anna",
-    2: "Business",
-    3: "B",
-  },
-};
-
-// Map to get test data by exerciseId
-const getTestDataById = (id?: number): TestData => {
-  return mockTestData;
-};
-
 export function ListeningTestPage({
   setCurrentPage,
   exerciseId,
   onLogout,
 }: ListeningTestPageProps) {
-  const testData = getTestDataById(exerciseId);
+  // TODO: Fetch instruction based on exerciseId and learnerId
+  const [exerciseInstruction, setExerciseInstruction] =
+    useState<ExerciseInstruction>(mockExerciseInstruction1);
+
+  // TODO: Fetch exercise prompt based on exerciseId and learnerId
+  const [exercisePrompt, setExercisePrompt] =
+    useState<ExercisePrompt>(mockExercisePrompt1);
+
   const [testState, setTestState] = useState<
     "instruction" | "test" | "results"
   >("instruction");
   const [answers, setAnswers] = useState<UserAnswers>({});
-  const [timeRemaining, setTimeRemaining] = useState(testData.duration * 60);
+  const [timeRemaining, setTimeRemaining] = useState(
+    exercisePrompt.duration * 60,
+  );
   const [testStartTime, setTestStartTime] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -134,11 +52,6 @@ export function ListeningTestPage({
   const [currentPart, setCurrentPart] = useState(1);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const audioRef = useState<HTMLAudioElement | null>(null)[0];
-
-  // Delete
-  useEffect(() => {
-    console.log("answers updated:", answers);
-  }, [answers]);
 
   // Timer countdown
   useEffect(() => {
@@ -208,11 +121,11 @@ export function ListeningTestPage({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
         <div className="bg-white rounded-lg shadow-lg max-w-[900px] w-full p-12">
           <h1 className="text-[32px] font-bold text-[#1977f3] mb-6">
-            {getTestDataById(exerciseId).instructions.title}
+            {exerciseInstruction.title}
           </h1>
 
           <p className="text-[18px] text-gray-600 mb-8">
-            <span className="font-bold">Time: Approximately 12 minutes</span>
+            <span className="font-bold">{exerciseInstruction.timeInfo}</span>
           </p>
 
           <div className="mb-8">
@@ -220,11 +133,11 @@ export function ListeningTestPage({
               INSTRUCTIONS TO CANDIDATES
             </h2>
             <ul className="list-disc list-inside space-y-3 text-[16px] text-gray-700">
-              {getTestDataById(
-                exerciseId,
-              ).instructions.candidateInstructions.map((instruction, index) => (
-                <li key={index}>{instruction}</li>
-              ))}
+              {exerciseInstruction.candidateInstructions.map(
+                (instruction, index) => (
+                  <li key={index}>{instruction}</li>
+                ),
+              )}
             </ul>
           </div>
 
@@ -233,16 +146,9 @@ export function ListeningTestPage({
               INFORMATION FOR CANDIDATES
             </h2>
             <ul className="list-disc list-inside space-y-3 text-[16px] text-gray-700">
-              <li>
-                <span className="font-bold">There are 10 questions</span> in
-                this test.
-              </li>
-              <li>Each question carries one mark.</li>
-              <li>You will hear the recording once.</li>
-              <li>
-                For this part of the test there will be time for you to look
-                through the questions and time for you to check your answers.
-              </li>
+              {exerciseInstruction.candidateInfo.map((info, index) => (
+                <li key={index}>{info}</li>
+              ))}
             </ul>
           </div>
 
@@ -267,15 +173,13 @@ export function ListeningTestPage({
   if (testState === "results") {
     return (
       <TestResultScreen
-        testType="listening"
-        questions={emptyQuestion}
-        correctAnswers={getTestDataById(exerciseId).correctAnswers}
+        userAnswers={answers}
         timeSpent={timeSpent}
         onReturnToLibrary={() => setCurrentPage("listening")}
         onTakeAnotherTest={() => {
           // Reset test state with proper answer types
           // setAnswers(questionsSample);
-          setTimeRemaining(getTestDataById(exerciseId).duration * 60);
+          setTimeRemaining(1 * 60);
           setTestState("instruction");
           setTestStartTime(0);
           setTimeSpent(0);
@@ -353,12 +257,12 @@ export function ListeningTestPage({
         {/* Questions Section */}
         <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
           <h3 className="text-[20px] font-bold text-black mb-2">
-            Part {getTestDataById(exerciseId).task}
+            Part {exercisePrompt.task}
           </h3>
 
           {/* Render exam text */}
           <InstructionRenderer
-            instruction={getTestDataById(exerciseId).examText}
+            instruction={exercisePrompt.examText}
             userAnswers={answers}
             onAnswerChange={handleAnswerChange}
           />

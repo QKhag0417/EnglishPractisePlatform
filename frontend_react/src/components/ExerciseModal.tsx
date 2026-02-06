@@ -10,7 +10,7 @@ import {
 import { Page } from "../App";
 import { useState } from "react";
 
-type Exercise = {
+type ExerciseMetadata = {
   id: string;
   title: string;
   attempts: string;
@@ -27,7 +27,7 @@ type Exercise = {
 type LearnerExerciseStatus = "not-started" | "in-progress" | "completed";
 
 interface ExerciseModalProps {
-  exercise: Exercise;
+  exerciseMetadata: ExerciseMetadata;
   onClose: () => void;
   onStart: () => void;
   isLoggedIn: boolean;
@@ -36,7 +36,7 @@ interface ExerciseModalProps {
 }
 
 export function ExerciseModal({
-  exercise,
+  exerciseMetadata,
   onClose,
   onStart,
   isLoggedIn,
@@ -96,8 +96,8 @@ export function ExerciseModal({
           {/* Header with Image */}
           <div className="relative h-[300px]">
             <img
-              src={exercise.image}
-              alt={exercise.title}
+              src={exerciseMetadata.image}
+              alt={exerciseMetadata.title}
               className="w-full h-full object-cover rounded-t-[12px]"
             />
             <button
@@ -112,7 +112,7 @@ export function ExerciseModal({
           <div className="p-[32px]">
             {/* Title */}
             <h2 className="font-['Inter'] font-bold text-[28px] text-black mb-[24px]">
-              {exercise.title}
+              {exerciseMetadata.title}
             </h2>
 
             {/* Info Grid */}
@@ -123,7 +123,7 @@ export function ExerciseModal({
                   Task
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exercise.task.map((t) => (
+                  {exerciseMetadata.task.map((t) => (
                     <span
                       key={t}
                       className="px-[12px] py-[4px] bg-[#fcbf65] rounded-[6px] font-['Inter'] text-[14px] text-black"
@@ -140,7 +140,7 @@ export function ExerciseModal({
                   Question Type
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exercise.questionTypes.map((type) => (
+                  {exerciseMetadata.questionTypes.map((type) => (
                     <span
                       key={type}
                       className="px-[12px] py-[4px] bg-gray-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
@@ -157,7 +157,7 @@ export function ExerciseModal({
                   Topic
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exercise.topics.map((topic) => (
+                  {exerciseMetadata.topics.map((topic) => (
                     <span
                       key={topic}
                       className="px-[12px] py-[4px] bg-blue-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
@@ -191,7 +191,7 @@ export function ExerciseModal({
                 <div className="flex items-center gap-[8px] text-gray-700">
                   <Calendar className="w-[20px] h-[20px]" />
                   <span className="font-['Inter'] text-[14px]">
-                    {exercise.updated}
+                    {exerciseMetadata.updated}
                   </span>
                 </div>
               </div>
@@ -204,7 +204,7 @@ export function ExerciseModal({
                 <div className="flex items-center gap-[8px] text-gray-700">
                   <FileText className="w-[20px] h-[20px]" />
                   <span className="font-['Inter'] text-[14px]">
-                    {exercise.questions} questions
+                    {exerciseMetadata.questions} questions
                   </span>
                 </div>
               </div>
@@ -217,7 +217,7 @@ export function ExerciseModal({
                 <div className="flex items-center gap-[8px] text-gray-700">
                   <Clock className="w-[20px] h-[20px]" />
                   <span className="font-['Inter'] text-[14px]">
-                    {exercise.duration} minutes
+                    {exerciseMetadata.duration} minutes
                   </span>
                 </div>
               </div>
@@ -229,7 +229,7 @@ export function ExerciseModal({
                 </p>
                 <div className="flex items-center gap-[8px] text-gray-700">
                   <span className="font-['Inter'] text-[14px]">
-                    {exercise.attempts}
+                    {exerciseMetadata.attempts}
                   </span>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-type Exercise = {
+export type ExerciseMetadata = {
   id: string;
   title: string;
   attempts: string;
@@ -12,7 +12,7 @@ type Exercise = {
   duration: number;
 };
 
-export const mockExercises: Exercise[] = [
+export const mockExercises: ExerciseMetadata[] = [
   {
     id: "1",
     title: "Transport survey",

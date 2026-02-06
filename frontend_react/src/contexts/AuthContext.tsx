@@ -1,6 +1,12 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
-export type UserRole = 'Learner' | 'Administrator';
+export type UserRole = "Learner" | "Administrator";
 
 export interface User {
   id: string;
@@ -19,7 +25,7 @@ interface AuthContextType {
     lastname: string,
     email: string,
     password: string,
-    role?: UserRole
+    role?: UserRole,
   ) => Promise<void>;
   logout: () => void;
   updateUserRole: (role: UserRole) => void;
@@ -30,7 +36,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => { restoreSession(); }, []);
+  useEffect(() => {
+    restoreSession();
+  }, []);
 
   // ---------------------------------------------------------
   // RESTORE SESSION FROM BACKEND (ONLY IF NO LOCAL USER)
@@ -111,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastname: string,
     email: string,
     password: string,
-    role: UserRole = "Learner"
+    role: UserRole = "Learner",
   ) => {
     try {
       const res = await fetch("http://localhost:8080/api/auth/register", {
@@ -146,7 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(newUser);
       localStorage.setItem("user", JSON.stringify(newUser)); // ⭐ SAVE AFTER REGISTER
-
     } catch (err) {
       console.error("REGISTER ERROR:", err);
       throw err;
@@ -196,7 +203,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context)
-    throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }

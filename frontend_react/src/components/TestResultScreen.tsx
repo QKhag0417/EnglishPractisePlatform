@@ -1,19 +1,14 @@
 import { Page } from "../App";
 import { NavBarLearner } from "./NavBar";
 import { Footer } from "./Footer";
-
-interface Question {
-  id: number;
-  questionNumber: number;
-  text: string;
-  type: string;
-  answer: string | string[]; // Support both string and array answers
-}
+import {
+  ExerciseAnswers,
+  mockExerciseAnswers,
+} from "../mocks/exerciseAnswers.mock";
+import { useState } from "react";
 
 interface TestResultScreenProps {
-  testType: "listening" | "reading";
-  questions: Question[];
-  correctAnswers: { [key: number]: string };
+  userAnswers: Record<number, string | string[]>;
   timeSpent: number; // in seconds
   onReturnToLibrary: () => void;
   onTakeAnotherTest: () => void;
@@ -22,47 +17,74 @@ interface TestResultScreenProps {
 }
 
 export function TestResultScreen({
-  testType,
-  questions,
-  correctAnswers,
+  userAnswers,
   timeSpent,
   onReturnToLibrary,
   onTakeAnotherTest,
   setCurrentPage,
   onLogout,
 }: TestResultScreenProps) {
-  // Helper function to normalize answer to string for comparison
-  const normalizeAnswer = (answer: string | string[]): string => {
-    if (Array.isArray(answer)) {
-      return answer.join(",").toLowerCase();
-    }
-    return typeof answer === "string" ? answer.trim().toLowerCase() : "";
+  // TODO: Fetch exercise answers based on exerciseId and learnerId
+  const [exerciseAnswer, setExerciseAnswer] =
+    useState<ExerciseAnswers>(mockExerciseAnswers);
+
+  const normalizeOne = (v: string) =>
+    v.trim().toLowerCase().replace(/\s+/g, " ");
+
+  const normalizeValue = (v?: string | string[]) => {
+    if (v == null) return [];
+    const arr = Array.isArray(v) ? v : [v];
+    return arr.map(normalizeOne).filter(Boolean);
   };
 
-  // Helper function to check if answer is empty
-  const isAnswerEmpty = (answer: string | string[]): boolean => {
-    if (Array.isArray(answer)) {
-      return answer.length === 0;
+  const isAnswerEmpty = (v?: string | string[]) =>
+    normalizeValue(v).length === 0;
+
+  const isCorrect = (
+    user: string | string[] | undefined,
+    correct: string | string[] | undefined,
+  ) => {
+    const u = normalizeValue(user);
+    const c = normalizeValue(correct);
+    if (u.length === 0 || c.length === 0) return false;
+
+    // If both are arrays -> treat as multi-select, require exact match (order-insensitive)
+    if (Array.isArray(user) && Array.isArray(correct)) {
+      if (u.length !== c.length) return false;
+      const us = [...u].sort();
+      const cs = [...c].sort();
+      return us.every((val, i) => val === cs[i]);
     }
-    return typeof answer === "string" ? !answer.trim() : true;
+
+    // Otherwise, accept any matching option
+    return u.some((ua) => c.includes(ua));
   };
 
-  // Calculate results
-  const totalQuestions = questions.length;
-  const correctCount = questions.filter((q) => {
-    const userAnswer = normalizeAnswer(q.answer);
-    const correct = correctAnswers[q.questionNumber]?.toLowerCase();
-    return userAnswer === correct;
-  }).length;
+  const correctAnswers = exerciseAnswer.correctAnswers;
 
-  const wrongCount = questions.filter((q) => {
-    const userAnswer = normalizeAnswer(q.answer);
-    const correct = correctAnswers[q.questionNumber]?.toLowerCase();
-    return !isAnswerEmpty(q.answer) && userAnswer !== correct;
-  }).length;
+  const totalQuestions = Object.keys(correctAnswers).length;
 
-  const skipCount = questions.filter((q) => isAnswerEmpty(q.answer)).length;
-  const percentage = Math.round((correctCount / totalQuestions) * 100);
+  let correctCount = 0;
+  let wrongCount = 0;
+  let skipCount = 0;
+
+  for (const [qStr, correctVal] of Object.entries(correctAnswers)) {
+    const qNum = Number(qStr);
+    const userVal = userAnswers[qNum];
+
+    if (isAnswerEmpty(userVal)) {
+      skipCount += 1;
+    } else if (isCorrect(userVal, correctVal)) {
+      correctCount += 1;
+    } else {
+      wrongCount += 1;
+    }
+  }
+
+  const percentage =
+    totalQuestions === 0
+      ? 0
+      : Math.round((correctCount / totalQuestions) * 100);
 
   // Format time
   const formatTime = (seconds: number) => {
@@ -165,48 +187,56 @@ export function TestResultScreen({
 
             {/* Question Grid */}
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              {questions.map((question) => {
-                const userAnswer = question.answer;
-                const correctAnswer = correctAnswers[question.questionNumber];
-                const isCorrect =
-                  normalizeAnswer(userAnswer) === correctAnswer?.toLowerCase();
-                const isEmpty = isAnswerEmpty(userAnswer);
+              {Object.keys(correctAnswers)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map((questionNumber) => {
+                  const userAnswer = userAnswers[questionNumber];
+                  const correctAnswer = correctAnswers[questionNumber];
 
-                return (
-                  <div key={question.id} className="flex items-center gap-3">
-                    {/* Question Number */}
-                    <span className="font-['Inter'] font-bold text-[16px] text-black w-6">
-                      {question.questionNumber}
-                    </span>
+                  const empty = isAnswerEmpty(userAnswer);
+                  const correct =
+                    !empty && isCorrect(userAnswer, correctAnswer);
 
-                    {/* User Answer or Empty */}
-                    {isEmpty ? (
-                      <span className="font-['Inter'] text-[14px] text-gray-400">
-                        (empty)
-                      </span>
-                    ) : !isCorrect ? (
-                      <>
-                        <span className="text-[#dc3545] text-[16px]">✕</span>
-                        <span className="font-['Inter'] text-[14px] text-gray-400 line-through">
-                          {Array.isArray(userAnswer)
-                            ? userAnswer.join(", ")
-                            : userAnswer}
-                        </span>
-                      </>
-                    ) : null}
+                  const formatAnswer = (v?: string | string[]) =>
+                    v == null ? "" : Array.isArray(v) ? v.join(", ") : v;
 
-                    {/* Correct Answer */}
-                    {!isEmpty && !isCorrect && (
-                      <span className="text-[#dc3545] text-[16px]">✕</span>
-                    )}
-                    <span
-                      className={`font-['Inter'] text-[16px] ${isCorrect ? "text-black" : "text-[#28a745]"}`}
+                  return (
+                    <div
+                      key={questionNumber}
+                      className="flex items-center gap-3"
                     >
-                      {correctAnswer}
-                    </span>
-                  </div>
-                );
-              })}
+                      {/* Question Number */}
+                      <span className="font-['Inter'] font-bold text-[16px] text-black w-6">
+                        {questionNumber}
+                      </span>
+
+                      {/* User Answer or Empty */}
+                      {empty ? (
+                        <span className="font-['Inter'] text-[14px] text-gray-400">
+                          (empty)
+                        </span>
+                      ) : correct ? (
+                        <>
+                          <span className="text-[#28a745] text-[16px]">✓</span>
+                          <span className="font-['Inter'] text-[16px] text-black">
+                            {formatAnswer(correctAnswer)}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[#dc3545] text-[16px]">✕</span>
+                          <span className="font-['Inter'] text-[14px] text-gray-400 line-through">
+                            {formatAnswer(userAnswer)}
+                          </span>
+                          <span className="font-['Inter'] text-[16px] text-[#28a745]">
+                            {formatAnswer(correctAnswer)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
 

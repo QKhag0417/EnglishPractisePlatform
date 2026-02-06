@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { NavBarGuest } from '../components/NavBar';
-import { Footer } from '../components/Footer';
-import { Page } from '../App';
-import { Eye, EyeOff } from 'lucide-react';
+import { useState } from "react";
+import { NavBarGuest } from "../components/NavBar";
+import { Footer } from "../components/Footer";
+import { Page } from "../App";
+import { Eye, EyeOff } from "lucide-react";
 import imgGoogle from "figma:asset/0fc5f61d030fba7f22a0e8832857641f73b1429d.png";
 import imgFacebook from "figma:asset/87f8e5f96448d8585bf2ee689bd3cf9d28c432bb.png";
-import { useAuth } from '../contexts/AuthContext';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useAuth } from "../contexts/AuthContext";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 interface LoginPageProps {
   setCurrentPage: (page: Page) => void;
@@ -14,11 +14,11 @@ interface LoginPageProps {
 
 export function LoginPage({ setCurrentPage }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const { login} = useAuth();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     setError("");
@@ -31,12 +31,10 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
       } else {
         setCurrentPage("home");
       }
-
     } catch (err) {
       setError("Invalid email or password!!");
     }
   };
-
 
   return (
     <div className="min-h-screen relative">
@@ -47,13 +45,15 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
           alt="Background"
           className="w-full h-full object-cover"
         />
-        
+
         <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
 
-        <div className="absolute inset-0 opacity-10"
+        <div
+          className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-            backgroundSize: '30px 30px'
+            backgroundImage:
+              "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
           }}
         ></div>
       </div>
@@ -89,7 +89,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -111,7 +111,7 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
 
             <div className="mb-[20px] text-right">
               <button
-                onClick={() => setCurrentPage('forgot-password')}
+                onClick={() => setCurrentPage("forgot-password")}
                 className="font-['Inter'] font-semibold text-[20px] text-red-500 hover:underline"
               >
                 Forgot password?
@@ -125,7 +125,6 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
               </p>
             )}
 
-
             {/* Login Button */}
             <button
               onClick={handleLogin}
@@ -137,28 +136,42 @@ export function LoginPage({ setCurrentPage }: LoginPageProps) {
             {/* Divider */}
             <div className="flex items-center gap-[20px] mb-[30px]">
               <div className="flex-1 h-[1px] bg-black" />
-              <span className="font-['Inter'] text-[22px] text-black">or login with</span>
+              <span className="font-['Inter'] text-[22px] text-black">
+                or login with
+              </span>
               <div className="flex-1 h-[1px] bg-black" />
             </div>
 
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
               <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
-                <img src={imgGoogle} alt="Google" className="w-[43px] h-[43px]" />
-                <span className="font-['Inter'] font-semibold text-[24px] text-black">Google</span>
+                <img
+                  src={imgGoogle}
+                  alt="Google"
+                  className="w-[43px] h-[43px]"
+                />
+                <span className="font-['Inter'] font-semibold text-[24px] text-black">
+                  Google
+                </span>
               </button>
 
               <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
-                <img src={imgFacebook} alt="Facebook" className="w-[43px] h-[43px]" />
-                <span className="font-['Inter'] font-semibold text-[24px] text-black">Facebook</span>
+                <img
+                  src={imgFacebook}
+                  alt="Facebook"
+                  className="w-[43px] h-[43px]"
+                />
+                <span className="font-['Inter'] font-semibold text-[24px] text-black">
+                  Facebook
+                </span>
               </button>
             </div>
 
             {/* Register Link */}
             <p className="font-['Inter'] text-[22px] text-black text-center">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <button
-                onClick={() => setCurrentPage('register')}
+                onClick={() => setCurrentPage("register")}
                 className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
               >
                 Register

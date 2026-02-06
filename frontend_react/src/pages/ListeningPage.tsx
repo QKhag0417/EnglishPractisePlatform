@@ -7,21 +7,7 @@ import { ExerciseCard } from "../components/ExerciseCard";
 import { ExerciseModal } from "../components/ExerciseModal";
 import { useEffect } from "react";
 import { useMemo } from "react";
-import { mockExercises } from "../mocks/exercises.mock";
-
-type Exercise = {
-  id: string;
-  title: string;
-  attempts: string;
-  image: string;
-  task: number[];
-  questionTypes: string[];
-  topics: string[];
-  status: "draft" | "published";
-  updated: string;
-  questions: number;
-  duration: number;
-};
+import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
 
 interface ListeningPageProps {
   setCurrentPage: (page: Page) => void;
@@ -45,14 +31,13 @@ export function ListeningPage({
     "newest" | "oldest" | "attempts" | "a-z" | "z-a"
   >("newest");
   const [paginationPage, setPaginationPage] = useState(1);
-  const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null,
-  );
+  const [exercises, setExercises] = useState<ExerciseMetadata[]>(mockExercises);
+  const [selectedExercise, setSelectedExercise] =
+    useState<ExerciseMetadata | null>(null);
 
   const itemsPerPage = 12;
 
-  type ExerciseDto = {
+  type ExerciseMetadaDto = {
     id: string;
     title: string;
     thumbnailUrl?: string;
@@ -65,7 +50,9 @@ export function ListeningPage({
     durationMinutes?: number;
   };
 
-  function mapExerciseDtoToExercise(dto: ExerciseDto): Exercise {
+  function mapExerciseMetadaDtoToExerciseMetadata(
+    dto: ExerciseMetadaDto,
+  ): ExerciseMetadata {
     return {
       id: dto.id,
       title: dto.title ?? "",
@@ -81,32 +68,35 @@ export function ListeningPage({
     };
   }
 
-  function mapExerciseDtosToExercises(dtos: ExerciseDto[]): Exercise[] {
-    return (dtos ?? []).map(mapExerciseDtoToExercise);
+  function mapEExerciseMetadaDtosToExerciseMetadata(
+    dtos: ExerciseMetadaDto[],
+  ): ExerciseMetadata[] {
+    return (dtos ?? []).map(mapExerciseMetadaDtoToExerciseMetadata);
   }
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/practice-content", {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:8080/api/practice-content", {
+  //         method: "GET",
+  //         headers: { Accept: "application/json" },
+  //         credentials: "include",
+  //       });
 
-        const json = await res.json();
+  //       const json = await res.json();
 
-        const dtos: ExerciseDto[] = Array.isArray(json)
-          ? json
-          : (json.data ?? []);
-        const fetchedExercises: Exercise[] = mapExerciseDtosToExercises(dtos);
+  //       const dtos: ExerciseMetadaDto[] = Array.isArray(json)
+  //         ? json
+  //         : (json.data ?? []);
+  //       const fetchedExercises: ExerciseMetadata[] =
+  //         mapEExerciseMetadaDtosToExerciseMetadata(dtos);
 
-        setExercises((prev) => mergeById(prev, fetchedExercises));
-      } catch (err) {
-        console.error("Failed to fetch practice content:", err);
-      }
-    })();
-  }, []);
+  //       setExercises((prev) => fetchedExercises);
+  //     } catch (err) {
+  //       console.error("Failed to fetch practice content:", err);
+  //     }
+  //   })();
+  // }, []);
 
   const allQuestionTypes = useMemo(() => {
     const set = new Set<string>();
@@ -510,7 +500,7 @@ export function ListeningPage({
       {/* Exercise Modal */}
       {selectedExercise && (
         <ExerciseModal
-          exercise={selectedExercise}
+          exerciseMetadata={selectedExercise}
           onClose={() => setSelectedExercise(null)}
           onStart={() => {
             setSelectedExercise(null);
@@ -536,7 +526,7 @@ function parseTaskToNumbers(task?: string): number[] {
   return match ? [Number(match[1])] : [];
 }
 
-function mapStatus(dtoStatus?: string): Exercise["status"] {
+function mapStatus(dtoStatus?: string): ExerciseMetadata["status"] {
   switch (dtoStatus) {
     case "DRAFT":
       return "draft";
@@ -546,13 +536,6 @@ function mapStatus(dtoStatus?: string): Exercise["status"] {
       return "draft";
   }
 }
-
-const mergeById = (base: Exercise[], incoming: Exercise[]) => {
-  const map = new Map<string, Exercise>();
-  base.forEach((e) => map.set(e.id, e));
-  incoming.forEach((e) => map.set(e.id, e));
-  return Array.from(map.values());
-};
 
 const dateToMillis = (v: string) => {
   const t = new Date(v).getTime();
