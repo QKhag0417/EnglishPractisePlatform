@@ -8,7 +8,23 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { Page } from "../App";
-import { Exercise } from "../types/exercise";
+import { useState } from "react";
+
+type Exercise = {
+  id: string;
+  title: string;
+  attempts: string;
+  image: string;
+  task: number[];
+  questionTypes: string[];
+  topics: string[];
+  status: "draft" | "published";
+  updated: string;
+  questions: number;
+  duration: number;
+};
+
+type LearnerExerciseStatus = "not-started" | "in-progress" | "completed";
 
 interface ExerciseModalProps {
   exercise: Exercise;
@@ -16,6 +32,7 @@ interface ExerciseModalProps {
   onStart: () => void;
   isLoggedIn: boolean;
   setCurrentPage: (page: Page) => void;
+  pageType?: "listening" | "reading" | "writing" | "speaking";
 }
 
 export function ExerciseModal({
@@ -24,39 +41,45 @@ export function ExerciseModal({
   onStart,
   isLoggedIn,
   setCurrentPage,
+  pageType,
 }: ExerciseModalProps) {
-  // const getStatusColor = () => {
-  //   switch (exercise.status) {
-  //     case "completed":
-  //       return "text-green-600";
-  //     case "in-progress":
-  //       return "text-orange-600";
-  //     default:
-  //       return "text-gray-600";
-  //   }
-  // };
+  const [learnerExerciseStatus, setLearnerExerciseStatus] =
+    useState<LearnerExerciseStatus>("not-started");
 
-  // const getStatusIcon = () => {
-  //   switch (exercise.status) {
-  //     case "completed":
-  //       return <CheckCircle className="w-[20px] h-[20px]" />;
-  //     case "in-progress":
-  //       return <PlayCircle className="w-[20px] h-[20px]" />;
-  //     default:
-  //       return <Circle className="w-[20px] h-[20px]" />;
-  //   }
-  // };
+  // TODO: Call API with (learnerId, exerciseId) to fetch this learner's status for the selected exercise,
 
-  // const getStatusText = () => {
-  //   switch (exercise.status) {
-  //     case "completed":
-  //       return "Completed";
-  //     case "in-progress":
-  //       return "In Progress";
-  //     default:
-  //       return "Not Started";
-  //   }
-  // };
+  const getStatusColor = () => {
+    switch (learnerExerciseStatus) {
+      case "completed":
+        return "text-green-600";
+      case "in-progress":
+        return "text-orange-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (learnerExerciseStatus) {
+      case "completed":
+        return <CheckCircle className="w-[20px] h-[20px]" />;
+      case "in-progress":
+        return <PlayCircle className="w-[20px] h-[20px]" />;
+      default:
+        return <Circle className="w-[20px] h-[20px]" />;
+    }
+  };
+
+  const getStatusText = () => {
+    switch (learnerExerciseStatus) {
+      case "completed":
+        return "Completed";
+      case "in-progress":
+        return "In Progress";
+      default:
+        return "Not Started";
+    }
+  };
 
   return (
     <>
@@ -150,14 +173,14 @@ export function ExerciseModal({
                 <p className="font-['Inter'] font-semibold text-[14px] text-gray-600 mb-[8px]">
                   Status
                 </p>
-                {/* <div
+                <div
                   className={`flex items-center gap-[8px] ${getStatusColor()}`}
                 >
                   {getStatusIcon()}
                   <span className="font-['Inter'] font-medium text-[14px]">
                     {getStatusText()}
                   </span>
-                </div> */}
+                </div>
               </div>
 
               {/* Updated On */}
@@ -219,16 +242,19 @@ export function ExerciseModal({
                   onClose();
                   setCurrentPage("auth-prompt");
                 } else {
-                  onStart();
+                  const testPage = pageType
+                    ? (`${pageType}-test` as Page)
+                    : "listening-test";
+                  setCurrentPage(testPage);
                 }
               }}
               className="w-full h-[56px] bg-[#fcbf65] hover:bg-[#e5ab52] rounded-[12px] font-['Inter'] font-bold text-[18px] text-black transition-colors"
             >
-              {/* {exercise.status === "completed"
+              {learnerExerciseStatus === "completed"
                 ? "Practice Again"
-                : exercise.status === "in-progress"
+                : learnerExerciseStatus === "in-progress"
                   ? "Continue"
-                  : "Start Practice"} */}
+                  : "Start Practice"}
             </button>
           </div>
         </div>

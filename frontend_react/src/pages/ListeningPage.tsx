@@ -6,77 +6,28 @@ import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ExerciseCard } from "../components/ExerciseCard";
 import { ExerciseModal } from "../components/ExerciseModal";
 import { useEffect } from "react";
-import { Exercise } from "../types/exercise";
-import { ExerciseDto } from "../types/exerciseDto";
 import { useMemo } from "react";
 import { mockExercises } from "../mocks/exercises.mock";
+
+type Exercise = {
+  id: string;
+  title: string;
+  attempts: string;
+  image: string;
+  task: number[];
+  questionTypes: string[];
+  topics: string[];
+  status: "draft" | "published";
+  updated: string;
+  questions: number;
+  duration: number;
+};
 
 interface ListeningPageProps {
   setCurrentPage: (page: Page) => void;
   isLoggedIn: boolean;
   onLogout: () => void;
 }
-
-function localDateTimeArrayToIso(arr?: number[]): string {
-  if (!arr || arr.length < 6) return "";
-  const [y, m, d, hh, mm, ss, nanos = 0] = arr;
-  const ms = Math.floor(nanos / 1_000_000);
-
-  return new Date(y, m - 1, d, hh, mm, ss, ms).toISOString();
-}
-
-function parseTaskToNumbers(task?: string): number[] {
-  const match = task?.match(/(\d+)/);
-  return match ? [Number(match[1])] : [];
-}
-
-function mapStatus(dtoStatus?: string): Exercise["status"] {
-  switch (dtoStatus) {
-    case "DRAFT":
-      return "draft";
-    case "PUBLISHED":
-      return "published";
-    default:
-      return "draft";
-  }
-}
-
-function mapExerciseDtoToExercise(dto: ExerciseDto): Exercise {
-  return {
-    id: dto.id,
-    title: dto.title ?? "",
-    attempts: "0",
-    image: dto.thumbnailUrl ?? "",
-    task: parseTaskToNumbers(dto.task),
-    questionTypes: dto.questionTypeTags ?? [],
-    topics: dto.topicTags ?? [],
-    status: mapStatus(dto.status),
-    updated: localDateTimeArrayToIso(dto.updatedOn),
-    questions: dto.questionCount ?? 0,
-    duration: dto.durationMinutes ?? 0,
-  };
-}
-
-function mapExerciseDtosToExercises(dtos: ExerciseDto[]): Exercise[] {
-  return (dtos ?? []).map(mapExerciseDtoToExercise);
-}
-
-const mergeById = (base: Exercise[], incoming: Exercise[]) => {
-  const map = new Map<string, Exercise>();
-  base.forEach((e) => map.set(e.id, e));
-  incoming.forEach((e) => map.set(e.id, e));
-  return Array.from(map.values());
-};
-
-const dateToMillis = (v: string) => {
-  const t = new Date(v).getTime();
-  return Number.isFinite(t) ? t : 0;
-};
-
-const attemptsToNumber = (v: string) => {
-  const n = Number(String(v).replace(/[^\d.-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-};
 
 export function ListeningPage({
   setCurrentPage,
@@ -93,12 +44,46 @@ export function ListeningPage({
   const [sortBy, setSortBy] = useState<
     "newest" | "oldest" | "attempts" | "a-z" | "z-a"
   >("newest");
+  const [paginationPage, setPaginationPage] = useState(1);
+  const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null,
   );
-  const [paginationPage, setPaginationPage] = useState(1);
+
   const itemsPerPage = 12;
-  const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
+
+  type ExerciseDto = {
+    id: string;
+    title: string;
+    thumbnailUrl?: string;
+    task?: string;
+    questionTypeTags?: string[];
+    topicTags?: string[];
+    status?: string;
+    updatedOn?: number[];
+    questionCount?: number;
+    durationMinutes?: number;
+  };
+
+  function mapExerciseDtoToExercise(dto: ExerciseDto): Exercise {
+    return {
+      id: dto.id,
+      title: dto.title ?? "",
+      attempts: "0",
+      image: dto.thumbnailUrl ?? "",
+      task: parseTaskToNumbers(dto.task),
+      questionTypes: dto.questionTypeTags ?? [],
+      topics: dto.topicTags ?? [],
+      status: mapStatus(dto.status),
+      updated: localDateTimeArrayToIso(dto.updatedOn),
+      questions: dto.questionCount ?? 0,
+      duration: dto.durationMinutes ?? 0,
+    };
+  }
+
+  function mapExerciseDtosToExercises(dtos: ExerciseDto[]): Exercise[] {
+    return (dtos ?? []).map(mapExerciseDtoToExercise);
+  }
 
   useEffect(() => {
     (async () => {
@@ -110,7 +95,6 @@ export function ListeningPage({
         });
 
         const json = await res.json();
-        console.log("GET /api/practice-content:", json);
 
         const dtos: ExerciseDto[] = Array.isArray(json)
           ? json
@@ -118,8 +102,6 @@ export function ListeningPage({
         const fetchedExercises: Exercise[] = mapExerciseDtosToExercises(dtos);
 
         setExercises((prev) => mergeById(prev, fetchedExercises));
-
-        console.log("Mapped exercises:", fetchedExercises);
       } catch (err) {
         console.error("Failed to fetch practice content:", err);
       }
@@ -475,7 +457,9 @@ export function ListeningPage({
                 <ExerciseCard
                   key={exercise.id}
                   exercise={exercise}
-                  onSelect={() => setSelectedExercise(exercise)}
+                  onSelect={() => {
+                    setSelectedExercise(exercise);
+                  }}
                   isLoggedIn={isLoggedIn}
                 />
               ))}
@@ -529,8 +513,6 @@ export function ListeningPage({
           exercise={selectedExercise}
           onClose={() => setSelectedExercise(null)}
           onStart={() => {
-            // Handle start exercise - in real app would navigate to exercise page
-            console.log("Starting exercise:", selectedExercise.title);
             setSelectedExercise(null);
           }}
           isLoggedIn={isLoggedIn}
@@ -540,3 +522,44 @@ export function ListeningPage({
     </div>
   );
 }
+
+function localDateTimeArrayToIso(arr?: number[]): string {
+  if (!arr || arr.length < 6) return "";
+  const [y, m, d, hh, mm, ss, nanos = 0] = arr;
+  const ms = Math.floor(nanos / 1_000_000);
+
+  return new Date(y, m - 1, d, hh, mm, ss, ms).toISOString();
+}
+
+function parseTaskToNumbers(task?: string): number[] {
+  const match = task?.match(/(\d+)/);
+  return match ? [Number(match[1])] : [];
+}
+
+function mapStatus(dtoStatus?: string): Exercise["status"] {
+  switch (dtoStatus) {
+    case "DRAFT":
+      return "draft";
+    case "PUBLISHED":
+      return "published";
+    default:
+      return "draft";
+  }
+}
+
+const mergeById = (base: Exercise[], incoming: Exercise[]) => {
+  const map = new Map<string, Exercise>();
+  base.forEach((e) => map.set(e.id, e));
+  incoming.forEach((e) => map.set(e.id, e));
+  return Array.from(map.values());
+};
+
+const dateToMillis = (v: string) => {
+  const t = new Date(v).getTime();
+  return Number.isFinite(t) ? t : 0;
+};
+
+const attemptsToNumber = (v: string) => {
+  const n = Number(String(v).replace(/[^\d.-]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};

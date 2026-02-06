@@ -4,6 +4,7 @@ import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
 import { ListeningPage } from "./pages/ListeningPage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
+import { ListeningTestPage } from "./pages/ListeningTestPage";
 import { ReadingPage } from "./pages/ReadingPage";
 import { ReadingOverviewPage } from "./pages/ReadingOverviewPage";
 import { WritingPage } from "./pages/WritingPage";
@@ -28,6 +29,7 @@ export type Page =
   | "mocktest"
   | "listening"
   | "listening-overview"
+  | "listening-test"
   | "reading"
   | "reading-overview"
   | "writing"
@@ -74,11 +76,9 @@ function AppContent() {
     setCurrentPage("home"); // Redirect to home after logout
   };
 
- return (
+  return (
     <div className="bg-white min-h-screen">
-      {currentPage === "login" && (
-        <LoginPage setCurrentPage={setCurrentPage} />
-      )}
+      {currentPage === "login" && <LoginPage setCurrentPage={setCurrentPage} />}
       {currentPage === "register" && (
         <RegisterPage setCurrentPage={setCurrentPage} />
       )}
@@ -120,6 +120,9 @@ function AppContent() {
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
         />
+      )}
+      {currentPage === "listening-test" && (
+        <ListeningTestPage setCurrentPage={setCurrentPage} />
       )}
       {currentPage === "reading" && (
         <ReadingPage
@@ -231,7 +234,7 @@ function AppContent() {
           />
         </ProtectedRoute>
       )}
-      
+
       {/* Edit Exercise Pages */}
       {currentPage === "edit-listening-content" && (
         <ProtectedRoute
@@ -285,7 +288,7 @@ function AppContent() {
           />
         </ProtectedRoute>
       )}
-      
+
       {currentPage === "user-management" && (
         <ProtectedRoute
           allowedRoles={["Administrator"]}
