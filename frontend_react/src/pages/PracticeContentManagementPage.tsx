@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Page } from '../App';
-import { Footer } from '../components/Footer';
-import { NavBarAdmin } from '../components/NavBarAdmin';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
+import { Footer } from "../components/Footer";
+import { NavBarAdmin } from "../components/NavBarAdmin";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,100 +14,62 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { SkillSelectionModal } from '../components/SkillSelectionModal';
+} from "../components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { SkillSelectionModal } from "../components/SkillSelectionModal";
 
-interface PracticeContent {
-  id: string;
-  title: string;
-  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING";
-  task: string;
-  topicTags: string[];
-  difficulty?: "Easy" | "Medium" | "Hard";
-  questionCount: number;
-  durationMinutes: number;
-  status: "PUBLISHED" | "DRAFT";
-  updatedOn: string;
-  attempts?: number;
-}
+import {
+  PracticeContentMetadata,
+  mockPracticeContentMetadata,
+} from "../mocks/practiceContentMetadata.mock";
 
-interface PracticeContentManagementPageProps {
-  setCurrentPage: (page: Page, editId?: string) => void;
-  onLogout?: () => void;
-}
-export function PracticeContentManagementPage({ setCurrentPage, onLogout }: PracticeContentManagementPageProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterSkill, setFilterSkill] = useState<string>('all');
+export function PracticeContentManagementPage() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterSkill, setFilterSkill] = useState<string>("all");
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
-  
 
-const [practiceContents, setPracticeContents] = useState<PracticeContent[]>([]);
+  // Mock data
+  const [contents, setContents] = useState<PracticeContentMetadata[]>(
+    mockPracticeContentMetadata,
+  );
 
-useEffect(() => {
-  fetchPracticeContents();
-}, []);
-
-const fetchPracticeContents = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/api/practice-content", {
-      method: "GET",
-      credentials: "include",
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text);
-    }
-    const data = await res.json();
-    setPracticeContents(data.data);
-
-  } catch (error) {
-    console.error("Failed to fetch practice contents:", error);
-    setPracticeContents([]); // chống crash
-  }
-};
-
-  const filteredContents = practiceContents.filter(content => {
-    const keyword = searchQuery.toLowerCase();
-
-    const matchesSearch =
-      content.title.toLowerCase().includes(keyword) ||
-      content.topicTags.join(", ").toLowerCase().includes(keyword) ||
-      content.id.toLowerCase().includes(keyword);
-
-    const matchesSkill =
-      filterSkill === "all" || content.skill === filterSkill.toUpperCase();
-
+  const filteredContents = contents.filter((content) => {
+    const matchesSearch = content.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesSkill = filterSkill === "all" || content.skill === filterSkill;
     return matchesSearch && matchesSkill;
   });
 
-  const handleDelete = async (id: string) => {
-    try {
-      const res = await fetch(`http://localhost:8080/api/practice-content/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
-      }
-      setPracticeContents(prev => prev.filter(c => c.id !== id));
-    } catch (error) {
-      console.error("Delete failed:", error);
-      alert("Delete failed!");
-    }
+  const handleDelete = (id: string) => {
+    setContents(contents.filter((c) => c.id !== id));
   };
 
-  const handleEdit = (content: PracticeContent) => {
-    if (content.skill === "LISTENING") {
-      setCurrentPage("edit-listening-content", content.id);
-    } else if (content.skill === "READING") {
-      setCurrentPage("edit-reading-content", content.id);
-    } else if (content.skill === "WRITING") {
-      setCurrentPage("edit-writing-content", content.id);
-    } else if (content.skill === "SPEAKING") {
-      setCurrentPage("edit-speaking-content", content.id);
+  // Navigate to Edit Exercise screen based on the content's skill
+  // On click: navigate to corresponding Edit [Skill] Exercise screen (no popup)
+  const handleEdit = (content: PracticeContentMetadata) => {
+    if (content.skill === "Listening") {
+      navigate(`/admin/content/listening/edit/${content.id}`);
+    } else if (content.skill === "Reading") {
+      navigate(`/admin/content/reading/edit/${content.id}`);
+    } else if (content.skill === "Writing") {
+      navigate(`/admin/content/writing/edit/${content.id}`);
+    } else if (content.skill === "Speaking") {
+      navigate(`/admin/content/speaking/edit/${content.id}`);
     }
   };
 
@@ -114,23 +77,27 @@ const fetchPracticeContents = async () => {
     setIsSkillModalOpen(true);
   };
 
-  const handleSkillSelect = (skill: 'Listening' | 'Reading' | 'Writing' | 'Speaking') => {
+  const handleSkillSelect = (
+    skill: "Listening" | "Reading" | "Writing" | "Speaking",
+  ) => {
+    // Close the modal
     setIsSkillModalOpen(false);
 
-    if (skill === 'Listening') {
-      setCurrentPage('add-listening-content');
-    } else if (skill === 'Reading') {
-      setCurrentPage('add-reading-content');
-    } else if (skill === 'Writing') {
-      setCurrentPage('add-writing-content');
-    } else if (skill === 'Speaking') {
-      setCurrentPage('add-speaking-content');
+    // Navigate to skill-specific content creation page
+    if (skill === "Listening") {
+      navigate("/admin/content/listening/add");
+    } else if (skill === "Reading") {
+      navigate("/admin/content/reading/add");
+    } else if (skill === "Writing") {
+      navigate("/admin/content/writing/add");
+    } else if (skill === "Speaking") {
+      navigate("/admin/content/speaking/add");
     }
   };
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      <NavBarAdmin setCurrentPage={setCurrentPage} onLogout={onLogout} currentPage="content-management" />
+      <NavBarAdmin onLogout={handleLogout} />
 
       <div className="flex-1 pt-[100px] pb-[60px] px-[60px]">
         <div className="max-w-[1400px] mx-auto">
@@ -138,7 +105,10 @@ const fetchPracticeContents = async () => {
             <h1 className="font-['Inter'] text-[#1977f3] text-[36px]">
               Practice Content Management
             </h1>
-            <Button onClick={handleAddNew} className="bg-[#1977f3] hover:bg-[#1567d3]">
+            <Button
+              onClick={handleAddNew}
+              className="bg-[#1977f3] hover:bg-[#1567d3]"
+            >
               <Plus className="w-5 h-5 mr-2" />
               Add New Content
             </Button>
@@ -149,7 +119,7 @@ const fetchPracticeContents = async () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                placeholder="Search by ID, title or topic..."
+                placeholder="Search by title or topic..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -175,33 +145,32 @@ const fetchPracticeContents = async () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead className="text-center">Skill</TableHead>
-                  <TableHead className="text-center">Updated On</TableHead>
-                  <TableHead className="text-center">Questions</TableHead>
-                  <TableHead className="text-center">Duration</TableHead>
-                  <TableHead className="text-center">Attempts</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead>Skill</TableHead>
+                  <TableHead>Updated On</TableHead>
+                  <TableHead>Questions</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Attempts</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredContents.map((content) => (
                   <TableRow key={content.id}>
-                    <TableCell className="font-medium">{content.title}</TableCell>
-                    <TableCell className="text-center">{content.skill}</TableCell>
-
-                    <TableCell className="text-center">
-                      {new Date(content.updatedOn).toLocaleDateString()}
+                    <TableCell className="font-medium">
+                      {content.title}
                     </TableCell>
-
-                    <TableCell className="text-center">{content.questionCount}</TableCell>
-
-                    <TableCell className="text-center">{content.durationMinutes} min</TableCell>
-
-                    <TableCell className="text-center">{content.attempts ?? 0}</TableCell>
-
-                    <TableCell className="text-center">
-                      <Badge variant={content.status === "PUBLISHED" ? "default" : "outline"}>
+                    <TableCell>{content.skill}</TableCell>
+                    <TableCell>{content.updatedOn}</TableCell>
+                    <TableCell>{content.questions}</TableCell>
+                    <TableCell>{content.duration} min</TableCell>
+                    <TableCell>{content.attempts}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          content.status === "Published" ? "default" : "outline"
+                        }
+                      >
                         {content.status}
                       </Badge>
                     </TableCell>

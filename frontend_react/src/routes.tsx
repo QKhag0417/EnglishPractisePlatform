@@ -100,23 +100,23 @@ export const router = createBrowserRouter([
   //     path: "/evaluation-test",
   //     Component: EvaluationTestPage,
   //   },
-  //   // Admin routes - Practice Content Management
-  //   {
-  //     path: "/admin/content-management",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <PracticeContentManagementPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
-  //   {
-  //     path: "/admin/content/listening/add",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <ListeningContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
+  // Admin routes
+  {
+    path: "/admin/content-management",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <PracticeContentManagementPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/content/listening/add",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <ListeningContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
   //   {
   //     path: "/admin/content/listening/edit/:exerciseId",
   //     element: (

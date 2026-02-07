@@ -8,6 +8,8 @@ import { ExerciseCard } from "../components/ExerciseCard";
 import { ExerciseModal } from "../components/ExerciseModal";
 import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
 
+// ============================================================================================================
+
 type ExerciseMetadaDto = {
   id: string;
   title: string;
@@ -57,6 +59,7 @@ const attemptsToNumber = (v: string) => {
 };
 
 // ============================================================================================================
+
 export function ListeningPage() {
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -111,7 +114,7 @@ export function ListeningPage() {
           task: parseTaskToNumbers(dto.task),
           questionTypes: dto.questionTypeTags ?? [],
           topics: dto.topicTags ?? [],
-          status: dto.status ?? "",
+          status: mapStatus(dto.status),
           updated: localDateTimeArrayToIso(dto.updatedOn),
           questions: dto.questionCount ?? 0,
           duration: dto.durationMinutes ?? 0,
@@ -155,6 +158,7 @@ export function ListeningPage() {
       return matchesTask && matchesQuestionType && matchesTopic;
     });
   };
+
   // ============================================================================================================
 
   const availableTasks = [1, 2, 3, 4].filter((task) => {
@@ -257,9 +261,9 @@ export function ListeningPage() {
     if (paginationPage > totalPages) setPaginationPage(totalPages);
   }, [paginationPage, totalPages]);
 
-  return (
-    // ============================================================================================================
+  // ============================================================================================================
 
+  return (
     <div className="bg-white min-h-screen">
       {isLoggedIn ? <NavBarLearner onLogout={handleLogout} /> : <NavBarGuest />}
 
