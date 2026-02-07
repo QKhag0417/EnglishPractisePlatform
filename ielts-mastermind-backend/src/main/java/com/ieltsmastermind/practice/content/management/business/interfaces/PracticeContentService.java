@@ -1,9 +1,6 @@
 package com.ieltsmastermind.practice.content.management.business.interfaces;
 
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentInstructionResponseDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
+import com.ieltsmastermind.practice.content.management.domain.dto.*;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -16,7 +13,9 @@ public interface PracticeContentService {
 
     PracticeContentResponseDto getById(String id);
 
-    PracticeContentInstructionResponseDto getInstructionByContentId(String id);
+    PracticeContentInstructionResponseDto getInstructionById(String id);
+
+    PracticeContentPromptResponseDto getPromptById(String id);
 
     PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request);
 

@@ -3,10 +3,7 @@ package com.ieltsmastermind.practice.content.management.controller;
 import com.ieltsmastermind.common.response.ApiResponse;
 
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentInstructionResponseDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
-import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
+import com.ieltsmastermind.practice.content.management.domain.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,9 +86,29 @@ public class PracticeContentManagementController {
             @PathVariable String id
     ) {
         try {
-            PracticeContentInstructionResponseDto instruction = practiceContentService.getInstructionByContentId(id);
+            PracticeContentInstructionResponseDto instruction = practiceContentService.getInstructionById(id);
             return ResponseEntity.ok(
                     ApiResponse.success("Practice content instruction fetched successfully", instruction)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @GetMapping("/{id}/prompt")
+    public ResponseEntity<ApiResponse<PracticeContentPromptResponseDto>> getPromptById(
+            @PathVariable String id
+    ) {
+        try {
+            PracticeContentPromptResponseDto prompt = practiceContentService.getPromptById(id);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Practice content prompt fetched successfully", prompt)
             );
         } catch (RuntimeException e) {
             return ResponseEntity

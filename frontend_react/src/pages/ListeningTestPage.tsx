@@ -21,6 +21,21 @@ import {
 
 type UserAnswers = Record<number, string | string[]>;
 
+const taskTypeToNumber = (task?: string): number => {
+  switch (task) {
+    case "TASK_1":
+      return 1;
+    case "TASK_2":
+      return 2;
+    case "TASK_3":
+      return 3;
+    case "TASK_4":
+      return 4;
+    default:
+      return 0;
+  }
+};
+
 export function ListeningTestPage() {
   const { exerciseId } = useParams();
 
@@ -63,6 +78,38 @@ export function ListeningTestPage() {
   // TODO: Fetch exercise prompt based on exerciseId
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/practice-content/${exerciseId}/prompt`,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          },
+        );
+
+        const json = await res.json();
+        const dto = json?.data;
+
+        if (!dto) return;
+
+        const prompt: ExercisePrompt = {
+          id: dto.id,
+          task: taskTypeToNumber(dto.task),
+          duration: dto.duration ?? 0,
+          audioUrl: dto.audioUrl ?? "",
+          examText: dto.examText ?? "",
+          totalQuestions: dto.totalQuestions ?? 0,
+        };
+
+        setExercisePrompt(prompt);
+      } catch (err) {
+        console.error("Failed to fetch prompt:", err);
+      }
+    })();
+  }, [exerciseId]);
 
   // TODO: Fetch exercise answers based on exerciseId
   const [exerciseAnswers, setExerciseAnswers] =
