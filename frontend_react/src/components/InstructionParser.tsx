@@ -1,6 +1,10 @@
 // InstructionRenderer.tsx
 import React from "react";
-import { DocNode, InlineNode, parseInstruction } from "./instructionParser.ts";
+import {
+  DocNode,
+  InlineNode,
+  parseInstruction,
+} from "../utils/instructionParser";
 
 type UserAnswers = Record<number, string | string[]>;
 

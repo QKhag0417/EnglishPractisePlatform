@@ -201,15 +201,9 @@ export function ListeningPage() {
         exercise.questionTypes.includes(selectedQuestionType);
       const matchesTopic =
         selectedTopic === "all" || exercise.topics.includes(selectedTopic);
-      const matchesStatus =
-        selectedStatus.length === 0 || selectedStatus.includes(exercise.status);
 
       return (
-        matchesSearch &&
-        matchesTask &&
-        matchesQuestionType &&
-        matchesTopic &&
-        matchesStatus
+        matchesSearch && matchesTask && matchesQuestionType && matchesTopic
       );
     });
   }, [
@@ -218,7 +212,6 @@ export function ListeningPage() {
     selectedTask,
     selectedQuestionType,
     selectedTopic,
-    selectedStatus,
   ]);
 
   const sortedExercises = useMemo(() => {
@@ -396,7 +389,7 @@ export function ListeningPage() {
         <div className="flex gap-[30px]">
           {/* Sidebar */}
           <div className="w-[158px] bg-[rgba(119,203,242,0.12)] border border-[rgba(0,0,0,0.11)] rounded-[10px] p-[18px] self-start">
-            {/* Status */}
+            {/* Status
             <div className="mb-[20px]">
               <h3 className="font-['Inter'] font-bold text-[13px] mb-[12px]">
                 Status
@@ -439,7 +432,7 @@ export function ListeningPage() {
               </label>
             </div>
 
-            <div className="border-t border-black mb-[20px]" />
+            <div className="border-t border-black mb-[20px]" /> */}
 
             {/* Sort By */}
             <div>

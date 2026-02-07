@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Volume2, Pause, Play } from "lucide-react";
 import { IELTSMastermindLogo } from "../components/Logo";
 import { TestResultScreen } from "../components/TestResultScreen";
-import { InstructionRenderer } from "../components/listening/InstructionParser.tsx";
+import { InstructionRenderer } from "../components/InstructionParser.tsx";
 import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -37,6 +37,7 @@ export function ListeningTestPage() {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const { logout } = useAuth();
+
   const [testState, setTestState] = useState<
     "instruction" | "test" | "results"
   >("instruction");
@@ -47,14 +48,14 @@ export function ListeningTestPage() {
   const [testStartTime, setTestStartTime] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioProgress, setAudioProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [currentPart, setCurrentPart] = useState(1);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const audioRef = useState<HTMLAudioElement | null>(null)[0];
 
   const handleLogout = () => {
     logout();
@@ -81,9 +82,13 @@ export function ListeningTestPage() {
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
+
+    const total = Math.floor(seconds); // or Math.round(seconds)
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
   const handleStartTest = () => {
@@ -119,8 +124,92 @@ export function ListeningTestPage() {
     setTestState("results");
   };
 
-  const handleQuestionNavigation = (index: number) => {
-    setCurrentQuestionIndex(index);
+  // const handleQuestionNavigation = (index: number) => {
+  //   setCurrentQuestionIndex(index);
+  // };
+
+  // Play/pause whenever isPlaying changes
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.play().catch(() => {
+        // autoplay/user-gesture restrictions can cause play() to reject
+        setIsPlaying(false);
+      });
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying]);
+
+  // If audioUrl changes, reset UI
+  useEffect(() => {
+    setIsPlaying(false);
+    setAudioProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [exercisePrompt.audioUrl]);
+
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const ct = audio.currentTime || 0;
+    const d = audio.duration || 0;
+
+    setCurrentTime(ct);
+    setDuration(d);
+
+    const pct = d > 0 ? (ct / d) * 100 : 0;
+    setAudioProgress(pct);
+  };
+
+  const handleLoadedMetadata = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setDuration(audio.duration || 0);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    if (!audio || !duration) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = Math.min(Math.max(x / rect.width, 0), 1);
+    audio.currentTime = pct * duration;
+  };
+
+  const resetTest = () => {
+    // stop + reset audio
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    // reset test states
+    setTestState("instruction");
+    setAnswers({});
+    setTimeRemaining(exercisePrompt.duration * 60);
+    setTestStartTime(0);
+    setTimeSpent(0);
+
+    // reset UI states
+    setIsPlaying(false);
+    setShowSubmitModal(false);
+    setShowExitModal(false);
+    setCurrentQuestionIndex(0);
+
+    // reset audio UI
+    setAudioProgress(0);
+    setCurrentTime(0);
+    setDuration(0); // optional: or keep duration if you prefer
   };
 
   // Instruction Screen
@@ -185,14 +274,7 @@ export function ListeningTestPage() {
         exerciseAnswers={exerciseAnswers.correctAnswers}
         timeSpent={timeSpent}
         onReturnToLibrary={() => navigate("/listening")}
-        onTakeAnotherTest={() => {
-          // Reset test states
-          setAnswers({});
-          setTimeRemaining(exercisePrompt.duration * 60);
-          setTestState("instruction");
-          setTestStartTime(0);
-          setTimeSpent(0);
-        }}
+        onTakeAnotherTest={resetTest}
         onLogout={handleLogout}
       />
     );
@@ -231,12 +313,21 @@ export function ListeningTestPage() {
       {/* Main Content */}
       <div className="max-w-[1200px] mx-auto px-8 py-8">
         {/* Audio Player - Moved to top */}
+        <audio
+          ref={audioRef}
+          src={exercisePrompt.audioUrl}
+          preload="metadata"
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={handleEnded}
+        />
         <div className="bg-[#f5f5dc] border border-gray-300 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsPlaying(!isPlaying)}
+                onClick={() => setIsPlaying((p) => !p)}
                 className="bg-[#fcbf65] hover:bg-[#e5ab52] text-white p-3 rounded-full transition-colors"
+                type="button"
               >
                 {isPlaying ? (
                   <Pause className="w-6 h-6" />
@@ -249,12 +340,20 @@ export function ListeningTestPage() {
             </div>
 
             <div className="text-[16px] text-gray-600">
-              <span className="font-medium">00:00</span> / <span>05:30</span>
+              <span className="font-medium">{formatTime(currentTime)}</span> /{" "}
+              <span>{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-300 rounded-full h-2 cursor-pointer">
+          <div
+            className="w-full bg-gray-300 rounded-full h-2 cursor-pointer"
+            onClick={handleSeek}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(audioProgress)}
+          >
             <div
               className="bg-[#fcbf65] h-2 rounded-full transition-all"
               style={{ width: `${audioProgress}%` }}
@@ -278,29 +377,32 @@ export function ListeningTestPage() {
 
         {/* Question Navigation and Submit Button */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          {/* <div className="flex items-center gap-3 flex-wrap">
-            {answers.map((_, index) => {
-              const answer = answers[index].answer;
-              const isAnswered = Array.isArray(answer)
-                ? answer.length > 0
-                : answer !== "";
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleQuestionNavigation(index)}
-                  className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors ${
-                    currentQuestionIndex === index
-                      ? "bg-[#dc3545] text-white border-[#dc3545]"
-                      : isAnswered
-                        ? "bg-[#1977f3] text-white border-[#1977f3]"
-                        : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
-          </div> */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {Array.from({ length: exercisePrompt.totalQuestions }).map(
+              (_, index) => {
+                const answer = answers[index + 1];
+
+                const isAnswered = Array.isArray(answer)
+                  ? answer.length > 0
+                  : typeof answer === "string" && answer.trim().length > 0;
+
+                const isCurrent = currentQuestionIndex === index;
+
+                return (
+                  <button
+                    key={index}
+                    // onClick={() => handleQuestionNavigation(index)}
+                    className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
+          ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
+          ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}
+        `}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              },
+            )}
+          </div>
 
           <button
             onClick={handleSubmit}

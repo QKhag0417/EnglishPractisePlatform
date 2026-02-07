@@ -4,6 +4,7 @@ export type ExercisePrompt = {
   duration: number;
   audioUrl: string;
   examText: string;
+  totalQuestions: number;
 };
 
 export const mockExercisePrompt1: ExercisePrompt = {
@@ -55,4 +56,5 @@ Statement: The course starts next Monday.
 [option key="Not Given"][/option]
 [/multiple-choice]
 `.trim(),
+  totalQuestions: 5,
 };
