@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { X, Volume2, Pause, Play } from "lucide-react";
-import { Page } from "../App";
 import { IELTSMastermindLogo } from "../components/Logo";
-import { TestResultScreen } from "../components/TestResultScreen.tsx";
+import { TestResultScreen } from "../components/TestResultScreen";
 import { InstructionRenderer } from "../components/listening/InstructionParser.tsx";
+import { useNavigate, useParams } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
+
 import {
   ExerciseInstruction,
   mockExerciseInstruction1,
@@ -12,20 +14,14 @@ import {
   ExercisePrompt,
   mockExercisePrompt1,
 } from "../mocks/exercisePrompts.mock";
+import {
+  ExerciseAnswer,
+  mockExerciseAnswers,
+} from "../mocks/exerciseAnswers.mock";
 
 type UserAnswers = Record<number, string | string[]>;
 
-interface ListeningTestPageProps {
-  setCurrentPage: (page: Page) => void;
-  exerciseId?: number;
-  onLogout?: () => void;
-}
-
-export function ListeningTestPage({
-  setCurrentPage,
-  exerciseId,
-  onLogout,
-}: ListeningTestPageProps) {
+export function ListeningTestPage() {
   // TODO: Fetch instruction based on exerciseId and learnerId
   const [exerciseInstruction, setExerciseInstruction] =
     useState<ExerciseInstruction>(mockExerciseInstruction1);
@@ -34,6 +30,13 @@ export function ListeningTestPage({
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
 
+  // TODO: Fetch exercise answers based on exerciseId and learnerId
+  const [exerciseAnswers, setExerciseAnswers] =
+    useState<ExerciseAnswer>(mockExerciseAnswers);
+
+  const { exerciseId } = useParams();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [testState, setTestState] = useState<
     "instruction" | "test" | "results"
   >("instruction");
@@ -52,6 +55,11 @@ export function ListeningTestPage({
   const [currentPart, setCurrentPart] = useState(1);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const audioRef = useState<HTMLAudioElement | null>(null)[0];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   // Timer countdown
   useEffect(() => {
@@ -88,7 +96,7 @@ export function ListeningTestPage({
   };
 
   const handleConfirmExit = () => {
-    setCurrentPage("listening");
+    navigate("/listening");
   };
 
   const handleAnswerChange = (questionId: number, value: string | string[]) => {
@@ -174,18 +182,18 @@ export function ListeningTestPage({
     return (
       <TestResultScreen
         userAnswers={answers}
+        exerciseAnswers={exerciseAnswers.correctAnswers}
         timeSpent={timeSpent}
-        onReturnToLibrary={() => setCurrentPage("listening")}
+        onReturnToLibrary={() => navigate("/listening")}
         onTakeAnotherTest={() => {
-          // Reset test state with proper answer types
-          // setAnswers(questionsSample);
-          setTimeRemaining(1 * 60);
+          // Reset test states
+          setAnswers({});
+          setTimeRemaining(exercisePrompt.duration * 60);
           setTestState("instruction");
           setTestStartTime(0);
           setTimeSpent(0);
         }}
-        setCurrentPage={setCurrentPage}
-        onLogout={onLogout}
+        onLogout={handleLogout}
       />
     );
   }
@@ -196,7 +204,7 @@ export function ListeningTestPage({
       {/* Header */}
       <div className="bg-[#1977f3] px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-8">
-          <IELTSMastermindLogo setCurrentPage={setCurrentPage} />
+          <IELTSMastermindLogo clickable={false} />
         </div>
 
         <div className="flex items-center gap-8">

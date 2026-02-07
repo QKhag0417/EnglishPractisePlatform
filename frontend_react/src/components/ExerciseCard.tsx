@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
-import { Exercise } from "../types/exercise";
+import { ExerciseMetadata } from "../mocks/exercises.mock";
 
 interface ExerciseCardProps {
-  exercise: Exercise;
+  exercise: ExerciseMetadata;
   onSelect: () => void;
   isLoggedIn?: boolean;
 }

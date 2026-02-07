@@ -1,44 +1,43 @@
-import { useState } from 'react';
-import { NavBarGuest } from '../components/NavBar';
-import { Footer } from '../components/Footer';
-import { Page } from '../App';
-import { Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { NavBarGuest } from "../components/NavBar";
+import { Footer } from "../components/Footer";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
-interface ForgotPasswordPageProps {
-  setCurrentPage: (page: Page) => void;
-}
+type Step = "email" | "code" | "new-password" | "success";
 
-type Step = 'email' | 'code' | 'new-password' | 'success';
-
-export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState(['', '', '', '']);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
+export function ForgotPasswordPage() {
+  const [currentStep, setCurrentStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState(["", "", "", ""]);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  // Mock verification code for testing (in real app, this would be sent via email)
-  const mockCode = '1234';
+  const handleSendCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock sending code
+    setCurrentStep("code");
+  };
 
-  const handleSendCode = () => {
-    if (!email) {
-      setError('Please enter your email address');
-      return;
+  const handleVerifyCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock verification
+    setCurrentStep("new-password");
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword === confirmPassword) {
+      setCurrentStep("success");
     }
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-    setError('');
-    // In a real app, send code to email via API
-    console.log('Sending verification code to:', email);
-    setCurrentStep('code');
+  };
+
+  const handleContinue = () => {
+    navigate("/login");
   };
 
   const handleCodeChange = (index: number, value: string) => {
@@ -56,56 +55,15 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
     }
   };
 
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
+  const handleCodeKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    // Handle backspace
+    if (e.key === "Backspace" && !code[index] && index > 0) {
       const prevInput = document.getElementById(`code-input-${index - 1}`);
       prevInput?.focus();
     }
-  };
-
-  const handleVerifyCode = () => {
-    const enteredCode = code.join('');
-    if (enteredCode.length !== 4) {
-      setError('Please enter the 4-digit code');
-      return;
-    }
-    // In a real app, verify code with backend
-    if (enteredCode !== mockCode) {
-      setError('Invalid code. Please try again.');
-      return;
-    }
-    setError('');
-    setCurrentStep('new-password');
-  };
-
-  const handleResetPassword = () => {
-    setError('');
-
-    if (!newPassword) {
-      setError('Please enter a new password');
-      return;
-    }
-    if (!confirmPassword) {
-      setError('Please confirm your password');
-      return;
-    }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    // In a real app, update password via API
-    console.log('Password reset successful for:', email);
-    setError('');
-    setCurrentStep('success');
-  };
-
-  const handleContinue = () => {
-    setCurrentPage('login');
   };
 
   return (
@@ -117,30 +75,34 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
           alt="Background"
           className="w-full h-full object-cover"
         />
-
-        <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
-
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-          backgroundSize: '30px 30px'
-        }}></div>
+        {/* Gradient overlay - changed to lighter, warmer tones */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#e8f4f8]/95 via-[#f0f9ff]/90 to-[#dbeafe]/95"></div>
+        {/* Additional pattern overlay for texture */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+          }}
+        ></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col">
-        <NavBarGuest setCurrentPage={setCurrentPage} />
+        <NavBarGuest />
 
         <div className="flex-1 flex items-center justify-center px-8 py-[80px]">
           <div className="bg-white rounded-[12px] border-4 border-[#4880ff] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-[60px] w-[738px]">
-            
             {/* Step 1: Enter Email */}
-            {currentStep === 'email' && (
+            {currentStep === "email" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Forgot Password?
                 </h1>
                 <p className="font-['Inter'] text-[18px] text-gray-600 text-center mb-[40px]">
-                  Enter your email address and we'll send you a verification code
+                  Enter your email address and we'll send you a verification
+                  code
                 </p>
 
                 {/* Email */}
@@ -157,12 +119,6 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                   />
                 </div>
 
-                {error && (
-                  <p className="font-['Inter'] text-[16px] text-red-600 mb-[20px] text-center">
-                    {error}
-                  </p>
-                )}
-
                 {/* Send Code Button */}
                 <button
                   onClick={handleSendCode}
@@ -173,9 +129,9 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
 
                 {/* Back to Login */}
                 <p className="font-['Inter'] text-[22px] text-black text-center">
-                  Remember your password?{' '}
+                  Remember your password?{" "}
                   <button
-                    onClick={() => setCurrentPage('login')}
+                    onClick={() => navigate("/login")}
                     className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
                   >
                     Back to Login
@@ -185,7 +141,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
             )}
 
             {/* Step 2: Enter Verification Code */}
-            {currentStep === 'code' && (
+            {currentStep === "code" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Enter Verification Code
@@ -202,27 +158,23 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                   <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[20px] text-center">
                     Verification Code
                   </label>
-                  <div className="flex gap-[20px] justify-center">
+                  <div className="flex justify-center space-x-4">
                     {code.map((digit, index) => (
                       <input
                         key={index}
-                        id={`code-input-${index}`}
                         type="text"
                         maxLength={1}
                         value={digit}
-                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleCodeChange(index, e.target.value)
+                        }
                         onKeyDown={(e) => handleCodeKeyDown(index, e)}
                         className="w-[80px] h-[80px] text-center text-[32px] font-bold border-2 border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
+                        id={`code-input-${index}`}
                       />
                     ))}
                   </div>
                 </div>
-
-                {error && (
-                  <p className="font-['Inter'] text-[16px] text-red-600 mb-[20px] text-center">
-                    {error}
-                  </p>
-                )}
 
                 {/* Verify Button */}
                 <button
@@ -234,7 +186,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
 
                 {/* Resend Code */}
                 <p className="font-['Inter'] text-[18px] text-black text-center">
-                  Didn't receive the code?{' '}
+                  Didn't receive the code?{" "}
                   <button
                     onClick={handleSendCode}
                     className="font-['Inter'] font-semibold text-[#4880ff] hover:underline"
@@ -246,7 +198,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
             )}
 
             {/* Step 3: Enter New Password */}
-            {currentStep === 'new-password' && (
+            {currentStep === "new-password" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Create New Password
@@ -262,7 +214,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                   </label>
                   <div className="relative">
                     <input
-                      type={showNewPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -270,10 +222,10 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                     />
                     <button
                       type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-[20px] top-1/2 -translate-y-1/2"
                     >
-                      {showNewPassword ? (
+                      {showPassword ? (
                         <EyeOff className="w-[24px] h-[24px] text-gray-600" />
                       ) : (
                         <Eye className="w-[24px] h-[24px] text-gray-600" />
@@ -289,7 +241,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                   </label>
                   <div className="relative">
                     <input
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -297,7 +249,9 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-[20px] top-1/2 -translate-y-1/2"
                     >
                       {showConfirmPassword ? (
@@ -308,12 +262,6 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                     </button>
                   </div>
                 </div>
-
-                {error && (
-                  <p className="font-['Inter'] text-[16px] text-red-600 mb-[20px] text-center">
-                    {error}
-                  </p>
-                )}
 
                 {/* Reset Password Button */}
                 <button
@@ -326,19 +274,20 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
             )}
 
             {/* Step 4: Success */}
-            {currentStep === 'success' && (
+            {currentStep === "success" && (
               <>
                 <div className="flex flex-col items-center">
                   <div className="w-[100px] h-[100px] bg-green-100 rounded-full flex items-center justify-center mb-[30px]">
                     <CheckCircle className="w-[60px] h-[60px] text-green-600" />
                   </div>
-                  
+
                   <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                     Password Reset Successful!
                   </h1>
-                  
+
                   <p className="font-['Inter'] text-[20px] text-gray-600 text-center mb-[50px]">
-                    Your password has been successfully updated. You can now login with your new password.
+                    Your password has been successfully updated. You can now
+                    login with your new password.
                   </p>
 
                   {/* Continue Button */}

@@ -1,32 +1,26 @@
-import { Page } from "../App";
+import { useNavigate } from "react-router";
 import { NavBarLearner } from "./NavBar";
 import { Footer } from "./Footer";
-import {
-  ExerciseAnswers,
-  mockExerciseAnswers,
-} from "../mocks/exerciseAnswers.mock";
 import { useState } from "react";
 
 interface TestResultScreenProps {
   userAnswers: Record<number, string | string[]>;
+  exerciseAnswers: Record<number, string | string[]>;
   timeSpent: number; // in seconds
   onReturnToLibrary: () => void;
   onTakeAnotherTest: () => void;
-  setCurrentPage: (page: Page) => void;
   onLogout?: () => void;
 }
 
 export function TestResultScreen({
   userAnswers,
+  exerciseAnswers,
   timeSpent,
   onReturnToLibrary,
   onTakeAnotherTest,
-  setCurrentPage,
   onLogout,
 }: TestResultScreenProps) {
-  // TODO: Fetch exercise answers based on exerciseId and learnerId
-  const [exerciseAnswer, setExerciseAnswer] =
-    useState<ExerciseAnswers>(mockExerciseAnswers);
+  const navigate = useNavigate();
 
   const normalizeOne = (v: string) =>
     v.trim().toLowerCase().replace(/\s+/g, " ");
@@ -60,7 +54,7 @@ export function TestResultScreen({
     return u.some((ua) => c.includes(ua));
   };
 
-  const correctAnswers = exerciseAnswer.correctAnswers;
+  const correctAnswers = exerciseAnswers;
 
   const totalQuestions = Object.keys(correctAnswers).length;
 
@@ -97,7 +91,7 @@ export function TestResultScreen({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header - Using NavBarLearner */}
-      <NavBarLearner setCurrentPage={setCurrentPage} onLogout={onLogout} />
+      <NavBarLearner onLogout={onLogout} />
 
       {/* Main Content - Add top padding to account for fixed navbar */}
       <div className="flex-1 pt-[66px]">

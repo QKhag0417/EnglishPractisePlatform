@@ -1,11 +1,11 @@
-import { Page } from '../App';
-import { LogIn, UserPlus } from 'lucide-react';
+import { useNavigate } from "react-router";
+import { NavBarGuest } from "../components/NavBar";
+import { Footer } from "../components/Footer";
+import { LogIn, UserPlus } from "lucide-react";
 
-interface AuthPromptPageProps {
-  setCurrentPage: (page: Page) => void;
-}
+export function AuthPromptPage() {
+  const navigate = useNavigate();
 
-export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1977f3] to-[#4a9fff] flex items-center justify-center px-4">
       <div className="bg-white rounded-[16px] shadow-2xl max-w-[600px] w-full p-[48px]">
@@ -23,7 +23,8 @@ export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
             Ready to Start Your Practice?
           </h2>
           <p className="text-[#666666] text-[18px] leading-relaxed">
-            To access practice exercises, mock tests, and track your progress, you'll need to create an account or log in to your existing account.
+            To access practice exercises, mock tests, and track your progress,
+            you'll need to create an account or log in to your existing account.
           </p>
         </div>
 
@@ -35,11 +36,15 @@ export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
           <ul className="space-y-[12px]">
             <li className="flex items-start gap-[12px]">
               <div className="w-[6px] h-[6px] bg-[#1977f3] rounded-full mt-[8px] shrink-0"></div>
-              <p className="text-[#666666]">Access to all practice exercises and mock tests</p>
+              <p className="text-[#666666]">
+                Access to all practice exercises and mock tests
+              </p>
             </li>
             <li className="flex items-start gap-[12px]">
               <div className="w-[6px] h-[6px] bg-[#1977f3] rounded-full mt-[8px] shrink-0"></div>
-              <p className="text-[#666666]">Track your progress and performance</p>
+              <p className="text-[#666666]">
+                Track your progress and performance
+              </p>
             </li>
             <li className="flex items-start gap-[12px]">
               <div className="w-[6px] h-[6px] bg-[#1977f3] rounded-full mt-[8px] shrink-0"></div>
@@ -55,7 +60,7 @@ export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
         {/* Action Buttons */}
         <div className="flex flex-col gap-[16px]">
           <button
-            onClick={() => setCurrentPage('register')}
+            onClick={() => navigate("/register")}
             className="w-full flex items-center justify-center gap-[12px] px-[32px] py-[16px] bg-[#1977f3] text-white rounded-[12px] font-['DM_Sans'] font-medium text-[18px] hover:bg-[#1567d3] transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <UserPlus className="w-[24px] h-[24px]" />
@@ -63,7 +68,7 @@ export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
           </button>
 
           <button
-            onClick={() => setCurrentPage('login')}
+            onClick={() => navigate("/login")}
             className="w-full flex items-center justify-center gap-[12px] px-[32px] py-[16px] bg-white text-[#1977f3] border-2 border-[#1977f3] rounded-[12px] font-['DM_Sans'] font-medium text-[18px] hover:bg-[#f0f7ff] transition-all duration-200"
           >
             <LogIn className="w-[24px] h-[24px]" />
@@ -74,7 +79,7 @@ export function AuthPromptPage({ setCurrentPage }: AuthPromptPageProps) {
         {/* Back Link */}
         <div className="text-center mt-[32px]">
           <button
-            onClick={() => setCurrentPage('home')}
+            onClick={() => navigate("/")}
             className="text-[#666666] hover:text-[#1977f3] transition-colors text-[16px]"
           >
             ← Back to Home

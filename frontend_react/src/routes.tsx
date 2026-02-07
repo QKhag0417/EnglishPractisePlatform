@@ -38,32 +38,27 @@ export const router = createBrowserRouter([
     path: "/register",
     Component: RegisterPage,
   },
-  //   {
-  //     path: "/forgot-password",
-  //     Component: ForgotPasswordPage,
-  //   },
-  //   {
-  //     path: "/auth-prompt",
-  //     Component: AuthPromptPage,
-  //   },
-  //   // Mock test route
-  //   {
-  //     path: "/mocktest",
-  //     Component: MockTestPage,
-  //   },
-  //   // Listening routes
-  //   {
-  //     path: "/listening",
-  //     Component: ListeningPage,
-  //   },
+  {
+    path: "/forgot-password",
+    Component: ForgotPasswordPage,
+  },
+  {
+    path: "/auth-prompt",
+    Component: AuthPromptPage,
+  },
+  // Listening routes
+  {
+    path: "/listening",
+    Component: ListeningPage,
+  },
   {
     path: "/listening/overview",
     Component: ListeningOverviewPage,
   },
-  //   {
-  //     path: "/listening/test/:exerciseId",
-  //     Component: ListeningTestPage,
-  //   },
+  {
+    path: "/listening/test/:exerciseId",
+    Component: ListeningTestPage,
+  },
   //   // Reading routes
   //   {
   //     path: "/reading",
@@ -95,6 +90,11 @@ export const router = createBrowserRouter([
     path: "/speaking/overview",
     Component: SpeakingOverviewPage,
   },
+  //   // Mock test route
+  //   {
+  //     path: "/mocktest",
+  //     Component: MockTestPage,
+  //   },
   //   // Evaluation test route
   //   {
   //     path: "/evaluation-test",

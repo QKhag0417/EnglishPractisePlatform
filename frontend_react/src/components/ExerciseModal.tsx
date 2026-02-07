@@ -7,32 +7,20 @@ import {
   Circle,
   PlayCircle,
 } from "lucide-react";
-import { Page } from "../App";
+import { TagChips } from "./TagChips";
+import { useNavigate } from "react-router";
 import { useState } from "react";
-
-type ExerciseMetadata = {
-  id: string;
-  title: string;
-  attempts: string;
-  image: string;
-  task: number[];
-  questionTypes: string[];
-  topics: string[];
-  status: "draft" | "published";
-  updated: string;
-  questions: number;
-  duration: number;
-};
-
-type LearnerExerciseStatus = "not-started" | "in-progress" | "completed";
+import { ExerciseMetadata } from "../mocks/exercises.mock";
+import {
+  LearnerExerciseStatus,
+  mockLearnerExerciseStatus,
+} from "../mocks/learnerExerciseStatus.mock";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
   onClose: () => void;
   onStart: () => void;
   isLoggedIn: boolean;
-  setCurrentPage: (page: Page) => void;
-  setExerciseId: (id: string | null) => void;
   pageType?: "listening" | "reading" | "writing" | "speaking";
 }
 
@@ -41,17 +29,16 @@ export function ExerciseModal({
   onClose,
   onStart,
   isLoggedIn,
-  setCurrentPage,
-  setExerciseId,
   pageType,
 }: ExerciseModalProps) {
-  const [learnerExerciseStatus, setLearnerExerciseStatus] =
-    useState<LearnerExerciseStatus>("not-started");
+  const navigate = useNavigate();
 
-  // TODO: Call API with (learnerId, exerciseId) to fetch this learner's status for the selected exercise,
+  // TODO: Call API with learnerId and exerciseId to fetch this learner's status for the selected exercise,
+  const [learnerExerciseStatus, setLearnerExerciseStatus] =
+    useState<LearnerExerciseStatus>(mockLearnerExerciseStatus);
 
   const getStatusColor = () => {
-    switch (learnerExerciseStatus) {
+    switch (learnerExerciseStatus.status) {
       case "completed":
         return "text-green-600";
       case "in-progress":
@@ -62,7 +49,7 @@ export function ExerciseModal({
   };
 
   const getStatusIcon = () => {
-    switch (learnerExerciseStatus) {
+    switch (learnerExerciseStatus.status) {
       case "completed":
         return <CheckCircle className="w-[20px] h-[20px]" />;
       case "in-progress":
@@ -73,13 +60,29 @@ export function ExerciseModal({
   };
 
   const getStatusText = () => {
-    switch (learnerExerciseStatus) {
+    switch (learnerExerciseStatus.status) {
       case "completed":
         return "Completed";
       case "in-progress":
         return "In Progress";
       default:
         return "Not Started";
+    }
+  };
+
+  const handleStartPractice = () => {
+    if (!isLoggedIn) {
+      onClose();
+      navigate("/auth-prompt");
+    } else {
+      onClose();
+      if (pageType === "listening" || pageType === "reading") {
+        navigate(`/${pageType}/test/${exerciseMetadata.id}`);
+      } else if (pageType === "writing" || pageType === "speaking") {
+        navigate(`/`);
+      } else {
+        navigate(`/`);
+      }
     }
   };
 
@@ -142,14 +145,11 @@ export function ExerciseModal({
                   Question Type
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exerciseMetadata.questionTypes.map((type) => (
-                    <span
-                      key={type}
-                      className="px-[12px] py-[4px] bg-gray-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
-                    >
-                      {type}
-                    </span>
-                  ))}
+                  <TagChips
+                    tags={exerciseMetadata.questionTypes}
+                    colorClass="bg-gray-100"
+                    popoverPosition="right"
+                  />
                 </div>
               </div>
 
@@ -159,14 +159,10 @@ export function ExerciseModal({
                   Topic
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exerciseMetadata.topics.map((topic) => (
-                    <span
-                      key={topic}
-                      className="px-[12px] py-[4px] bg-blue-100 rounded-[6px] font-['Inter'] text-[14px] text-black"
-                    >
-                      {topic}
-                    </span>
-                  ))}
+                  <TagChips
+                    tags={exerciseMetadata.topics}
+                    colorClass="bg-blue-100"
+                  />
                 </div>
               </div>
 
@@ -239,24 +235,12 @@ export function ExerciseModal({
 
             {/* Start Button */}
             <button
-              onClick={() => {
-                setExerciseId(exerciseMetadata.id);
-
-                if (!isLoggedIn) {
-                  onClose();
-                  setCurrentPage("auth-prompt");
-                } else {
-                  const testPage = pageType
-                    ? (`${pageType}-test` as Page)
-                    : "listening-test";
-                  setCurrentPage(testPage);
-                }
-              }}
+              onClick={handleStartPractice}
               className="w-full h-[56px] bg-[#fcbf65] hover:bg-[#e5ab52] rounded-[12px] font-['Inter'] font-bold text-[18px] text-black transition-colors"
             >
-              {learnerExerciseStatus === "completed"
+              {learnerExerciseStatus.status === "completed"
                 ? "Practice Again"
-                : learnerExerciseStatus === "in-progress"
+                : learnerExerciseStatus.status === "in-progress"
                   ? "Continue"
                   : "Start Practice"}
             </button>
