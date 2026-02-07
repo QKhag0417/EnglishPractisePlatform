@@ -105,25 +105,27 @@ export function ListeningPage() {
     navigate("/");
   };
 
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const res = await fetch('http://localhost:8080/api/practice-content', {
-  //         method: 'GET',
-  //         headers: { Accept: 'application/json' },
-  //         credentials: 'include',
-  //       });
-  //
-  //       const json = await res.json();
-  //       const dtos: ExerciseDto[] = Array.isArray(json) ? json : (json.data ?? []);
-  //       const fetched = mapExerciseDtosToExercises(dtos);
-  //
-  //       setExercises(fetched);
-  //     } catch (err) {
-  //       console.error('Failed to fetch practice content:', err);
-  //     }
-  //   })();
-  // }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/practice-content", {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
+
+        const json = await res.json();
+        const dtos: ExerciseMetadaDto[] = Array.isArray(json)
+          ? json
+          : (json.data ?? []);
+        const fetched = mapExerciseDtosToExercises(dtos);
+
+        setExercises(fetched);
+      } catch (err) {
+        console.error("Failed to fetch practice content:", err);
+      }
+    })();
+  }, []);
 
   const allQuestionTypes = useMemo(() => {
     const set = new Set<string>();

@@ -22,19 +22,52 @@ import {
 type UserAnswers = Record<number, string | string[]>;
 
 export function ListeningTestPage() {
-  // TODO: Fetch instruction based on exerciseId and learnerId
+  const { exerciseId } = useParams();
+
   const [exerciseInstruction, setExerciseInstruction] =
     useState<ExerciseInstruction>(mockExerciseInstruction1);
 
-  // TODO: Fetch exercise prompt based on exerciseId and learnerId
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/practice-content/${exerciseId}/instruction`,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          },
+        );
+
+        const json = await res.json();
+
+        const dto = json?.data;
+
+        if (!dto) return;
+
+        const instruction: ExerciseInstruction = {
+          id: dto.id,
+          title: dto.title ?? "",
+          timeInfo: dto.timeInfo != null ? `Time: ${dto.timeInfo} minutes` : "",
+          candidateInstructions: dto.candidateInstructions ?? [],
+          candidateInfo: dto.candidateInfo ?? [],
+        };
+
+        setExerciseInstruction(instruction);
+      } catch (err) {
+        console.error("Failed to fetch instruction:", err);
+      }
+    })();
+  }, [exerciseId]);
+
+  // TODO: Fetch exercise prompt based on exerciseId
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
 
-  // TODO: Fetch exercise answers based on exerciseId and learnerId
+  // TODO: Fetch exercise answers based on exerciseId
   const [exerciseAnswers, setExerciseAnswers] =
     useState<ExerciseAnswer>(mockExerciseAnswers);
 
-  const { exerciseId } = useParams();
   const navigate = useNavigate();
   const { logout } = useAuth();
 

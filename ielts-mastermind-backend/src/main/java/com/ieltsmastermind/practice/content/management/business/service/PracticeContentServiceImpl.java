@@ -7,6 +7,7 @@ import com.ieltsmastermind.practice.content.management.business.interfaces.FileU
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
 import com.ieltsmastermind.practice.content.management.business.parser.InstructionParser;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
+import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentInstructionResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
@@ -162,6 +163,15 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
     @Override
     @Transactional
+    public PracticeContentInstructionResponseDto getInstructionByContentId(String id) {
+        PracticeContent content = practiceContentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
+
+        return mapInstructionToResponseDto(content);
+    }
+
+    @Override
+    @Transactional
     public PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request) {
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
@@ -294,6 +304,18 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                         ? new ArrayList<>(question.getCorrectAnswers())
                         : new ArrayList<>()
         );
+
+        return dto;
+    }
+
+    private PracticeContentInstructionResponseDto mapInstructionToResponseDto(PracticeContent content) {
+        PracticeContentInstructionResponseDto dto = new PracticeContentInstructionResponseDto();
+
+        dto.setId(content.getId());
+        dto.setTitle(content.getTitle());
+        dto.setTimeInfo(content.getDurationMinutes());
+        dto.setCandidateInstructions(content.getCandidateInstructions());
+        dto.setCandidateInfo(content.getCandidateInfo());
 
         return dto;
     }

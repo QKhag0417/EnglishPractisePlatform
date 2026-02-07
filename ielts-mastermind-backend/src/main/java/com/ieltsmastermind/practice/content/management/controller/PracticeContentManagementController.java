@@ -4,6 +4,7 @@ import com.ieltsmastermind.common.response.ApiResponse;
 
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentCreateRequestDto;
+import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentInstructionResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentResponseDto;
 import com.ieltsmastermind.practice.content.management.domain.dto.PracticeContentUpdateRequestDto;
 import jakarta.validation.Valid;
@@ -71,6 +72,26 @@ public class PracticeContentManagementController {
             PracticeContentResponseDto content = practiceContentService.getById(id);
             return ResponseEntity.ok(
                     ApiResponse.success("Practice content fetched successfully", content)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @GetMapping("/{id}/instruction")
+    public ResponseEntity<ApiResponse<PracticeContentInstructionResponseDto>> getInstructionByContentId(
+            @PathVariable String id
+    ) {
+        try {
+            PracticeContentInstructionResponseDto instruction = practiceContentService.getInstructionByContentId(id);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Practice content instruction fetched successfully", instruction)
             );
         } catch (RuntimeException e) {
             return ResponseEntity
