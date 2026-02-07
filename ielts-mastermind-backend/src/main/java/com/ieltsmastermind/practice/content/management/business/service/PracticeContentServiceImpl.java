@@ -111,7 +111,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         for (PracticeContent content : contents) {
             PracticeContentResponseDto dto = mapContentToResponseDto(content);
 
-            // Fetch questions for this content
             List<PracticeQuestion> questions =
                     practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
 
@@ -174,6 +173,49 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
         return mapContentToPromptResponseDto(content);
+    }
+
+    @Override
+    @Transactional
+    public PracticeContentAnswerResponseDto getAnswersById(String id) {
+
+        PracticeContent content = practiceContentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
+
+        List<PracticeQuestion> questions =
+                practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
+
+        PracticeContentAnswerResponseDto dto = new PracticeContentAnswerResponseDto();
+        dto.setId(content.getId());
+
+        List<PracticeContentAnswerResponseDto.QuestionAnswerDto> answerDtos = new ArrayList<>();
+
+        for (PracticeQuestion question : questions) {
+            PracticeContentAnswerResponseDto.QuestionAnswerDto aDto =
+                    new PracticeContentAnswerResponseDto.QuestionAnswerDto();
+
+            aDto.setOrderIndex(question.getOrderIndex());
+
+            aDto.setCorrectAnswers(question.getCorrectAnswers());
+
+            answerDtos.add(aDto);
+        }
+
+        dto.setAnswers(answerDtos);
+        return dto;
+    }
+
+    @Override
+    public List<PracticeContentMetadataResponseDto> getAllMetadata() {
+        List<PracticeContent> contents = practiceContentRepository.findAll();
+        List<PracticeContentMetadataResponseDto> result = new ArrayList<>();
+
+        for (PracticeContent content : contents) {
+            PracticeContentMetadataResponseDto dto = mapContentToMetadataResponseDto(content);
+            result.add(dto);
+        }
+
+        return result;
     }
 
     @Override
@@ -335,6 +377,26 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         dto.setAudioUrl(content.getAudioUrl());
         dto.setExamText(content.getInstructions());
         dto.setTotalQuestions(content.getQuestionCount());
+
+        return dto;
+    }
+
+    private PracticeContentMetadataResponseDto mapContentToMetadataResponseDto(PracticeContent content) {
+        PracticeContentMetadataResponseDto dto = new PracticeContentMetadataResponseDto();
+        dto.setId(content.getId());
+        dto.setTitle(content.getTitle());
+        dto.setTask(content.getTask());
+        dto.setQuestionTypeTags(content.getQuestionTypeTags());
+        dto.setTopicTags(content.getTopicTags());
+        dto.setThumbnailUrl(content.getThumbnailUrl());
+        dto.setDurationMinutes(content.getDurationMinutes());
+        dto.setQuestionCount(content.getQuestionCount());
+        dto.setStatus(content.getStatus());
+        dto.setUpdatedOn(content.getUpdatedOn());
+        dto.setSkill(content.getSkill());
+
+        // Not in PracticeContent entity -> return null (or set 0 if you prefer)
+        dto.setAttempts(null);
 
         return dto;
     }

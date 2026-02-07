@@ -21,24 +21,10 @@ import {
 
 type UserAnswers = Record<number, string | string[]>;
 
-const taskTypeToNumber = (task?: string): number => {
-  switch (task) {
-    case "TASK_1":
-      return 1;
-    case "TASK_2":
-      return 2;
-    case "TASK_3":
-      return 3;
-    case "TASK_4":
-      return 4;
-    default:
-      return 0;
-  }
-};
-
 export function ListeningTestPage() {
   const { exerciseId } = useParams();
 
+  // ============================================================================================================
   const [exerciseInstruction, setExerciseInstruction] =
     useState<ExerciseInstruction>(mockExerciseInstruction1);
 
@@ -75,9 +61,25 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  // TODO: Fetch exercise prompt based on exerciseId
+  // ============================================================================================================
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
+
+  const taskTypeToNumber = (task?: string): number => {
+    switch (task) {
+      case "TASK_1":
+        return 1;
+      case "TASK_2":
+        return 2;
+      case "TASK_3":
+        return 3;
+      case "TASK_4":
+        return 4;
+      default:
+        return 0;
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -111,10 +113,48 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  // TODO: Fetch exercise answers based on exerciseId
+  // ============================================================================================================
   const [exerciseAnswers, setExerciseAnswers] =
     useState<ExerciseAnswer>(mockExerciseAnswers);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/practice-content/${exerciseId}/answers`,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          },
+        );
+
+        const json = await res.json();
+        const dto = json?.data;
+
+        if (!dto) return;
+
+        const correctAnswers: Record<number, string | string[]> = {};
+
+        for (const a of dto.answers ?? []) {
+          const list: string[] = a?.correctAnswers ?? [];
+          correctAnswers[a.orderIndex] =
+            list.length <= 1 ? (list[0] ?? "") : list;
+        }
+
+        const answers: ExerciseAnswer = {
+          id: dto.id,
+          correctAnswers,
+        };
+
+        setExerciseAnswers(answers);
+      } catch (err) {
+        console.error("Failed to fetch answers:", err);
+      }
+    })();
+  }, [exerciseId]);
+
+  // ============================================================================================================
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -137,6 +177,7 @@ export function ListeningTestPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // ============================================================================================================
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -208,6 +249,7 @@ export function ListeningTestPage() {
   //   setCurrentQuestionIndex(index);
   // };
 
+  // ============================================================================================================
   // Play/pause whenever isPlaying changes
   useEffect(() => {
     const audio = audioRef.current;
@@ -292,6 +334,7 @@ export function ListeningTestPage() {
     setDuration(0); // optional: or keep duration if you prefer
   };
 
+  // ============================================================================================================
   // Instruction Screen
   if (testState === "instruction") {
     return (
@@ -346,6 +389,7 @@ export function ListeningTestPage() {
     );
   }
 
+  // ============================================================================================================
   // Results Screen
   if (testState === "results") {
     return (
@@ -360,6 +404,7 @@ export function ListeningTestPage() {
     );
   }
 
+  // ============================================================================================================
   // Test Screen
   return (
     <div className="min-h-screen bg-white">

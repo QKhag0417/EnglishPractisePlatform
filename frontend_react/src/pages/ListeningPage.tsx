@@ -56,28 +56,7 @@ const attemptsToNumber = (v: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-function mapExerciseDtoToExercise(dto: ExerciseMetadaDto): ExerciseMetadata {
-  return {
-    id: dto.id,
-    title: dto.title ?? "",
-    attempts: "0",
-    image: dto.thumbnailUrl ?? "",
-    task: parseTaskToNumbers(dto.task),
-    questionTypes: dto.questionTypeTags ?? [],
-    topics: dto.topicTags ?? [],
-    status: mapStatus(dto.status),
-    updated: localDateTimeArrayToIso(dto.updatedOn),
-    questions: dto.questionCount ?? 0,
-    duration: dto.durationMinutes ?? 0,
-  };
-}
-
-function mapExerciseDtosToExercises(
-  dtos: ExerciseMetadaDto[],
-): ExerciseMetadata[] {
-  return (dtos ?? []).map(mapExerciseDtoToExercise);
-}
-
+// ============================================================================================================
 export function ListeningPage() {
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -100,6 +79,8 @@ export function ListeningPage() {
 
   const itemsPerPage = 12;
 
+  // ============================================================================================================
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -108,24 +89,42 @@ export function ListeningPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/practice-content", {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
+        const res = await fetch(
+          "http://localhost:8080/api/practice-content/metadata",
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          },
+        );
 
         const json = await res.json();
-        const dtos: ExerciseMetadaDto[] = Array.isArray(json)
-          ? json
-          : (json.data ?? []);
-        const fetched = mapExerciseDtosToExercises(dtos);
+        const dtos = json?.data;
 
-        setExercises(fetched);
+        if (!Array.isArray(dtos)) return;
+
+        const mapped: ExerciseMetadata[] = dtos.map((dto) => ({
+          id: dto.id ?? "",
+          title: dto.title ?? "",
+          attempts: "0",
+          image: dto.thumbnailUrl ?? "",
+          task: parseTaskToNumbers(dto.task),
+          questionTypes: dto.questionTypeTags ?? [],
+          topics: dto.topicTags ?? [],
+          status: dto.status ?? "",
+          updated: localDateTimeArrayToIso(dto.updatedOn),
+          questions: dto.questionCount ?? 0,
+          duration: dto.durationMinutes ?? 0,
+        }));
+
+        setExercises(mapped);
       } catch (err) {
         console.error("Failed to fetch practice content:", err);
       }
     })();
   }, []);
+
+  // ============================================================================================================
 
   const allQuestionTypes = useMemo(() => {
     const set = new Set<string>();
@@ -156,6 +155,7 @@ export function ListeningPage() {
       return matchesTask && matchesQuestionType && matchesTopic;
     });
   };
+  // ============================================================================================================
 
   const availableTasks = [1, 2, 3, 4].filter((task) => {
     const list = getFilteredExercises(
@@ -191,6 +191,8 @@ export function ListeningPage() {
     handleFilterChange();
   };
 
+  // ============================================================================================================
+
   const filteredExercises = useMemo(() => {
     return exercises.filter((exercise) => {
       const matchesSearch = exercise.title
@@ -215,6 +217,8 @@ export function ListeningPage() {
     selectedQuestionType,
     selectedTopic,
   ]);
+
+  // ============================================================================================================
 
   const sortedExercises = useMemo(() => {
     const arr = [...filteredExercises];
@@ -254,6 +258,8 @@ export function ListeningPage() {
   }, [paginationPage, totalPages]);
 
   return (
+    // ============================================================================================================
+
     <div className="bg-white min-h-screen">
       {isLoggedIn ? <NavBarLearner onLogout={handleLogout} /> : <NavBarGuest />}
 

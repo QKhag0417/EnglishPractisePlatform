@@ -11,7 +11,6 @@ public class PracticeContentInstructionResponseDto {
     private String id;
     private String title;
     private Integer timeInfo;
-
     private List<String> candidateInstructions;
     private List<String> candidateInfo;
 }

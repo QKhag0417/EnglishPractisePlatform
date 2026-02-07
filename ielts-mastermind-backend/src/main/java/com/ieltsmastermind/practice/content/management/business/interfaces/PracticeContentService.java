@@ -17,6 +17,10 @@ public interface PracticeContentService {
 
     PracticeContentPromptResponseDto getPromptById(String id);
 
+    PracticeContentAnswerResponseDto getAnswersById(String id);
+
+    List<PracticeContentMetadataResponseDto> getAllMetadata();
+
     PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request);
 
     void delete(String id);
