@@ -10,6 +10,9 @@ import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
 import { API_BASE } from "../utils/api";
 
 export function ListeningPage() {
+  // =========================
+  // Auth + navigation actions
+  // =========================
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -18,13 +21,15 @@ export function ListeningPage() {
     navigate("/");
   };
 
+  // =========================
+  // UI state (filters, sort, selection, pagination, data)
+  // =========================
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState<"all" | number>("all");
   const [selectedQuestionType, setSelectedQuestionType] = useState<
     "all" | string
   >("all");
   const [selectedTopic, setSelectedTopic] = useState<"all" | string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<
     "newest" | "oldest" | "attempts" | "a-z" | "z-a"
   >("newest");
@@ -33,8 +38,14 @@ export function ListeningPage() {
   const [paginationPage, setPaginationPage] = useState(1);
   const [exercises, setExercises] = useState<ExerciseMetadata[]>(mockExercises);
 
+  // =========================
+  // Pagination constants
+  // =========================
   const itemsPerPage = 12;
 
+  // =========================
+  // DTO/format helpers (mapping API DTO -> UI model)
+  // =========================
   function localDateTimeArrayToIso(arr?: number[]): string {
     if (!arr || arr.length < 6) return "";
     const [y, m, d, hh, mm, ss, nanos = 0] = arr;
@@ -58,6 +69,9 @@ export function ListeningPage() {
     }
   }
 
+  // =========================
+  // Sorting helpers (safe parsing for date/attempts)
+  // =========================
   const dateToMillis = (v: string) => {
     const t = new Date(v).getTime();
     return Number.isFinite(t) ? t : 0;
@@ -68,6 +82,9 @@ export function ListeningPage() {
     return Number.isFinite(n) ? n : 0;
   };
 
+  // =========================
+  // Data fetching (load exercises metadata)
+  // =========================
   useEffect(() => {
     (async () => {
       try {
@@ -103,6 +120,9 @@ export function ListeningPage() {
     })();
   }, []);
 
+  // =========================
+  // Filter option sources (derive all types/topics from loaded data)
+  // =========================
   const allQuestionTypes = useMemo(() => {
     const set = new Set<string>();
     for (const ex of exercises)
@@ -116,6 +136,9 @@ export function ListeningPage() {
     return Array.from(set).sort();
   }, [exercises]);
 
+  // =========================
+  // Availability helpers (limit dropdown options based on other filters)
+  // =========================
   const getFilteredExercises = (
     taskFilter: "all" | number,
     questionTypeFilter: "all" | string,
@@ -156,6 +179,9 @@ export function ListeningPage() {
     return list.length > 0;
   });
 
+  // =========================
+  // Filter change side-effects (reset paging)
+  // =========================
   const handleFilterChange = () => setPaginationPage(1);
 
   // const toggleStatus = (status: string) => {
@@ -167,6 +193,9 @@ export function ListeningPage() {
   //   handleFilterChange();
   // };
 
+  // =========================
+  // Core filtering (search + task + type + topic)
+  // =========================
   const filteredExercises = useMemo(() => {
     return exercises.filter((exercise) => {
       const matchesSearch = exercise.title
@@ -192,6 +221,9 @@ export function ListeningPage() {
     selectedTopic,
   ]);
 
+  // =========================
+  // Sorting (applies after filtering)
+  // =========================
   const sortedExercises = useMemo(() => {
     const arr = [...filteredExercises];
 
@@ -217,6 +249,9 @@ export function ListeningPage() {
     }
   }, [filteredExercises, sortBy]);
 
+  // =========================
+  // Pagination calculations (derive current page slice)
+  // =========================
   const totalPages = Math.max(
     1,
     Math.ceil(sortedExercises.length / itemsPerPage),
@@ -225,6 +260,9 @@ export function ListeningPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentExercises = sortedExercises.slice(startIndex, endIndex);
 
+  // =========================
+  // Pagination guard (keep page within range)
+  // =========================
   useEffect(() => {
     if (paginationPage > totalPages) setPaginationPage(totalPages);
   }, [paginationPage, totalPages]);
