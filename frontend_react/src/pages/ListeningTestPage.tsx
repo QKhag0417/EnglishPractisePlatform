@@ -9,7 +9,7 @@ import { API_BASE } from "../utils/api";
 
 import {
   ExerciseInstruction,
-  mockExerciseInstruction1,
+  exerciseInstructions,
 } from "../mocks/instructions.mock";
 import {
   ExercisePrompt,
@@ -26,40 +26,7 @@ export function ListeningTestPage() {
   const { exerciseId } = useParams();
 
   const [exerciseInstruction, setExerciseInstruction] =
-    useState<ExerciseInstruction>(mockExerciseInstruction1);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          `${API_BASE}/api/practice-content/${exerciseId}/instruction`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            credentials: "include",
-          },
-        );
-
-        const json = await res.json();
-
-        const dto = json?.data;
-
-        if (!dto) return;
-
-        const instruction: ExerciseInstruction = {
-          id: dto.id,
-          title: dto.title ?? "",
-          timeInfo: dto.timeInfo != null ? `Time: ${dto.timeInfo} minutes` : "",
-          candidateInstructions: dto.candidateInstructions ?? [],
-          candidateInfo: dto.candidateInfo ?? [],
-        };
-
-        setExerciseInstruction(instruction);
-      } catch (err) {
-        console.error("Failed to fetch instruction:", err);
-      }
-    })();
-  }, [exerciseId]);
+    useState<ExerciseInstruction>(exerciseInstructions);
 
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);

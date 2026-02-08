@@ -173,14 +173,14 @@ export const router = createBrowserRouter([
   //       </ProtectedRoute>
   //     ),
   //   },
-  //   {
-  //     path: "/admin/users",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <UserManagementPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
+  {
+    path: "/admin/users",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <UserManagementPage />
+      </ProtectedRoute>
+    ),
+  },
   //   // Catch-all route - redirect to home
   //   {
   //     path: "*",

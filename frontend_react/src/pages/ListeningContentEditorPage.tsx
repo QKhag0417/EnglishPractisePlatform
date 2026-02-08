@@ -128,6 +128,11 @@ export function ListeningContentEditorPage() {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
 
+  const [candidateInstructions, setCandidateInstructions] = useState<string[]>([
+    "",
+  ]);
+  const [candidateInfo, setCandidateInfo] = useState<string[]>([""]);
+
   const selectedQuestion = questions.find((q) => q.id === selectedQuestionId);
 
   const markAsUnsaved = () => {
@@ -476,6 +481,46 @@ export function ListeningContentEditorPage() {
         correctAnswers,
       };
     });
+  };
+
+  // Candidate Instructions handlers
+  const addInstruction = () => {
+    if (candidateInstructions.length < 3) {
+      setCandidateInstructions([...candidateInstructions, ""]);
+    }
+  };
+
+  const updateInstruction = (index: number, value: string) => {
+    const updated = [...candidateInstructions];
+    updated[index] = value;
+    setCandidateInstructions(updated);
+  };
+
+  const removeInstruction = (index: number) => {
+    if (candidateInstructions.length > 1) {
+      setCandidateInstructions(
+        candidateInstructions.filter((_, i) => i !== index),
+      );
+    }
+  };
+
+  // Candidate Info handlers
+  const addInfo = () => {
+    if (candidateInfo.length < 3) {
+      setCandidateInfo([...candidateInfo, ""]);
+    }
+  };
+
+  const updateInfo = (index: number, value: string) => {
+    const updated = [...candidateInfo];
+    updated[index] = value;
+    setCandidateInfo(updated);
+  };
+
+  const removeInfo = (index: number) => {
+    if (candidateInfo.length > 1) {
+      setCandidateInfo(candidateInfo.filter((_, i) => i !== index));
+    }
   };
 
   const handleSaveExit = async () => {

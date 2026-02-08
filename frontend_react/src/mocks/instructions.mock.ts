@@ -1,18 +1,26 @@
 export type ExerciseInstruction = {
   id: string;
+  skill: "listening" | "reading" | "writing" | "speaking";
   title: string;
   timeInfo: string;
   candidateInstructions: string[];
   candidateInfo: string[];
 };
 
-export const mockExerciseInstruction1: ExerciseInstruction = {
+export const exerciseInstructions: ExerciseInstruction = {
   id: "1",
-  title: "Workplace Safety Briefing",
-  timeInfo: "Time: 12 minutes",
+  skill: "listening",
+  title: "IELTS Academic Listening",
+  timeInfo: "Time: Approximately 12 minutes",
   candidateInstructions: [
-    "You will hear a short safety briefing.",
-    "Choose the correct answer for each question.",
+    "Answer all the questions.",
+    "You can change your answers at any time during the test.",
+    "Do not click 'Start test' until you are told to do so.",
   ],
-  candidateInfo: ["Topic: Workplace", "Focus: Instructions & details"],
+  candidateInfo: [
+    "There are 10 questions in this test.",
+    "Each question carries one mark.",
+    "You will hear the recording once.",
+    "For this part of the test there will be time for you to look through the questions and time for you to check your answers.",
+  ],
 };
