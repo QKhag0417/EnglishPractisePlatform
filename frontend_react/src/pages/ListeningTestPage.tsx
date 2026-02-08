@@ -25,12 +25,20 @@ type UserAnswers = Record<number, string | string[]>;
 export function ListeningTestPage() {
   const { exerciseId } = useParams();
 
-  const [exerciseInstruction, setExerciseInstruction] =
-    useState<ExerciseInstruction>(exerciseInstructions);
+  // =========================
+  // Navigation + auth
+  // =========================
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-  const [exercisePrompt, setExercisePrompt] =
-    useState<ExercisePrompt>(mockExercisePrompt1);
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
+  // =========================
+  // API mapping helpers
+  // =========================
   const taskTypeToNumber = (task?: string): number => {
     switch (task) {
       case "TASK_1":
@@ -46,6 +54,21 @@ export function ListeningTestPage() {
     }
   };
 
+  // =========================
+  // Initial data state (instruction + prompt + answers)
+  // =========================
+  const [exerciseInstruction, setExerciseInstruction] =
+    useState<ExerciseInstruction>(exerciseInstructions);
+
+  const [exercisePrompt, setExercisePrompt] =
+    useState<ExercisePrompt>(mockExercisePrompt1);
+
+  const [exerciseAnswers, setExerciseAnswers] =
+    useState<ExerciseAnswer>(mockExerciseAnswers);
+
+  // =========================
+  // Fetch prompt
+  // =========================
   useEffect(() => {
     (async () => {
       try {
@@ -79,9 +102,9 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  const [exerciseAnswers, setExerciseAnswers] =
-    useState<ExerciseAnswer>(mockExerciseAnswers);
-
+  // =========================
+  // Fetch answers
+  // =========================
   useEffect(() => {
     (async () => {
       try {
@@ -119,9 +142,9 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
+  // =========================
+  // Test flow state (instruction/test/results) + user answers + timing
+  // =========================
   const [testState, setTestState] = useState<
     "instruction" | "test" | "results"
   >("instruction");
@@ -131,22 +154,22 @@ export function ListeningTestPage() {
   );
   const [testStartTime, setTestStartTime] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  // =========================
+  // Audio playback state + refs
+  // =========================
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  // Timer countdown
+  // =========================
+  // Timer countdown (auto-submit when hits 0)
+  // =========================
   useEffect(() => {
     if (testState === "test" && timeRemaining > 0) {
       const timer = setInterval(() => {
@@ -164,7 +187,9 @@ export function ListeningTestPage() {
     }
   }, [testState, timeRemaining]);
 
-  // Format time as MM:SS
+  // =========================
+  // Time formatting helper (MM:SS)
+  // =========================
   const formatTime = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
 
@@ -175,6 +200,9 @@ export function ListeningTestPage() {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
+  // =========================
+  // Test flow handlers (start/exit/submit/results)
+  // =========================
   const handleStartTest = () => {
     setTestState("test");
     setTestStartTime(Date.now());
@@ -186,13 +214,6 @@ export function ListeningTestPage() {
 
   const handleConfirmExit = () => {
     navigate("/listening");
-  };
-
-  const handleAnswerChange = (questionId: number, value: string | string[]) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
   };
 
   const handleSubmit = () => {
@@ -208,11 +229,23 @@ export function ListeningTestPage() {
     setTestState("results");
   };
 
+  // =========================
+  // Answer handlers (user input)
+  // =========================
+  const handleAnswerChange = (questionId: number, value: string | string[]) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: value,
+    }));
+  };
+
   // const handleQuestionNavigation = (index: number) => {
   //   setCurrentQuestionIndex(index);
   // };
 
-  // Play/pause whenever isPlaying changes
+  // =========================
+  // Audio side-effects (play/pause + reset when audioUrl changes)
+  // =========================
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -227,7 +260,6 @@ export function ListeningTestPage() {
     }
   }, [isPlaying]);
 
-  // If audioUrl changes, reset UI
   useEffect(() => {
     setIsPlaying(false);
     setAudioProgress(0);
@@ -235,6 +267,9 @@ export function ListeningTestPage() {
     setDuration(0);
   }, [exercisePrompt.audioUrl]);
 
+  // =========================
+  // Audio event handlers (progress/metadata/end/seek)
+  // =========================
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -269,6 +304,9 @@ export function ListeningTestPage() {
     audio.currentTime = pct * duration;
   };
 
+  // =========================
+  // Reset helpers (restart entire test + audio UI)
+  // =========================
   const resetTest = () => {
     // stop + reset audio
     const audio = audioRef.current;
