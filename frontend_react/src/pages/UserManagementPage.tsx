@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { API_BASE } from "../utils/api";
 
 interface UserData {
   id: string;
@@ -64,8 +65,6 @@ type ApiResponse<T> = {
   message?: string;
   data?: T;
 };
-
-const API_BASE = "http://localhost:8080/api/user"; // <-- keep as-is or move to env
 
 export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   const { logout } = useAuth();
