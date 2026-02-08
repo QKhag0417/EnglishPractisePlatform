@@ -219,6 +219,35 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     }
 
     @Override
+    public List<PracticeContentMetadataV2ResponseDto> getAllMetadataV2() {
+        List<PracticeContent> contents = practiceContentRepository.findAll();
+        List<PracticeContentMetadataV2ResponseDto> result = new ArrayList<>();
+
+        for (PracticeContent content : contents) {
+            PracticeContentMetadataV2ResponseDto dto = mapContentToMetadataV2ResponseDto(content);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    private PracticeContentMetadataV2ResponseDto mapContentToMetadataV2ResponseDto(PracticeContent content) {
+        PracticeContentMetadataV2ResponseDto dto = new PracticeContentMetadataV2ResponseDto();
+        dto.setId(content.getId());
+        dto.setTitle(content.getTitle());
+        dto.setSkill(content.getSkill());
+        dto.setUpdatedOn(content.getUpdatedOn());
+
+        dto.setQuestions(content.getQuestionCount());
+        dto.setDuration(content.getDurationMinutes());
+
+        dto.setAttempts(0L);
+
+        dto.setStatus(content.getStatus());
+        return dto;
+    }
+
+    @Override
     @Transactional
     public PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request) {
         PracticeContent content = practiceContentRepository.findById(id)

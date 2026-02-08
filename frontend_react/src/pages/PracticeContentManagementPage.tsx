@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { SkillSelectionModal } from "../components/SkillSelectionModal";
+import { useEffect } from "react";
+import { API_BASE } from "../utils/api";
 
 import {
   PracticeContentMetadata,
@@ -42,9 +44,84 @@ export function PracticeContentManagementPage() {
   const [filterSkill, setFilterSkill] = useState<string>("all");
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
-  const [contents, setContents] = useState<PracticeContentMetadata[]>(
-    mockPracticeContentMetadata,
-  );
+  const [contents, setContents] = useState<PracticeContentMetadata[]>([]);
+
+  useEffect(() => {
+    const normalizeSkill = (s: unknown): PracticeContentMetadata["skill"] => {
+      switch (String(s ?? "").toUpperCase()) {
+        case "LISTENING":
+          return "Listening";
+        case "READING":
+          return "Reading";
+        case "WRITING":
+          return "Writing";
+        case "SPEAKING":
+          return "Speaking";
+        default:
+          return "Reading";
+      }
+    };
+
+    const normalizeStatus = (s: unknown): PracticeContentMetadata["status"] => {
+      switch (String(s ?? "").toUpperCase()) {
+        case "PUBLISHED":
+          return "Published";
+        case "DRAFT":
+          return "Draft";
+        default:
+          return "Draft";
+      }
+    };
+
+    const normalizeUpdatedOn = (v: unknown): string => {
+      // If backend is later configured to return ISO string, accept it.
+      if (typeof v === "string") return v;
+
+      // Current backend returns LocalDateTime as array:
+      // [year, month, day, hour, minute, second, nano]
+      if (Array.isArray(v)) {
+        const [y, m, d, hh = 0, mm = 0, ss = 0, nano = 0] = v as number[];
+        const ms = Math.floor((nano ?? 0) / 1_000_000);
+        const date = new Date(y, (m ?? 1) - 1, d ?? 1, hh, mm, ss, ms);
+        return date.toISOString();
+      }
+
+      return "";
+    };
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/practice-content/metadata/v2`,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          },
+        );
+
+        const json = await res.json();
+        const dtos = json?.data;
+
+        if (!Array.isArray(dtos)) return;
+
+        const mapped: PracticeContentMetadata[] = dtos.map((dto: any) => ({
+          id: dto.id,
+          title: dto.title ?? "",
+          skill: normalizeSkill(dto.skill),
+          updatedOn: normalizeUpdatedOn(dto.updatedOn),
+          questions: Number(dto.questions ?? 0),
+          duration: Number(dto.duration ?? 0),
+          attempts: Number(dto.attempts ?? 0),
+          status: normalizeStatus(dto.status),
+        }));
+
+        setContents(mapped);
+      } catch (err) {
+        console.error("Failed to fetch practice content metadata v2:", err);
+      }
+    })();
+  }, []);
 
   const filteredContents = contents.filter((content) => {
     const matchesSearch = content.title

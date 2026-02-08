@@ -160,6 +160,24 @@ public class PracticeContentManagementController {
         }
     }
 
+    @GetMapping("/metadata/v2")
+    public ResponseEntity<ApiResponse<List<PracticeContentMetadataV2ResponseDto>>> getAllMetadataV2() {
+        try {
+            List<PracticeContentMetadataV2ResponseDto> contents = practiceContentService.getAllMetadataV2();
+            return ResponseEntity.ok(
+                    ApiResponse.success("Practice content metadata v2 fetched successfully", contents)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
     @PreAuthorize("hasRole('Administrator')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PracticeContentResponseDto>> update(

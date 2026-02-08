@@ -21,6 +21,8 @@ public interface PracticeContentService {
 
     List<PracticeContentMetadataResponseDto> getAllMetadata();
 
+    List<PracticeContentMetadataV2ResponseDto> getAllMetadataV2();
+
     PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request);
 
     void delete(String id);
