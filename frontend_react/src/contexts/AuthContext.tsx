@@ -5,6 +5,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { API_BASE } from "../utils/api";
 
 export type UserRole = "learner" | "administrator";
 
@@ -20,7 +21,6 @@ interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
 
-  // match OLD AuthContext API
   login: (email: string, password: string) => Promise<User>;
   register: (
     firstname: string,
@@ -45,7 +45,6 @@ function mapRole(raw: unknown): UserRole | null {
   if (r === "administrator" || r === "admin") return "administrator";
   if (r === "learner" || r === "user" || r === "student") return "learner";
 
-  // if backend sends "Administrator"/"Learner" (old style), handled above by toLowerCase
   return null;
 }
 
@@ -57,6 +56,23 @@ function buildName(info: any) {
   return combined || (info?.name ? String(info.name) : "");
 }
 
+async function readApiBody(res: Response): Promise<any> {
+  const raw = await res.text().catch(() => "");
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { message: raw };
+  }
+}
+
+function normalizeError(api: any, fallbackMsg: string) {
+  // keep your original behavior: throw api.errors if present, otherwise throw api
+  if (api?.errors) return api.errors;
+  if (api?.message) return new Error(String(api.message));
+  return new Error(fallbackMsg);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
@@ -66,24 +82,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const restoreSession = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/home", {
+      const res = await fetch(`${API_BASE}/api/home`, {
         method: "GET",
         credentials: "include",
       });
 
+      const api = await readApiBody(res);
+
       if (!res.ok) {
         setUser(null);
         localStorage.removeItem("user");
+
         return;
       }
 
-      const api = await res.json();
-      const info = api?.data;
+      const info = api?.data ?? api;
 
       const role = mapRole(info?.role);
       if (!role) {
         setUser(null);
         localStorage.removeItem("user");
+
         return;
       }
 
@@ -97,10 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(restoredUser);
       localStorage.setItem("user", JSON.stringify(restoredUser));
+
+      return restoredUser;
     } catch (err) {
       console.log("Session restore failed:", err);
       setUser(null);
       localStorage.removeItem("user");
+
+      return;
     }
   };
 
@@ -117,9 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(errText || "Login failed");
     }
 
-    const api = await res.json();
-    const data = api?.data ?? api;
+    const api = await readApiBody(res);
 
+    if (!res.ok) {
+      throw normalizeError(api, "Login failed");
+    }
+
+    const data = api?.data ?? api;
     const role = mapRole(data?.role);
     if (!role) {
       throw new Error("Login succeeded but user role is invalid/missing");
@@ -159,36 +186,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       credentials: "include",
     });
 
-    // robust parsing (handles JSON or plain-text error bodies)
-    const raw = await res.text();
-    let api: any = {};
-    try {
-      api = raw ? JSON.parse(raw) : {};
-    } catch {
-      api = { message: raw };
-    }
+    const api = await readApiBody(res);
 
     if (!res.ok) {
-      if (api?.errors) throw api.errors;
-      throw api;
+      throw normalizeError(api, "Register failed");
     }
-
-    const data = api?.data ?? api;
-
-    const mappedRole: UserRole = mapRole(data?.role) ?? "learner"; // backend may not return role
-
-    const newUser: User = {
-      id: String(data?.id ?? Date.now()),
-      name:
-        `${data?.firstname ?? firstname} ${data?.lastname ?? lastname}`.trim() ||
-        "User",
-      email: String(data?.email ?? email),
-      role: mappedRole,
-      avatar: data?.avatar ? String(data.avatar) : undefined,
-    };
-
-    setUser(newUser);
-    localStorage.setItem("user", JSON.stringify(newUser));
   };
 
   const logout = async (): Promise<void> => {
@@ -206,10 +208,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserRole = (role: UserRole) => {
-    if (!user) return;
-    const updatedUser = { ...user, role };
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, role };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (

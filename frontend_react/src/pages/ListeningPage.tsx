@@ -7,62 +7,16 @@ import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ExerciseCard } from "../components/ExerciseCard";
 import { ExerciseModal } from "../components/ExerciseModal";
 import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
-
-// ============================================================================================================
-
-type ExerciseMetadaDto = {
-  id: string;
-  title: string;
-  thumbnailUrl?: string;
-  task?: string;
-  questionTypeTags?: string[];
-  topicTags?: string[];
-  status?: string;
-  updatedOn?: number[];
-  questionCount?: number;
-  durationMinutes?: number;
-};
-
-function localDateTimeArrayToIso(arr?: number[]): string {
-  if (!arr || arr.length < 6) return "";
-  const [y, m, d, hh, mm, ss, nanos = 0] = arr;
-  const ms = Math.floor(nanos / 1_000_000);
-  return new Date(y, m - 1, d, hh, mm, ss, ms).toISOString();
-}
-
-function parseTaskToNumbers(task?: string): number[] {
-  const match = task?.match(/(\d+)/);
-  return match ? [Number(match[1])] : [];
-}
-
-function mapStatus(dtoStatus?: string): string {
-  switch (dtoStatus) {
-    case "DRAFT":
-      return "draft";
-
-    case "PUBLISHED":
-      return "published";
-
-    default:
-      return "draft";
-  }
-}
-
-const dateToMillis = (v: string) => {
-  const t = new Date(v).getTime();
-  return Number.isFinite(t) ? t : 0;
-};
-
-const attemptsToNumber = (v: string) => {
-  const n = Number(String(v).replace(/[^\d.-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-};
-
-// ============================================================================================================
+import { API_BASE } from "../utils/api";
 
 export function ListeningPage() {
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState<"all" | number>("all");
@@ -77,29 +31,51 @@ export function ListeningPage() {
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseMetadata | null>(null);
   const [paginationPage, setPaginationPage] = useState(1);
-
   const [exercises, setExercises] = useState<ExerciseMetadata[]>(mockExercises);
 
   const itemsPerPage = 12;
 
-  // ============================================================================================================
+  function localDateTimeArrayToIso(arr?: number[]): string {
+    if (!arr || arr.length < 6) return "";
+    const [y, m, d, hh, mm, ss, nanos = 0] = arr;
+    const ms = Math.floor(nanos / 1_000_000);
+    return new Date(y, m - 1, d, hh, mm, ss, ms).toISOString();
+  }
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  function parseTaskToNumbers(task?: string): number[] {
+    const match = task?.match(/(\d+)/);
+    return match ? [Number(match[1])] : [];
+  }
+
+  function mapStatus(dtoStatus?: string): string {
+    switch (dtoStatus) {
+      case "DRAFT":
+        return "draft";
+      case "PUBLISHED":
+        return "published";
+      default:
+        return "draft";
+    }
+  }
+
+  const dateToMillis = (v: string) => {
+    const t = new Date(v).getTime();
+    return Number.isFinite(t) ? t : 0;
+  };
+
+  const attemptsToNumber = (v: string) => {
+    const n = Number(String(v).replace(/[^\d.-]/g, ""));
+    return Number.isFinite(n) ? n : 0;
   };
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(
-          "http://localhost:8080/api/practice-content/metadata",
-          {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            credentials: "include",
-          },
-        );
+        const res = await fetch(`${API_BASE}/api/practice-content/metadata`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
 
         const json = await res.json();
         const dtos = json?.data;
@@ -126,8 +102,6 @@ export function ListeningPage() {
       }
     })();
   }, []);
-
-  // ============================================================================================================
 
   const allQuestionTypes = useMemo(() => {
     const set = new Set<string>();
@@ -159,8 +133,6 @@ export function ListeningPage() {
     });
   };
 
-  // ============================================================================================================
-
   const availableTasks = [1, 2, 3, 4].filter((task) => {
     const list = getFilteredExercises(
       task,
@@ -186,16 +158,14 @@ export function ListeningPage() {
 
   const handleFilterChange = () => setPaginationPage(1);
 
-  const toggleStatus = (status: string) => {
-    setSelectedStatus((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
-    );
-    handleFilterChange();
-  };
-
-  // ============================================================================================================
+  // const toggleStatus = (status: string) => {
+  //   setSelectedStatus((prev) =>
+  //     prev.includes(status)
+  //       ? prev.filter((s) => s !== status)
+  //       : [...prev, status],
+  //   );
+  //   handleFilterChange();
+  // };
 
   const filteredExercises = useMemo(() => {
     return exercises.filter((exercise) => {
@@ -221,8 +191,6 @@ export function ListeningPage() {
     selectedQuestionType,
     selectedTopic,
   ]);
-
-  // ============================================================================================================
 
   const sortedExercises = useMemo(() => {
     const arr = [...filteredExercises];
@@ -260,8 +228,6 @@ export function ListeningPage() {
   useEffect(() => {
     if (paginationPage > totalPages) setPaginationPage(totalPages);
   }, [paginationPage, totalPages]);
-
-  // ============================================================================================================
 
   return (
     <div className="bg-white min-h-screen">

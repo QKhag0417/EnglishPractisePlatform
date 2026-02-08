@@ -5,6 +5,7 @@ import { TestResultScreen } from "../components/TestResultScreen";
 import { InstructionRenderer } from "../components/InstructionParser.tsx";
 import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import { API_BASE } from "../utils/api";
 
 import {
   ExerciseInstruction,
@@ -24,7 +25,6 @@ type UserAnswers = Record<number, string | string[]>;
 export function ListeningTestPage() {
   const { exerciseId } = useParams();
 
-  // ============================================================================================================
   const [exerciseInstruction, setExerciseInstruction] =
     useState<ExerciseInstruction>(mockExerciseInstruction1);
 
@@ -32,7 +32,7 @@ export function ListeningTestPage() {
     (async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/practice-content/${exerciseId}/instruction`,
+          `${API_BASE}/api/practice-content/${exerciseId}/instruction`,
           {
             method: "GET",
             headers: { Accept: "application/json" },
@@ -61,7 +61,6 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  // ============================================================================================================
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
 
@@ -84,7 +83,7 @@ export function ListeningTestPage() {
     (async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/practice-content/${exerciseId}/prompt`,
+          `${API_BASE}/api/practice-content/${exerciseId}/prompt`,
           {
             method: "GET",
             headers: { Accept: "application/json" },
@@ -113,7 +112,6 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  // ============================================================================================================
   const [exerciseAnswers, setExerciseAnswers] =
     useState<ExerciseAnswer>(mockExerciseAnswers);
 
@@ -121,7 +119,7 @@ export function ListeningTestPage() {
     (async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/practice-content/${exerciseId}/answers`,
+          `${API_BASE}/api/practice-content/${exerciseId}/answers`,
           {
             method: "GET",
             headers: { Accept: "application/json" },
@@ -154,7 +152,6 @@ export function ListeningTestPage() {
     })();
   }, [exerciseId]);
 
-  // ============================================================================================================
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -177,7 +174,6 @@ export function ListeningTestPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // ============================================================================================================
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -249,7 +245,6 @@ export function ListeningTestPage() {
   //   setCurrentQuestionIndex(index);
   // };
 
-  // ============================================================================================================
   // Play/pause whenever isPlaying changes
   useEffect(() => {
     const audio = audioRef.current;
@@ -334,7 +329,6 @@ export function ListeningTestPage() {
     setDuration(0); // optional: or keep duration if you prefer
   };
 
-  // ============================================================================================================
   // Instruction Screen
   if (testState === "instruction") {
     return (
@@ -389,7 +383,6 @@ export function ListeningTestPage() {
     );
   }
 
-  // ============================================================================================================
   // Results Screen
   if (testState === "results") {
     return (
@@ -404,7 +397,6 @@ export function ListeningTestPage() {
     );
   }
 
-  // ============================================================================================================
   // Test Screen
   return (
     <div className="min-h-screen bg-white">

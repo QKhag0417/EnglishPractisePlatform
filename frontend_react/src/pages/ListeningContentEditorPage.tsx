@@ -34,6 +34,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import { ChipInput } from "../components/ChipInput";
+import { API_BASE } from "../utils/api";
 
 interface Question {
   id: string;
@@ -489,14 +490,11 @@ export function ListeningContentEditorPage() {
         const formData = new FormData();
         formData.append("file", thumbnailFile);
 
-        const uploadRes = await fetch(
-          "http://localhost:8080/api/files/thumbnail",
-          {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-          },
-        );
+        const uploadRes = await fetch(`${API_BASE}/api/files/thumbnail`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
 
         if (!uploadRes.ok) {
           const txt = await uploadRes.text();
@@ -511,14 +509,11 @@ export function ListeningContentEditorPage() {
         const formDataAudio = new FormData();
         formDataAudio.append("file", audioFile);
 
-        const uploadAudioRes = await fetch(
-          "http://localhost:8080/api/files/audio",
-          {
-            method: "POST",
-            credentials: "include",
-            body: formDataAudio,
-          },
-        );
+        const uploadAudioRes = await fetch(`${API_BASE}/api/files/audio`, {
+          method: "POST",
+          credentials: "include",
+          body: formDataAudio,
+        });
 
         if (!uploadAudioRes.ok) {
           const txt = await uploadAudioRes.text();
@@ -545,8 +540,8 @@ export function ListeningContentEditorPage() {
       };
 
       const url = isEditMode
-        ? `http://localhost:8080/api/practice-content/${editId}`
-        : "http://localhost:8080/api/practice-content";
+        ? `${API_BASE}/api/practice-content/${editId}`
+        : `${API_BASE}/api/practice-content`;
 
       const method = isEditMode ? "PUT" : "POST";
 
