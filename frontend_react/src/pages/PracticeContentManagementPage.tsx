@@ -42,7 +42,6 @@ export function PracticeContentManagementPage() {
   const [filterSkill, setFilterSkill] = useState<string>("all");
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
-  // Mock data
   const [contents, setContents] = useState<PracticeContentMetadata[]>(
     mockPracticeContentMetadata,
   );
