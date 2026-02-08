@@ -32,6 +32,9 @@ import {
 } from "../mocks/practiceContentMetadata.mock";
 
 export function PracticeContentManagementPage() {
+  // =========================
+  // Auth + navigation actions
+  // =========================
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -40,55 +43,67 @@ export function PracticeContentManagementPage() {
     navigate("/");
   };
 
+  // =========================
+  // UI state (filters + modal)
+  // =========================
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSkill, setFilterSkill] = useState<string>("all");
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
+  // =========================
+  // Data state
+  // =========================
   const [contents, setContents] = useState<PracticeContentMetadata[]>([]);
 
+  // =========================
+  // Normalizers (API DTO -> UI model)
+  // =========================
+  const normalizeSkill = (s: unknown): PracticeContentMetadata["skill"] => {
+    switch (String(s ?? "").toUpperCase()) {
+      case "LISTENING":
+        return "Listening";
+      case "READING":
+        return "Reading";
+      case "WRITING":
+        return "Writing";
+      case "SPEAKING":
+        return "Speaking";
+      default:
+        return "Reading";
+    }
+  };
+
+  const normalizeStatus = (s: unknown): PracticeContentMetadata["status"] => {
+    switch (String(s ?? "").toUpperCase()) {
+      case "PUBLISHED":
+        return "Published";
+      case "DRAFT":
+        return "Draft";
+      default:
+        return "Draft";
+    }
+  };
+
+  const normalizeUpdatedOn = (v: unknown): string => {
+    // If backend is later configured to return ISO string, accept it.
+    if (typeof v === "string") return v;
+
+    // Current backend returns LocalDateTime as array:
+    // [year, month, day, hour, minute, second, nano]
+    if (Array.isArray(v)) {
+      const [y, m, d, hh = 0, mm = 0, ss = 0, nano = 0] = v as number[];
+      const ms = Math.floor((nano ?? 0) / 1_000_000);
+      const date = new Date(y, (m ?? 1) - 1, d ?? 1, hh, mm, ss, ms);
+      return date.toISOString();
+    }
+
+    return "";
+  };
+
+  // =========================
+  // Data fetching (load practice content metadata)
+  // =========================
   useEffect(() => {
-    const normalizeSkill = (s: unknown): PracticeContentMetadata["skill"] => {
-      switch (String(s ?? "").toUpperCase()) {
-        case "LISTENING":
-          return "Listening";
-        case "READING":
-          return "Reading";
-        case "WRITING":
-          return "Writing";
-        case "SPEAKING":
-          return "Speaking";
-        default:
-          return "Reading";
-      }
-    };
-
-    const normalizeStatus = (s: unknown): PracticeContentMetadata["status"] => {
-      switch (String(s ?? "").toUpperCase()) {
-        case "PUBLISHED":
-          return "Published";
-        case "DRAFT":
-          return "Draft";
-        default:
-          return "Draft";
-      }
-    };
-
-    const normalizeUpdatedOn = (v: unknown): string => {
-      // If backend is later configured to return ISO string, accept it.
-      if (typeof v === "string") return v;
-
-      // Current backend returns LocalDateTime as array:
-      // [year, month, day, hour, minute, second, nano]
-      if (Array.isArray(v)) {
-        const [y, m, d, hh = 0, mm = 0, ss = 0, nano = 0] = v as number[];
-        const ms = Math.floor((nano ?? 0) / 1_000_000);
-        const date = new Date(y, (m ?? 1) - 1, d ?? 1, hh, mm, ss, ms);
-        return date.toISOString();
-      }
-
-      return "";
-    };
-
     (async () => {
       try {
         const res = await fetch(
@@ -123,6 +138,9 @@ export function PracticeContentManagementPage() {
     })();
   }, []);
 
+  // =========================
+  // Derived view data (filtering)
+  // =========================
   const filteredContents = contents.filter((content) => {
     const matchesSearch = content.title
       .toLowerCase()
@@ -131,6 +149,9 @@ export function PracticeContentManagementPage() {
     return matchesSearch && matchesSkill;
   });
 
+  // =========================
+  // Content actions (delete/edit)
+  // =========================
   const handleDelete = (id: string) => {
     setContents(contents.filter((c) => c.id !== id));
   };
@@ -149,6 +170,9 @@ export function PracticeContentManagementPage() {
     }
   };
 
+  // =========================
+  // Create-new flow (open modal + select skill)
+  // =========================
   const handleAddNew = () => {
     setIsSkillModalOpen(true);
   };
@@ -195,7 +219,7 @@ export function PracticeContentManagementPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                placeholder="Search by title or topic..."
+                placeholder="Search by title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
