@@ -304,6 +304,12 @@ export function ListeningTestPage() {
     audio.currentTime = pct * duration;
   };
 
+  const buildAudioUrl = (path?: string) => {
+    if (!path) return "";
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
+
   // =========================
   // Reset helpers (restart entire test + audio UI)
   // =========================
@@ -437,7 +443,7 @@ export function ListeningTestPage() {
         {/* Audio Player - Moved to top */}
         <audio
           ref={audioRef}
-          src={exercisePrompt.audioUrl}
+          src={buildAudioUrl(exercisePrompt.audioUrl)}
           preload="metadata"
           onLoadedMetadata={handleLoadedMetadata}
           onTimeUpdate={handleTimeUpdate}

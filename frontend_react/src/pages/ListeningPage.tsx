@@ -282,7 +282,7 @@ export function ListeningPage() {
                 setSearchQuery(e.target.value);
                 handleFilterChange();
               }}
-              placeholder="Search by name or topic"
+              placeholder="Search by name"
               className="w-full h-[38px] px-[40px] border border-[rgba(0,0,0,0.3)] rounded-[8px] focus:outline-none focus:border-[#fcbf65]"
             />
             <Search className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-black" />
@@ -543,7 +543,6 @@ export function ListeningPage() {
             <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
               {currentExercises.map((exercise) => (
                 <ExerciseCard
-                  key={exercise.id}
                   exercise={exercise}
                   onSelect={() => setSelectedExercise(exercise)}
                   isLoggedIn={isLoggedIn}

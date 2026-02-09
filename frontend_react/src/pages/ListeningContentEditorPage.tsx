@@ -75,6 +75,9 @@ const DEFAULT_OPTIONS: Option[] = [
 ];
 
 export function ListeningContentEditorPage() {
+  // =========================
+  // Auth + navigation + routing mode (create/edit)
+  // =========================
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -88,6 +91,13 @@ export function ListeningContentEditorPage() {
     navigate("/");
   };
 
+  const handleCancel = () => {
+    navigate("/admin/content-management");
+  };
+
+  // =========================
+  // Header/content metadata state
+  // =========================
   const [status, setStatus] = useState<"Draft" | "Published">("Draft");
 
   const [title, setTitle] = useState("");
@@ -99,15 +109,32 @@ export function ListeningContentEditorPage() {
   const [topicTags, setTopicTags] = useState<string[]>([]);
   const [updatedOn, setUpdatedOn] = useState<string>("");
 
+  // =========================
+  // Save state tracking
+  // =========================
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">(
     "saved",
   );
 
+  const markAsUnsaved = () => {
+    if (saveState === "saved") {
+      setSaveState("unsaved");
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  // =========================
+  // Questions list + selection
+  // =========================
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>("");
 
-  // Editor panel state
+  const selectedQuestion = questions.find((q) => q.id === selectedQuestionId);
+
+  // =========================
+  // Editor panel state (current question fields)
+  // =========================
   const [questionType, setQuestionType] = useState<QuestionType>("short-text");
   const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
   const [newAnswerInput, setNewAnswerInput] = useState("");
@@ -118,7 +145,9 @@ export function ListeningContentEditorPage() {
   const [options, setOptions] = useState<Option[]>(DEFAULT_OPTIONS);
   const [shuffleOptions, setShuffleOptions] = useState(false);
 
-  // Uploads
+  // =========================
+  // Uploads state + refs (thumbnail/audio)
+  // =========================
   const [thumbnailFile, setThumbnailFile] = useState<UploadValue>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
@@ -128,25 +157,14 @@ export function ListeningContentEditorPage() {
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
 
-  const [candidateInstructions, setCandidateInstructions] = useState<string[]>([
-    "",
-  ]);
-  const [candidateInfo, setCandidateInfo] = useState<string[]>([""]);
-
-  const selectedQuestion = questions.find((q) => q.id === selectedQuestionId);
-
-  const markAsUnsaved = () => {
-    if (saveState === "saved") {
-      setSaveState("unsaved");
-      setHasUnsavedChanges(true);
-    }
-  };
-
   const safeRevokeObjectUrl = (url: string | null) => {
     if (!url) return;
     if (url.startsWith("blob:")) URL.revokeObjectURL(url);
   };
 
+  // =========================
+  // Persist editor panel -> selected question (internal sync)
+  // =========================
   const ensureCurrentQuestionIsPersisted = () => {
     if (!selectedQuestionId) return;
 
@@ -187,7 +205,9 @@ export function ListeningContentEditorPage() {
     );
   };
 
-  // Load selected question into the editor form
+  // =========================
+  // Selection effect: load selected question into editor panel
+  // =========================
   useEffect(() => {
     if (!selectedQuestion) return;
 
@@ -210,7 +230,129 @@ export function ListeningContentEditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedQuestionId]);
 
+  // =========================
+  // Question list operations (add/delete)
+  // =========================
+  const addNewQuestion = () => {
+    const newQuestion: Question = {
+      id: Date.now().toString(),
+      number: questions.length + 1,
+      type: "Short Text",
+      points: 1,
+      correctAnswer: "",
+      questionType: "short-text",
+      questionText: "",
+      correctAnswers: [],
+      options: [],
+      shuffleOptions: false,
+      explanation: "",
+    };
+    setQuestions([...questions, newQuestion]);
+  };
+
+  const deleteQuestion = (qid: string) => {
+    if (questions.length <= 1) return;
+
+    const filtered = questions.filter((q) => q.id !== qid);
+    const renumbered = filtered.map((q, index) => ({
+      ...q,
+      number: index + 1,
+    }));
+
+    setQuestions(renumbered);
+
+    if (selectedQuestionId === qid) {
+      setSelectedQuestionId(renumbered[0]?.id ?? "");
+    }
+  };
+
+  // =========================
+  // Editor operations: options (MCQ) + correct answers (Short Text)
+  // =========================
+  const addOption = () => {
+    const newOption: Option = {
+      id: Date.now().toString(),
+      text: "",
+      feedback: "",
+      isCorrect: false,
+    };
+    setOptions([...options, newOption]);
+  };
+
+  const deleteOption = (oid: string) => {
+    if (options.length <= 2) return;
+    setOptions(options.filter((opt) => opt.id !== oid));
+    markAsUnsaved();
+  };
+
+  const updateOption = (
+    oid: string,
+    field: keyof Option,
+    value: string | boolean,
+  ) => {
+    setOptions((prev) =>
+      prev.map((opt) => (opt.id === oid ? { ...opt, [field]: value } : opt)),
+    );
+    markAsUnsaved();
+  };
+
+  const setCorrectOption = (oid: string) => {
+    setOptions((prev) =>
+      prev.map((opt) => ({ ...opt, isCorrect: opt.id === oid })),
+    );
+    markAsUnsaved();
+  };
+
+  const addCorrectAnswer = () => {
+    if (!newAnswerInput.trim()) return;
+    setCorrectAnswers([...correctAnswers, newAnswerInput.trim()]);
+    setNewAnswerInput("");
+    markAsUnsaved();
+  };
+
+  const removeCorrectAnswer = (index: number) => {
+    setCorrectAnswers(correctAnswers.filter((_, i) => i !== index));
+    markAsUnsaved();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCorrectAnswer();
+    }
+  };
+
+  // =========================
+  // Editor-level save/cancel for the currently selected question
+  // =========================
+  const handleSaveQuestion = () => {
+    ensureCurrentQuestionIsPersisted();
+    setSaveState("saved");
+    setHasUnsavedChanges(false);
+  };
+
+  const handleCancelQuestion = () => {
+    if (!selectedQuestion) return;
+
+    setQuestionType(selectedQuestion.questionType);
+    setCorrectAnswers(selectedQuestion.correctAnswers || []);
+    setOptions(
+      selectedQuestion.options && selectedQuestion.options.length > 0
+        ? selectedQuestion.options
+        : DEFAULT_OPTIONS,
+    );
+    setShuffleOptions(selectedQuestion.shuffleOptions);
+    setCurrentExplanation(selectedQuestion.explanation || "");
+    setCurrentScore(String(selectedQuestion.points || 1));
+    setCurrentQuestionText(selectedQuestion.questionText || "");
+
+    setSaveState("saved");
+    setHasUnsavedChanges(false);
+  };
+
+  // =========================
   // Create mode: start with 1 question
+  // =========================
   useEffect(() => {
     if (isEditMode) return;
 
@@ -232,16 +374,17 @@ export function ListeningContentEditorPage() {
     setSelectedQuestionId(initialQuestion.id);
   }, [isEditMode]);
 
-  // Edit mode: fetch content detail
+  // =========================
+  // Edit mode: fetch content detail and map to editor state
+  // =========================
   useEffect(() => {
     if (!isEditMode || !editId) return;
 
     const fetchDetail = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:8080/api/practice-content/${editId}`,
-          { credentials: "include" },
-        );
+        const res = await fetch(`${API_BASE}/api/practice-content/${editId}`, {
+          credentials: "include",
+        });
 
         if (!res.ok) throw new Error("Failed to load detail");
 
@@ -259,7 +402,7 @@ export function ListeningContentEditorPage() {
         if (data.updatedOn) setUpdatedOn(String(data.updatedOn).split("T")[0]);
 
         if (data.thumbnailUrl) {
-          setThumbnailPreview(`http://localhost:8080${data.thumbnailUrl}`);
+          setThumbnailPreview(`http://localhost:8080/${data.thumbnailUrl}`);
           setThumbnailFile(data.thumbnailUrl); // keep as string path for PUT
         }
 
@@ -343,117 +486,9 @@ export function ListeningContentEditorPage() {
     fetchDetail();
   }, [isEditMode, editId]);
 
-  const addNewQuestion = () => {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      number: questions.length + 1,
-      type: "Short Text",
-      points: 1,
-      correctAnswer: "",
-      questionType: "short-text",
-      questionText: "",
-      correctAnswers: [],
-      options: [],
-      shuffleOptions: false,
-      explanation: "",
-    };
-    setQuestions([...questions, newQuestion]);
-  };
-
-  const deleteQuestion = (qid: string) => {
-    if (questions.length <= 1) return;
-
-    const filtered = questions.filter((q) => q.id !== qid);
-    const renumbered = filtered.map((q, index) => ({
-      ...q,
-      number: index + 1,
-    }));
-
-    setQuestions(renumbered);
-
-    if (selectedQuestionId === qid) {
-      setSelectedQuestionId(renumbered[0]?.id ?? "");
-    }
-  };
-
-  const addOption = () => {
-    const newOption: Option = {
-      id: Date.now().toString(),
-      text: "",
-      feedback: "",
-      isCorrect: false,
-    };
-    setOptions([...options, newOption]);
-  };
-
-  const deleteOption = (oid: string) => {
-    if (options.length <= 2) return;
-    setOptions(options.filter((opt) => opt.id !== oid));
-    markAsUnsaved();
-  };
-
-  const updateOption = (
-    oid: string,
-    field: keyof Option,
-    value: string | boolean,
-  ) => {
-    setOptions((prev) =>
-      prev.map((opt) => (opt.id === oid ? { ...opt, [field]: value } : opt)),
-    );
-    markAsUnsaved();
-  };
-
-  const setCorrectOption = (oid: string) => {
-    setOptions((prev) =>
-      prev.map((opt) => ({ ...opt, isCorrect: opt.id === oid })),
-    );
-    markAsUnsaved();
-  };
-
-  const addCorrectAnswer = () => {
-    if (!newAnswerInput.trim()) return;
-    setCorrectAnswers([...correctAnswers, newAnswerInput.trim()]);
-    setNewAnswerInput("");
-    markAsUnsaved();
-  };
-
-  const removeCorrectAnswer = (index: number) => {
-    setCorrectAnswers(correctAnswers.filter((_, i) => i !== index));
-    markAsUnsaved();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addCorrectAnswer();
-    }
-  };
-
-  const handleSaveQuestion = () => {
-    ensureCurrentQuestionIsPersisted();
-    setSaveState("saved");
-    setHasUnsavedChanges(false);
-  };
-
-  const handleCancelQuestion = () => {
-    if (!selectedQuestion) return;
-
-    setQuestionType(selectedQuestion.questionType);
-    setCorrectAnswers(selectedQuestion.correctAnswers || []);
-    setOptions(
-      selectedQuestion.options && selectedQuestion.options.length > 0
-        ? selectedQuestion.options
-        : DEFAULT_OPTIONS,
-    );
-    setShuffleOptions(selectedQuestion.shuffleOptions);
-    setCurrentExplanation(selectedQuestion.explanation || "");
-    setCurrentScore(String(selectedQuestion.points || 1));
-    setCurrentQuestionText(selectedQuestion.questionText || "");
-
-    setSaveState("saved");
-    setHasUnsavedChanges(false);
-  };
-
+  // =========================
+  // API payload mapping (UI questions -> backend format)
+  // =========================
   const mapQuestionsToApi = () => {
     return questions.map((q, index) => {
       const apiType =
@@ -483,46 +518,9 @@ export function ListeningContentEditorPage() {
     });
   };
 
-  // Candidate Instructions handlers
-  const addInstruction = () => {
-    if (candidateInstructions.length < 3) {
-      setCandidateInstructions([...candidateInstructions, ""]);
-    }
-  };
-
-  const updateInstruction = (index: number, value: string) => {
-    const updated = [...candidateInstructions];
-    updated[index] = value;
-    setCandidateInstructions(updated);
-  };
-
-  const removeInstruction = (index: number) => {
-    if (candidateInstructions.length > 1) {
-      setCandidateInstructions(
-        candidateInstructions.filter((_, i) => i !== index),
-      );
-    }
-  };
-
-  // Candidate Info handlers
-  const addInfo = () => {
-    if (candidateInfo.length < 3) {
-      setCandidateInfo([...candidateInfo, ""]);
-    }
-  };
-
-  const updateInfo = (index: number, value: string) => {
-    const updated = [...candidateInfo];
-    updated[index] = value;
-    setCandidateInfo(updated);
-  };
-
-  const removeInfo = (index: number) => {
-    if (candidateInfo.length > 1) {
-      setCandidateInfo(candidateInfo.filter((_, i) => i !== index));
-    }
-  };
-
+  // =========================
+  // Save/exit: uploads (if needed) + create/update content
+  // =========================
   const handleSaveExit = async () => {
     try {
       // Make sure current editor changes are included even if user didn't click "Save"
@@ -610,7 +608,9 @@ export function ListeningContentEditorPage() {
     }
   };
 
-  // File handlers
+  // =========================
+  // File handlers (input change + drag/drop)
+  // =========================
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -699,10 +699,6 @@ export function ListeningContentEditorPage() {
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-  };
-
-  const handleCancel = () => {
-    navigate("/admin/content-management");
   };
 
   const displayUpdatedOn = updatedOn || new Date().toISOString().split("T")[0];

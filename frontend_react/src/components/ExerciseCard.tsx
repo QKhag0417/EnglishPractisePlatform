@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { ExerciseMetadata } from "../mocks/exercises.mock";
+import { API_BASE } from "../utils/api";
 
 interface ExerciseCardProps {
   exercise: ExerciseMetadata;
@@ -20,11 +21,17 @@ export function ExerciseCard({
     setIsBookmarked(!isBookmarked);
   };
 
+  const buildImageUrl = (img?: string) => {
+    if (!img) return ""; // or placeholder
+    if (img.startsWith("http://") || img.startsWith("https://")) return img;
+    return `${API_BASE}${img.startsWith("/") ? "" : "/"}${img}`;
+  };
+
   return (
     <div className="cursor-pointer group" onClick={onSelect}>
       <div className="relative w-full aspect-[4/3] rounded-[8px] overflow-hidden mb-[10px]">
         <img
-          src={exercise.image}
+          src={buildImageUrl(exercise.image)}
           alt={exercise.title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />

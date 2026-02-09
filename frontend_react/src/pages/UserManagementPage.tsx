@@ -67,6 +67,9 @@ type ApiResponse<T> = {
 };
 
 export function UserManagementPage({ onLogout }: UserManagementPageProps) {
+  // =========================
+  // Auth + navigation + session handling
+  // =========================
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -84,16 +87,24 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     handleLogout();
   };
 
+  // =========================
+  // UI filters state
+  // =========================
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<"all" | UserData["role"]>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | UserData["status"]>(
     "all",
   );
 
+  // =========================
+  // Dialog + editing state
+  // =========================
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
 
-  // Form state
+  // =========================
+  // Form state (create/edit user)
+  // =========================
   const [formFirstName, setFormFirstName] = useState("");
   const [formLastName, setFormLastName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -102,14 +113,15 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   const [formStatus, setFormStatus] = useState<UserData["status"]>("Active");
   const [formError, setFormError] = useState("");
 
+  // =========================
+  // Data state (users + loading)
+  // =========================
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    void fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // =========================
+  // API mapping + error helpers
+  // =========================
   function mapApiUser(u: ApiUser): UserData {
     const createdAt = u.createdAt ?? new Date().toISOString();
     const lastActive = u.lastLoginAt ?? createdAt;
@@ -137,10 +149,13 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     }
   }
 
+  // =========================
+  // Data fetching (list users)
+  // =========================
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await fetch(API_BASE, {
+      const res = await fetch(`${API_BASE}/api/user`, {
         method: "GET",
         credentials: "include",
         headers: { Accept: "application/json" },
@@ -166,6 +181,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     }
   }
 
+  useEffect(() => {
+    void fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // =========================
+  // Derived view data (search + role/status filters)
+  // =========================
   const filteredUsers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return users.filter((user) => {
@@ -180,9 +203,12 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     });
   }, [users, searchQuery, filterRole, filterStatus]);
 
+  // =========================
+  // Row actions (delete/edit) + create new
+  // =========================
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
+      const res = await fetch(`${API_BASE}/api/user/${id}`, {
         method: "DELETE",
         credentials: "include",
         headers: { Accept: "application/json" },
@@ -235,6 +261,9 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     setFormError("");
   };
 
+  // =========================
+  // Save action (create/update) + validation + state reset
+  // =========================
   const handleSave = async () => {
     setFormError("");
 
@@ -271,7 +300,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
 
     try {
       if (editingUser) {
-        const res = await fetch(`${API_BASE}/${editingUser.id}`, {
+        const res = await fetch(`${API_BASE}/api/user/${editingUser.id}`, {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -354,6 +383,9 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     }
   };
 
+  // =========================
+  // Filter + form select handlers
+  // =========================
   const handleRoleFilterChange = (value: "all" | UserData["role"]) => {
     setFilterRole(value);
   };
