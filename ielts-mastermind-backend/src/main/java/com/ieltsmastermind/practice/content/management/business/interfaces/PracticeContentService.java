@@ -1,5 +1,6 @@
 package com.ieltsmastermind.practice.content.management.business.interfaces;
 
+import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.practice.content.management.domain.dto.*;
 import jakarta.transaction.Transactional;
 
@@ -9,19 +10,9 @@ public interface PracticeContentService {
 
     PracticeContentResponseDto create(PracticeContentCreateRequestDto request);
 
-    List<PracticeContentResponseDto> getAll();
+    List<PracticeContentResponseDto> getAll(IncludeSpec includes);
 
-    PracticeContentResponseDto getById(String id);
-
-    PracticeContentInstructionResponseDto getInstructionById(String id);
-
-    PracticeContentPromptResponseDto getPromptById(String id);
-
-    PracticeContentAnswerResponseDto getAnswersById(String id);
-
-    List<PracticeContentMetadataResponseDto> getAllMetadata();
-
-    List<PracticeContentMetadataV2ResponseDto> getAllMetadataV2();
+    PracticeContentResponseDto getById(String id, IncludeSpec includes);
 
     PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request);
 

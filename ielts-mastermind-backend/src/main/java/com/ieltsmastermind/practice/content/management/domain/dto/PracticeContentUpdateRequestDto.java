@@ -14,32 +14,15 @@ import java.util.Set;
 @Setter
 public class PracticeContentUpdateRequestDto {
 
-    // PracticeContent fields (full replace for PUT)
     private PracticeContentSkill skill;
     private String title;
     private String instructions;
     private PracticeTaskType task;
-
     private Set<String> questionTypeTags;
     private Set<String> topicTags;
-
     private String thumbnailUrl;
     private String audioUrl;
-
     private Integer durationMinutes;
     private Integer questionCount;
     private PracticeContentStatus status;
-
-    // Nested questions + answers (replace full set)
-    private List<PracticeQuestionUpdateRequestDto> questions;
-
-    @Getter
-    @Setter
-    public static class PracticeQuestionUpdateRequestDto {
-
-        private Integer orderIndex;
-        private PracticeQuestionType type;
-        private List<String> correctAnswers;
-
-    }
 }

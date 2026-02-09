@@ -1,5 +1,7 @@
 package com.ieltsmastermind.practice.content.management.controller;
 
+import com.ieltsmastermind.common.query.IncludeParser;
+import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.common.response.ApiResponse;
 
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
@@ -45,9 +47,13 @@ public class PracticeContentManagementController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PracticeContentResponseDto>>> getAll() {
+    public ResponseEntity<ApiResponse<List<PracticeContentResponseDto>>> getAll(
+            @RequestParam(required = false) String include
+    ) {
         try {
-            List<PracticeContentResponseDto> contents = practiceContentService.getAll();
+            IncludeSpec includes = IncludeParser.parse(include);
+
+            List<PracticeContentResponseDto> contents = practiceContentService.getAll(includes);
             return ResponseEntity.ok(
                     ApiResponse.success("Practice contents fetched successfully", contents)
             );
@@ -64,108 +70,15 @@ public class PracticeContentManagementController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PracticeContentResponseDto>> getById(
-            @PathVariable String id
+            @PathVariable String id,
+            @RequestParam(required = false) String include
     ) {
         try {
-            PracticeContentResponseDto content = practiceContentService.getById(id);
+            IncludeSpec includes = IncludeParser.parse(include);
+
+            PracticeContentResponseDto content = practiceContentService.getById(id, includes);
             return ResponseEntity.ok(
                     ApiResponse.success("Practice content fetched successfully", content)
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.fail(e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
-        }
-    }
-
-    @GetMapping("/{id}/instruction")
-    public ResponseEntity<ApiResponse<PracticeContentInstructionResponseDto>> getInstructionById(
-            @PathVariable String id
-    ) {
-        try {
-            PracticeContentInstructionResponseDto instruction = practiceContentService.getInstructionById(id);
-            return ResponseEntity.ok(
-                    ApiResponse.success("Practice content instruction fetched successfully", instruction)
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.fail(e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
-        }
-    }
-
-    @GetMapping("/{id}/prompt")
-    public ResponseEntity<ApiResponse<PracticeContentPromptResponseDto>> getPromptById(
-            @PathVariable String id
-    ) {
-        try {
-            PracticeContentPromptResponseDto prompt = practiceContentService.getPromptById(id);
-            return ResponseEntity.ok(
-                    ApiResponse.success("Practice content prompt fetched successfully", prompt)
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.fail(e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
-        }
-    }
-
-    @GetMapping("/{id}/answers")
-    public ResponseEntity<ApiResponse<PracticeContentAnswerResponseDto>> getAnswersById(
-            @PathVariable String id
-    ) {
-        try {
-            PracticeContentAnswerResponseDto dto = practiceContentService.getAnswersById(id);
-            return ResponseEntity.ok(
-                    ApiResponse.success("Practice content answers fetched successfully", dto)
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.fail(e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
-        }
-    }
-
-    @GetMapping("/metadata")
-    public ResponseEntity<ApiResponse<List<PracticeContentMetadataResponseDto>>> getAllMetadata() {
-        try {
-            List<PracticeContentMetadataResponseDto> contents = practiceContentService.getAllMetadata();
-            return ResponseEntity.ok(
-                    ApiResponse.success("Practice content metadata fetched successfully", contents)
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.fail(e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
-        }
-    }
-
-    @GetMapping("/metadata/v2")
-    public ResponseEntity<ApiResponse<List<PracticeContentMetadataV2ResponseDto>>> getAllMetadataV2() {
-        try {
-            List<PracticeContentMetadataV2ResponseDto> contents = practiceContentService.getAllMetadataV2();
-            return ResponseEntity.ok(
-                    ApiResponse.success("Practice content metadata v2 fetched successfully", contents)
             );
         } catch (RuntimeException e) {
             return ResponseEntity

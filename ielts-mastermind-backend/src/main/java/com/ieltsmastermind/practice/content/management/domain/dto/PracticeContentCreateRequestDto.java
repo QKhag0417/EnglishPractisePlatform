@@ -25,13 +25,4 @@ public class PracticeContentCreateRequestDto {
     private Integer durationMinutes;
     private Integer questionCount;
     private PracticeContentStatus status;
-    private List<PracticeQuestionCreateRequestDto> questions;
-
-    @Getter
-    @Setter
-    public static class PracticeQuestionCreateRequestDto {
-        private Integer orderIndex;
-        private PracticeQuestionType type;
-        private List<String> correctAnswers;
-    }
 }
