@@ -68,22 +68,4 @@ public class PracticeContent {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PracticeContentStatus status;
-
-    @ElementCollection
-    @CollectionTable(
-            name = "practice_content_instruction_candidate_instruction",
-            joinColumns = @JoinColumn(name = "practice_content_id")
-    )
-    @Column(name = "instruction_value", columnDefinition = "TEXT")
-    @OrderColumn(name = "instruction_index")
-    private List<String> candidateInstructions = new ArrayList<>();
-
-    @ElementCollection
-    @CollectionTable(
-            name = "practice_content_instruction_candidate_info",
-            joinColumns = @JoinColumn(name = "practice_content_id")
-    )
-    @Column(name = "info_value", columnDefinition = "TEXT")
-    @OrderColumn(name = "info_index")
-    private List<String> candidateInfo = new ArrayList<>();
 }
