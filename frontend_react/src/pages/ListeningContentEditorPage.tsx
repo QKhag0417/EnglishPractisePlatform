@@ -81,10 +81,10 @@ export function ListeningContentEditorPage() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  // Assumption: edit route is something like /admin/listening/:id
-  const { id } = useParams<{ id?: string }>();
-  const isEditMode = Boolean(id);
-  const editId = id;
+  const { exerciseId } = useParams<{ exerciseId?: string }>();
+
+  const isEditMode = Boolean(exerciseId);
+  const editId = exerciseId;
 
   const handleLogout = () => {
     logout();
@@ -399,15 +399,18 @@ export function ListeningContentEditorPage() {
         setDurationMinutes(Number(data.durationMinutes ?? 15));
         setStatus(data.status === "DRAFT" ? "Draft" : "Published");
 
-        if (data.updatedOn) setUpdatedOn(String(data.updatedOn).split("T")[0]);
+        if (data.updatedOn)
+          setUpdatedOn(
+            `${data.updatedOn[0]}-${String(data.updatedOn[1]).padStart(2, "0")}-${String(data.updatedOn[2]).padStart(2, "0")}`,
+          );
 
         if (data.thumbnailUrl) {
-          setThumbnailPreview(`http://localhost:8080/${data.thumbnailUrl}`);
+          setThumbnailPreview(`${API_BASE}${data.thumbnailUrl}`);
           setThumbnailFile(data.thumbnailUrl); // keep as string path for PUT
         }
 
         if (data.audioUrl) {
-          setAudioPreview(`http://localhost:8080${data.audioUrl}`);
+          setAudioPreview(`${API_BASE}${data.audioUrl}`);
           setAudioFile(data.audioUrl); // keep as string path for PUT
         }
 

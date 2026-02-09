@@ -117,14 +117,14 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  //   {
-  //     path: "/admin/content/listening/edit/:exerciseId",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <ListeningContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
+  {
+    path: "/admin/content/listening/edit/:exerciseId",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <ListeningContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
   //   {
   //     path: "/admin/content/reading/add",
   //     element: (
