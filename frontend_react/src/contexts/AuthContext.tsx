@@ -5,7 +5,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { API_BASE } from "../utils/api";
+import { API_BASE } from "../env";
 
 export type UserRole = "learner" | "administrator";
 

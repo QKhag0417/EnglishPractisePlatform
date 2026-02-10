@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { NavBarLearner, NavBarGuest } from "../components/NavBar";
-import { Footer } from "../components/Footer";
-import { useAuth } from "../contexts/AuthContext";
+import { NavBarLearner, NavBarGuest } from "../../components/NavBar";
+import { Footer } from "../../components/Footer";
+import { useAuth } from "../../contexts/AuthContext";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { ExerciseCard } from "../components/ExerciseCard";
-import { ExerciseModal } from "../components/ExerciseModal";
-import { ExerciseMetadata, mockExercises } from "../mocks/exercises.mock";
-import { API_BASE } from "../utils/api";
+import { ExerciseCard } from "../../components/ExerciseCard";
+import { ExerciseModal } from "../../components/ExerciseModal";
+import { ExerciseMetadata, mockExercises } from "../../mocks/exercises.mock";
+import { API_BASE } from "../../env";
+import {
+  useExerciseFilters,
+  useExercisePagination,
+  useExerciseSort,
+  usePracticeContent,
+} from "./hooks";
 
 export function ListeningPage() {
   // =========================
@@ -21,251 +27,77 @@ export function ListeningPage() {
     navigate("/");
   };
 
-  // =========================
-  // UI state (filters, sort, selection, pagination, data)
-  // =========================
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTask, setSelectedTask] = useState<"all" | number>("all");
-  const [selectedQuestionType, setSelectedQuestionType] = useState<
-    "all" | string
-  >("all");
-  const [selectedTopic, setSelectedTopic] = useState<"all" | string>("all");
-  const [sortBy, setSortBy] = useState<
-    "newest" | "oldest" | "attempts" | "a-z" | "z-a"
-  >("newest");
-  const [selectedExercise, setSelectedExercise] =
-    useState<ExerciseMetadata | null>(null);
-  const [paginationPage, setPaginationPage] = useState(1);
-  const [exercises, setExercises] = useState<ExerciseMetadata[]>(mockExercises);
-
-  // =========================
-  // Pagination constants
-  // =========================
-  const itemsPerPage = 12;
-
-  // =========================
-  // DTO/format helpers (mapping API DTO -> UI model)
-  // =========================
-  function localDateTimeArrayToIso(arr?: number[]): string {
-    if (!arr || arr.length < 6) return "";
-    const [y, m, d, hh, mm, ss, nanos = 0] = arr;
-    const ms = Math.floor(nanos / 1_000_000);
-    return new Date(y, m - 1, d, hh, mm, ss, ms).toISOString();
-  }
-
-  function parseTaskToNumbers(task?: string): number[] {
-    const match = task?.match(/(\d+)/);
-    return match ? [Number(match[1])] : [];
-  }
-
-  function mapStatus(dtoStatus?: string): string {
-    switch (dtoStatus) {
-      case "DRAFT":
-        return "draft";
-      case "PUBLISHED":
-        return "published";
-      default:
-        return "draft";
-    }
-  }
-
-  // =========================
-  // Sorting helpers (safe parsing for date/attempts)
-  // =========================
-  const dateToMillis = (v: string) => {
-    const t = new Date(v).getTime();
-    return Number.isFinite(t) ? t : 0;
-  };
-
-  const attemptsToNumber = (v: string) => {
-    const n = Number(String(v).replace(/[^\d.-]/g, ""));
-    return Number.isFinite(n) ? n : 0;
-  };
+  // useEffect(() => {
+  //   if (!isLoggedIn) navigate("/");
+  // }, [isLoggedIn, navigate]);
 
   // =========================
   // Data fetching (load exercises metadata)
   // =========================
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/practice-content/metadata`, {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
-
-        const json = await res.json();
-        const dtos = json?.data;
-
-        if (!Array.isArray(dtos)) return;
-
-        const mapped: ExerciseMetadata[] = dtos.map((dto) => ({
-          id: dto.id ?? "",
-          title: dto.title ?? "",
-          attempts: "0",
-          image: dto.thumbnailUrl ?? "",
-          task: parseTaskToNumbers(dto.task),
-          questionTypes: dto.questionTypeTags ?? [],
-          topics: dto.topicTags ?? [],
-          status: mapStatus(dto.status),
-          updated: localDateTimeArrayToIso(dto.updatedOn),
-          questions: dto.questionCount ?? 0,
-          duration: dto.durationMinutes ?? 0,
-        }));
-
-        setExercises(mapped);
-      } catch (err) {
-        console.error("Failed to fetch practice content:", err);
-      }
-    })();
-  }, []);
-
-  // =========================
-  // Filter option sources (derive all types/topics from loaded data)
-  // =========================
-  const allQuestionTypes = useMemo(() => {
-    const set = new Set<string>();
-    for (const ex of exercises)
-      for (const qt of ex.questionTypes ?? []) set.add(qt);
-    return Array.from(set).sort();
-  }, [exercises]);
-
-  const allTopics = useMemo(() => {
-    const set = new Set<string>();
-    for (const ex of exercises) for (const t of ex.topics ?? []) set.add(t);
-    return Array.from(set).sort();
-  }, [exercises]);
-
-  // =========================
-  // Availability helpers (limit dropdown options based on other filters)
-  // =========================
-  const getFilteredExercises = (
-    taskFilter: "all" | number,
-    questionTypeFilter: "all" | string,
-    topicFilter: "all" | string,
-  ) => {
-    return exercises.filter((exercise) => {
-      const matchesTask =
-        taskFilter === "all" || exercise.task.includes(taskFilter);
-      const matchesQuestionType =
-        questionTypeFilter === "all" ||
-        exercise.questionTypes.includes(questionTypeFilter);
-      const matchesTopic =
-        topicFilter === "all" || exercise.topics.includes(topicFilter);
-      return matchesTask && matchesQuestionType && matchesTopic;
-    });
-  };
-
-  const availableTasks = [1, 2, 3, 4].filter((task) => {
-    const list = getFilteredExercises(
-      task,
-      selectedQuestionType,
-      selectedTopic,
-    );
-    return list.length > 0;
-  });
-
-  const availableQuestionTypes = allQuestionTypes.filter((type) => {
-    const list = getFilteredExercises(selectedTask, type, selectedTopic);
-    return list.length > 0;
-  });
-
-  const availableTopics = allTopics.filter((topic) => {
-    const list = getFilteredExercises(
-      selectedTask,
-      selectedQuestionType,
-      topic,
-    );
-    return list.length > 0;
+  const { exercises, loading, error, refetch } = usePracticeContent({
+    // apiBase: API_BASE + "error", // to test mock state
+    apiBase: API_BASE,
+    initialExercises: mockExercises,
   });
 
   // =========================
-  // Filter change side-effects (reset paging)
+  // Compose 3 hooks directly
+  // filters -> sort -> pagination
   // =========================
-  const handleFilterChange = () => setPaginationPage(1);
+  const itemsPerPage = 12;
 
-  // const toggleStatus = (status: string) => {
-  //   setSelectedStatus((prev) =>
-  //     prev.includes(status)
-  //       ? prev.filter((s) => s !== status)
-  //       : [...prev, status],
-  //   );
-  //   handleFilterChange();
-  // };
-
-  // =========================
-  // Core filtering (search + task + type + topic)
-  // =========================
-  const filteredExercises = useMemo(() => {
-    return exercises.filter((exercise) => {
-      const matchesSearch = exercise.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesTask =
-        selectedTask === "all" || exercise.task.includes(selectedTask);
-      const matchesQuestionType =
-        selectedQuestionType === "all" ||
-        exercise.questionTypes.includes(selectedQuestionType);
-      const matchesTopic =
-        selectedTopic === "all" || exercise.topics.includes(selectedTopic);
-
-      return (
-        matchesSearch && matchesTask && matchesQuestionType && matchesTopic
-      );
-    });
-  }, [
-    exercises,
-    searchQuery,
-    selectedTask,
-    selectedQuestionType,
-    selectedTopic,
-  ]);
+  const filters = useExerciseFilters({ exercises });
+  const sort = useExerciseSort({
+    exercises: filters.derived.filteredExercises,
+  });
+  const pagination = useExercisePagination({
+    exercises: sort.derived.sortedExercises,
+    itemsPerPage,
+  });
 
   // =========================
-  // Sorting (applies after filtering)
+  // UI-only state
   // =========================
-  const sortedExercises = useMemo(() => {
-    const arr = [...filteredExercises];
-
-    switch (sortBy) {
-      case "newest":
-        return arr.sort(
-          (a, b) => dateToMillis(b.updated) - dateToMillis(a.updated),
-        );
-      case "oldest":
-        return arr.sort(
-          (a, b) => dateToMillis(a.updated) - dateToMillis(b.updated),
-        );
-      case "attempts":
-        return arr.sort(
-          (a, b) => attemptsToNumber(b.attempts) - attemptsToNumber(a.attempts),
-        );
-      case "a-z":
-        return arr.sort((a, b) => a.title.localeCompare(b.title));
-      case "z-a":
-        return arr.sort((a, b) => b.title.localeCompare(a.title));
-      default:
-        return arr;
-    }
-  }, [filteredExercises, sortBy]);
+  const [selectedExercise, setSelectedExercise] =
+    useState<ExerciseMetadata | null>(null);
 
   // =========================
-  // Pagination calculations (derive current page slice)
+  // Reset page when filters/sort change
+  // (your JSX already calls this after setX)
   // =========================
-  const totalPages = Math.max(
-    1,
-    Math.ceil(sortedExercises.length / itemsPerPage),
-  );
+  const handleFilterChange = () => pagination.actions.resetPage();
+
+  // =========================
+  // Aliases to keep your JSX unchanged
+  // =========================
+  const searchQuery = filters.state.searchQuery;
+  const setSearchQuery = filters.setters.setSearchQuery;
+
+  const selectedTask = filters.state.selectedTask;
+  const setSelectedTask = filters.setters.setSelectedTask;
+
+  const selectedQuestionType = filters.state.selectedQuestionType;
+  const setSelectedQuestionType = filters.setters.setSelectedQuestionType;
+
+  const selectedTopic = filters.state.selectedTopic;
+  const setSelectedTopic = filters.setters.setSelectedTopic;
+
+  const sortBy = sort.state.sortBy;
+  const setSortBy = sort.setters.setSortBy;
+
+  const availableTasks = filters.derived.availableTasks;
+  const availableQuestionTypes = filters.derived.availableQuestionTypes;
+  const availableTopics = filters.derived.availableTopics;
+
+  const sortedExercises = sort.derived.sortedExercises;
+  const currentExercises = pagination.derived.currentExercises;
+
+  const paginationPage = pagination.state.page;
+  const setPaginationPage = pagination.setters.setPage;
+  const totalPages = pagination.derived.totalPages;
+
   const startIndex = (paginationPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentExercises = sortedExercises.slice(startIndex, endIndex);
-
-  // =========================
-  // Pagination guard (keep page within range)
-  // =========================
-  useEffect(() => {
-    if (paginationPage > totalPages) setPaginationPage(totalPages);
-  }, [paginationPage, totalPages]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -543,6 +375,7 @@ export function ListeningPage() {
             <div className="grid grid-cols-4 gap-x-[20px] gap-y-[30px]">
               {currentExercises.map((exercise) => (
                 <ExerciseCard
+                  key={exercise.id}
                   exercise={exercise}
                   onSelect={() => setSelectedExercise(exercise)}
                   isLoggedIn={isLoggedIn}

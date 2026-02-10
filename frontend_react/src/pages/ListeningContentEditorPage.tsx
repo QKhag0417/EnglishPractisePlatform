@@ -34,7 +34,7 @@ import {
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import { ChipInput } from "../components/ChipInput";
-import { API_BASE } from "../utils/api";
+import { API_BASE } from "../env";
 
 interface Question {
   id: string;

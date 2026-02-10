@@ -1,16 +1,16 @@
-export type ExerciseMetadata = {
+export interface ExerciseMetadata {
   id: string;
   title: string;
   attempts: string;
   image: string;
-  task: number[];
+  task: number;
   questionTypes: string[];
   topics: string[];
-  status: string;
+  status: "draft" | "published" | string;
   updated: string;
   questions: number;
   duration: number;
-};
+}
 
 export const mockExercises: ExerciseMetadata[] = [
   {
@@ -18,7 +18,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Transport survey",
     attempts: "8k attempts",
     image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400",
-    task: [1],
+    task: 1,
     questionTypes: ["Multiple Choice", "Gap Filling"],
     topics: ["Transport"],
     status: "published",
@@ -31,7 +31,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Advice on Holidays",
     attempts: "4k attempts",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400",
-    task: [2],
+    task: 2,
     questionTypes: ["Matching"],
     topics: ["Travel/Tourism"],
     status: "published",
@@ -44,7 +44,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Housing development",
     attempts: "5k attempts",
     image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400",
-    task: [3],
+    task: 3,
     questionTypes: ["Map and Plan Labeling"],
     topics: ["Social", "Accommodation"],
     status: "published",
@@ -57,7 +57,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Traffic Issues",
     attempts: "5k attempts",
     image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400",
-    task: [4],
+    task: 4,
     questionTypes: ["Multiple Choice", "Pick from a list"],
     topics: ["Transport"],
     status: "published",
@@ -70,7 +70,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Working as an volunteer",
     attempts: "3k attempts",
     image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400",
-    task: [1],
+    task: 1,
     questionTypes: ["Gap Filling"],
     topics: ["Work/Careers", "Social"],
     status: "published",
@@ -83,7 +83,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Power of Media",
     attempts: "4k attempts",
     image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400",
-    task: [2],
+    task: 2,
     questionTypes: ["Multiple Choice", "Matching"],
     topics: ["Culture & Arts"],
     status: "published",
@@ -96,7 +96,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Research on AI",
     attempts: "4k attempts",
     image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400",
-    task: [3],
+    task: 3,
     questionTypes: ["Pick from a list"],
     topics: ["Science & Technology"],
     status: "published",
@@ -109,7 +109,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "The Art of Conversation",
     attempts: "5k attempts",
     image: "https://images.unsplash.com/photo-1543269865-cbf427effbad?w=400",
-    task: [4],
+    task: 4,
     questionTypes: ["Multiple Choice"],
     topics: ["Social", "Education"],
     status: "published",
@@ -122,7 +122,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "History of Piano",
     attempts: "4k attempts",
     image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=400",
-    task: [1, 2],
+    task: 1,
     questionTypes: ["Gap Filling", "Matching"],
     topics: ["History", "Culture & Arts"],
     status: "published",
@@ -135,7 +135,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Hair",
     attempts: "6k attempts",
     image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400",
-    task: [3],
+    task: 2,
     questionTypes: ["Multiple Choice", "Gap Filling"],
     topics: ["Health & Medicine"],
     status: "published",
@@ -148,7 +148,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Restaurant Recommendation",
     attempts: "4k attempts",
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400",
-    task: [1],
+    task: 1,
     questionTypes: ["Matching"],
     topics: ["Business", "Shopping"],
     status: "published",
@@ -161,7 +161,7 @@ export const mockExercises: ExerciseMetadata[] = [
     title: "Challenge for developers",
     attempts: "5k attempts",
     image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400",
-    task: [4],
+    task: 4,
     questionTypes: ["Pick from a list"],
     topics: ["Science & Technology", "Work/Careers"],
     status: "published",
@@ -175,7 +175,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "7k attempts",
     image:
       "https://images.unsplash.com/photo-1544822688-c5f41d2c1972?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5JTIwYm9va3MlMjBzdHVkeXxlbnwxfHx8fDE3NjM1OTA0Njl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [1],
+    task: 1,
     questionTypes: ["Gap Filling", "Multiple Choice"],
     topics: ["Education"],
     status: "published",
@@ -189,7 +189,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "6k attempts",
     image:
       "https://images.unsplash.com/photo-1698047681469-8e0c19e80a66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqb2IlMjBpbnRlcnZpZXclMjBvZmZpY2V8ZW58MXx8fHwxNzYzNTg0MjkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [2],
+    task: 2,
     questionTypes: ["Matching", "Multiple Choice"],
     topics: ["Work/Careers", "Business"],
     status: "published",
@@ -203,7 +203,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "8k attempts",
     image:
       "https://images.unsplash.com/photo-1583326112807-a37789739efa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGltYXRlJTIwd2VhdGhlciUyMGVudmlyb25tZW50fGVufDF8fHx8MTc2MzYyNDQ5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [3],
+    task: 3,
     questionTypes: ["Pick from a list", "Multiple Choice"],
     topics: ["Environment"],
     status: "published",
@@ -217,7 +217,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "5k attempts",
     image:
       "https://images.unsplash.com/photo-1544148103-0773bf10d330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZGluaW5nJTIwZm9vZHxlbnwxfHx8fDE3NjM1MjgwODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [4],
+    task: 4,
     questionTypes: ["Gap Filling"],
     topics: ["Business", "Shopping"],
     status: "published",
@@ -231,7 +231,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "7k attempts",
     image:
       "https://images.unsplash.com/photo-1643820509303-79e98ac7e006?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNldW0lMjBhcnQlMjBnYWxsZXJ5fGVufDF8fHx8MTc2MzUzOTI1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [1],
+    task: 1,
     questionTypes: ["Gap Filling", "Matching"],
     topics: ["Culture & Arts", "History"],
     status: "published",
@@ -245,7 +245,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "9k attempts",
     image:
       "https://images.unsplash.com/photo-1632834380561-d1e05839a33a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2FtcHVzJTIwc3R1ZGVudHN8ZW58MXx8fHwxNzYzNTMxMjcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [2],
+    task: 2,
     questionTypes: ["Map and Plan Labeling"],
     topics: ["Education", "Accommodation"],
     status: "published",
@@ -259,7 +259,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "6k attempts",
     image:
       "https://images.unsplash.com/photo-1595879171931-4ca27febc4bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaG9wcGluZyUyMG1hbGwlMjByZXRhaWx8ZW58MXx8fHwxNzYzNjIyNjQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [3],
+    task: 3,
     questionTypes: ["Map and Plan Labeling", "Matching"],
     topics: ["Shopping", "Community"],
     status: "published",
@@ -273,7 +273,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "8k attempts",
     image:
       "https://images.unsplash.com/photo-1651707265633-6043d4606339?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aWxkbGlmZSUyMGFuaW1hbHMlMjBuYXR1cmV8ZW58MXx8fHwxNzYzNTQ0OTcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [4],
+    task: 4,
     questionTypes: ["Multiple Choice", "Pick from a list"],
     topics: ["Environment", "Science & Technology"],
     status: "published",
@@ -287,7 +287,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "7k attempts",
     image:
       "https://images.unsplash.com/photo-1709715357520-5e1047a2b691?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMG1lZXRpbmclMjB0ZWFtfGVufDF8fHx8MTc2MzUzMjUyOHww&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [1],
+    task: 1,
     questionTypes: ["Gap Filling", "Multiple Choice"],
     topics: ["Business", "Work/Careers"],
     status: "published",
@@ -301,7 +301,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "5k attempts",
     image:
       "https://images.unsplash.com/photo-1584827386916-b5351d3ba34b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmaXRuZXNzJTIwZ3ltJTIwd29ya291dHxlbnwxfHx8fDE3NjM1Mzc5ODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [2],
+    task: 2,
     questionTypes: ["Matching", "Gap Filling"],
     topics: ["Health & Medicine", "Sports / Leisure"],
     status: "published",
@@ -315,7 +315,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "6k attempts",
     image:
       "https://images.unsplash.com/photo-1624525692139-cb0a7234c234?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmUlMjBidWlsZGluZyUyMGRlc2lnbnxlbnwxfHx8fDE3NjM2MjIwNzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [3],
+    task: 3,
     questionTypes: ["Pick from a list", "Multiple Choice"],
     topics: ["History", "Culture & Arts"],
     status: "published",
@@ -329,7 +329,7 @@ export const mockExercises: ExerciseMetadata[] = [
     attempts: "8k attempts",
     image:
       "https://images.unsplash.com/photo-1564732005956-20420ebdab60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3NwaXRhbCUyMG1lZGljYWwlMjBoZWFsdGhjYXJlfGVufDF8fHx8MTc2MzYyNDUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-    task: [4],
+    task: 4,
     questionTypes: ["Multiple Choice", "Gap Filling"],
     topics: ["Health & Medicine", "Social"],
     status: "published",

@@ -9,3 +9,4 @@
 # -------------------------
 node_modules/
 jspm_packages/
+/frontend_react/src/env.ts

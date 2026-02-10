@@ -5,7 +5,7 @@ import { TestResultScreen } from "../components/TestResultScreen";
 import { InstructionRenderer } from "../components/InstructionParser.tsx";
 import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
-import { API_BASE } from "../utils/api";
+import { API_BASE } from "../env";
 
 import {
   ExerciseInstruction,

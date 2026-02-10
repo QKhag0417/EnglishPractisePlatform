@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
-import { ListeningPage } from "./pages/ListeningPage";
+import { ListeningPage } from "./pages/ListeningPage/ListeningPage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
 import { ListeningTestPage } from "./pages/ListeningTestPage";
 import { ReadingPage } from "./pages/ReadingPage";

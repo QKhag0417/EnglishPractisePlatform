@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { ExerciseMetadata } from "../mocks/exercises.mock";
-import { API_BASE } from "../utils/api";
+import { API_BASE } from "../env";
 
 interface ExerciseCardProps {
   exercise: ExerciseMetadata;

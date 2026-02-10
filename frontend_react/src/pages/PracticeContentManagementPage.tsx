@@ -24,7 +24,7 @@ import {
 } from "../components/ui/select";
 import { SkillSelectionModal } from "../components/SkillSelectionModal";
 import { useEffect } from "react";
-import { API_BASE } from "../utils/api";
+import { API_BASE } from "../env";
 
 import {
   PracticeContentMetadata,
