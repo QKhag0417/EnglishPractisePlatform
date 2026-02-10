@@ -9,81 +9,122 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.UUID;
+
+import static com.ieltsmastermind.common.constants.FileStorageConstants.*;
 
 @Service
 public class FileUploadServiceImpl implements FileUploadService {
-
-    private static final String THUMBNAIL_UPLOAD_DIR = "uploads/thumbnails";
-    private static final String AUDIO_UPLOAD_DIR = "uploads/audio";
 
     // 25 MB
     private static final long MAX_FILE_SIZE_BYTES = 25L * 1024 * 1024;
 
     @Override
     public String uploadThumbnail(MultipartFile file) {
-        validateFile(file);
+        validateThumbnail(file);
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new RuntimeException("Invalid file type for thumbnail. Only images are allowed.");
         }
 
-        return storeFile(file, THUMBNAIL_UPLOAD_DIR, "/files/thumbnails/");
+        return storeFile(file, THUMBNAIL_UPLOAD_DIR, THUMBNAIL_PUBLIC_BASE_PATH);
     }
 
     @Override
     public String uploadAudio(MultipartFile file) {
-        validateFile(file);
+        validateAudio(file);
 
         String contentType = file.getContentType();
         if (contentType == null || (!contentType.equals("audio/mpeg") && !contentType.equals("audio/wav"))) {
             throw new RuntimeException("Invalid file type for audio. Only mp3/wav are allowed.");
         }
 
-        return storeFile(file, AUDIO_UPLOAD_DIR, "/files/audio/");
+        return storeFile(file, AUDIO_UPLOAD_DIR, AUDIO_PUBLIC_BASE_PATH);
     }
 
     @Override
-    public void cleanupOldThumbnail(String oldUrl) {
-        if (oldUrl == null || oldUrl.isBlank()) return;
+    public void deleteThumbnailByUrl(String thumbnailUrl) {
+        if (thumbnailUrl == null || thumbnailUrl.trim().isEmpty()) {
+            throw new RuntimeException("thumbnailUrl is required");
+        }
 
-        String prefix = "/files/thumbnails/";
-        if (!oldUrl.startsWith(prefix)) return;
+        String filename = extractFilenameFromPublicUrl(thumbnailUrl, THUMBNAIL_PUBLIC_BASE_PATH);
 
-        String filename = oldUrl.substring(prefix.length());
-        Path path = Paths.get(THUMBNAIL_UPLOAD_DIR).resolve(filename);
+        Path uploadPath = Paths.get(THUMBNAIL_UPLOAD_DIR).toAbsolutePath().normalize();
+        Path target = uploadPath.resolve(filename).normalize();
+
+        if (!target.startsWith(uploadPath)) {
+            throw new RuntimeException("Invalid thumbnailUrl");
+        }
 
         try {
-            Files.deleteIfExists(path);
+            boolean deleted = Files.deleteIfExists(target);
+            if (!deleted) {
+                throw new RuntimeException("Thumbnail file not found");
+            }
         } catch (IOException e) {
-            // log.warn("Failed to delete old thumbnail " + path, e);
+            throw new RuntimeException("Failed to delete thumbnail", e);
         }
     }
 
     @Override
-    public void cleanupOldAudio(String oldUrl) {
-        if (oldUrl == null || oldUrl.isBlank()) return;
+    public void deleteAudioByUrl(String audioUrl) {
+        if (audioUrl == null || audioUrl.trim().isEmpty()) {
+            throw new RuntimeException("audioUrl is required");
+        }
 
-        String prefix = "/files/audio/";
-        if (!oldUrl.startsWith(prefix)) return;
+        String filename = extractFilenameFromPublicUrl(audioUrl, AUDIO_PUBLIC_BASE_PATH);
 
-        String filename = oldUrl.substring(prefix.length());
-        Path path = Paths.get(AUDIO_UPLOAD_DIR).resolve(filename);
+        Path uploadPath = Paths.get(AUDIO_UPLOAD_DIR).toAbsolutePath().normalize();
+        Path target = uploadPath.resolve(filename).normalize();
+
+        if (!target.startsWith(uploadPath)) {
+            throw new RuntimeException("Invalid audioUrl");
+        }
 
         try {
-            Files.deleteIfExists(path);
+            boolean deleted = Files.deleteIfExists(target);
+            if (!deleted) {
+                throw new RuntimeException("Audio file not found");
+            }
         } catch (IOException e) {
-            // log.warn("Failed to delete old audio " + path, e);
+            throw new RuntimeException("Failed to delete audio file", e);
         }
     }
 
-    private void validateFile(MultipartFile file) {
+    private void validateFileBase(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Empty file");
         }
         if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new RuntimeException("File too large (max 25MB)");
+            throw new RuntimeException("File too large");
+        }
+
+        if (file.getOriginalFilename() == null || file.getOriginalFilename().trim().isEmpty()) {
+            throw new RuntimeException("Missing file name");
+        }
+        if (file.getContentType() == null || file.getContentType().trim().isEmpty()) {
+            throw new RuntimeException("Missing content type");
+        }
+    }
+
+    private void validateThumbnail(MultipartFile file) {
+        validateFileBase(file);
+
+        String contentType = file.getContentType();
+         if (!Set.of("image/png", "image/jpeg", "image/webp").contains(contentType)) {
+             throw new RuntimeException("Invalid image type");
+         }
+    }
+
+    private void validateAudio(MultipartFile file) {
+        validateFileBase(file);
+
+        String contentType = file.getContentType();
+        if (!Set.of("audio/mpeg", "audio/wav").contains(contentType)) {
+            throw new RuntimeException("Invalid audio type");
         }
     }
 
@@ -103,5 +144,29 @@ public class FileUploadServiceImpl implements FileUploadService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file", e);
         }
+    }
+
+    private String extractFilenameFromPublicUrl(String urlOrPath, String publicBasePath) {
+        if (urlOrPath == null) {
+            throw new RuntimeException("thumbnailUrl is required");
+        }
+
+        String path = urlOrPath.trim();
+
+        if (!path.startsWith(publicBasePath)) {
+            throw new RuntimeException("thumbnailUrl must start with " + publicBasePath);
+        }
+
+        String filename = path.substring(publicBasePath.length());
+
+        if (filename.isBlank()) {
+            throw new RuntimeException("thumbnailUrl missing filename");
+        }
+
+        if (filename.contains("/") || filename.contains("\\") || filename.contains("..")) {
+            throw new RuntimeException("Invalid thumbnailUrl");
+        }
+
+        return filename;
     }
 }

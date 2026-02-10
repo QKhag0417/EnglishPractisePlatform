@@ -12,7 +12,15 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "practice_question")
+@Table(
+        name = "practice_question",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_practice_question_content_order",
+                        columnNames = {"practice_content_id", "order_index"}
+                )
+        }
+)
 public class PracticeQuestion {
 
     @Id

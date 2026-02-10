@@ -56,4 +56,42 @@ public class FileUploadController {
                     .body(ApiResponse.error("Internal server error"));
         }
     }
+
+    @PreAuthorize("hasRole('Administrator')")
+    @DeleteMapping("/thumbnail")
+    public ResponseEntity<ApiResponse<Void>> deleteThumbnail(@RequestParam("thumbnailUrl") String thumbnailUrl) {
+        try {
+            fileUploadService.deleteThumbnailByUrl(thumbnailUrl);
+            return ResponseEntity.ok(ApiResponse.success("Thumbnail deleted successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PreAuthorize("hasRole('Administrator')")
+    @DeleteMapping("/audio")
+    public ResponseEntity<ApiResponse<Void>> deleteAudio(
+            @RequestParam("audioUrl") String audioUrl
+    ) {
+        try {
+            fileUploadService.deleteAudioByUrl(audioUrl);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Audio deleted successfully", null)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
 }

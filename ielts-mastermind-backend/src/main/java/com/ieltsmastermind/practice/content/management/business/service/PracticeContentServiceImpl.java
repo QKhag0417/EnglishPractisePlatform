@@ -169,12 +169,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
         practiceContentRepository.delete(content);
-
-        String oldThumbnailUrl = content.getThumbnailUrl();
-        String oldAudioUrl = content.getAudioUrl();
-
-        fileUploadService.cleanupOldThumbnail(oldThumbnailUrl);
-        fileUploadService.cleanupOldAudio(oldAudioUrl);
     }
 
     private void applyIncludes(PracticeContent content, PracticeContentResponseDto dto, IncludeSpec includes) {

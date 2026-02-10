@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import static com.ieltsmastermind.common.constants.FileStorageConstants.*;
+
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
 
@@ -11,10 +13,10 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 //    <audio controls src={practiceContent.audioUrl} />
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/files/thumbnails/**")
-                .addResourceLocations("file:uploads/thumbnails/");
+        registry.addResourceHandler(THUMBNAIL_PUBLIC_BASE_PATH + "**")
+                .addResourceLocations("file:" + THUMBNAIL_UPLOAD_DIR + "/");
 
-        registry.addResourceHandler("/files/audio/**")
-                .addResourceLocations("file:uploads/audio/");
+        registry.addResourceHandler(AUDIO_PUBLIC_BASE_PATH + "**")
+                .addResourceLocations("file:" + AUDIO_UPLOAD_DIR + "/");
     }
 }
