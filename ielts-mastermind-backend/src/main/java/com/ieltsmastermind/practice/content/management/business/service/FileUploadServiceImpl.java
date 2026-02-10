@@ -1,6 +1,7 @@
 package com.ieltsmastermind.practice.content.management.business.service;
 
 import com.ieltsmastermind.practice.content.management.business.interfaces.FileUploadService;
+import com.ieltsmastermind.practice.content.management.domain.dto.FileDeleteRequestDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,11 +25,6 @@ public class FileUploadServiceImpl implements FileUploadService {
     public String uploadThumbnail(MultipartFile file) {
         validateThumbnail(file);
 
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new RuntimeException("Invalid file type for thumbnail. Only images are allowed.");
-        }
-
         return storeFile(file, THUMBNAIL_UPLOAD_DIR, THUMBNAIL_PUBLIC_BASE_PATH);
     }
 
@@ -36,16 +32,13 @@ public class FileUploadServiceImpl implements FileUploadService {
     public String uploadAudio(MultipartFile file) {
         validateAudio(file);
 
-        String contentType = file.getContentType();
-        if (contentType == null || (!contentType.equals("audio/mpeg") && !contentType.equals("audio/wav"))) {
-            throw new RuntimeException("Invalid file type for audio. Only mp3/wav are allowed.");
-        }
-
         return storeFile(file, AUDIO_UPLOAD_DIR, AUDIO_PUBLIC_BASE_PATH);
     }
 
     @Override
-    public void deleteThumbnailByUrl(String thumbnailUrl) {
+    public void deleteThumbnailByUrl(FileDeleteRequestDto request) {
+        String thumbnailUrl = request.getFileUrl();
+
         if (thumbnailUrl == null || thumbnailUrl.trim().isEmpty()) {
             throw new RuntimeException("thumbnailUrl is required");
         }
@@ -54,10 +47,6 @@ public class FileUploadServiceImpl implements FileUploadService {
 
         Path uploadPath = Paths.get(THUMBNAIL_UPLOAD_DIR).toAbsolutePath().normalize();
         Path target = uploadPath.resolve(filename).normalize();
-
-        if (!target.startsWith(uploadPath)) {
-            throw new RuntimeException("Invalid thumbnailUrl");
-        }
 
         try {
             boolean deleted = Files.deleteIfExists(target);
@@ -70,7 +59,9 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     @Override
-    public void deleteAudioByUrl(String audioUrl) {
+    public void deleteAudioByUrl(FileDeleteRequestDto request) {
+        String audioUrl = request.getFileUrl();
+
         if (audioUrl == null || audioUrl.trim().isEmpty()) {
             throw new RuntimeException("audioUrl is required");
         }
@@ -79,10 +70,6 @@ public class FileUploadServiceImpl implements FileUploadService {
 
         Path uploadPath = Paths.get(AUDIO_UPLOAD_DIR).toAbsolutePath().normalize();
         Path target = uploadPath.resolve(filename).normalize();
-
-        if (!target.startsWith(uploadPath)) {
-            throw new RuntimeException("Invalid audioUrl");
-        }
 
         try {
             boolean deleted = Files.deleteIfExists(target);

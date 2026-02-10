@@ -1,6 +1,7 @@
 package com.ieltsmastermind.practice.content.management.business.interfaces;
 
 
+import com.ieltsmastermind.practice.content.management.domain.dto.FileDeleteRequestDto;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface FileUploadService {
@@ -9,7 +10,7 @@ public interface FileUploadService {
 
     String uploadAudio(MultipartFile file);
 
-    void deleteThumbnailByUrl(String thumbnailUrl);
+    void deleteThumbnailByUrl(FileDeleteRequestDto request);
 
-    void deleteAudioByUrl(String audioUrl);
+    void deleteAudioByUrl(FileDeleteRequestDto request);
 }

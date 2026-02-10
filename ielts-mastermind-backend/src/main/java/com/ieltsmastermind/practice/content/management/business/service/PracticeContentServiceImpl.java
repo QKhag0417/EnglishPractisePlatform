@@ -147,16 +147,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
-        if (request.getThumbnailUrl() != null && oldThumbnailUrl != null
-                && !oldThumbnailUrl.equals(savedContent.getThumbnailUrl())) {
-            fileUploadService.cleanupOldThumbnail(oldThumbnailUrl);
-        }
-
-        if (request.getAudioUrl() != null && oldAudioUrl != null
-                && !oldAudioUrl.equals(savedContent.getAudioUrl())) {
-            fileUploadService.cleanupOldAudio(oldAudioUrl);
-        }
-
         PracticeContentResponseDto responseDto = new PracticeContentResponseDto();
         responseDto.setId(savedContent.getId());
         return responseDto;

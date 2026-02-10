@@ -2,6 +2,8 @@ package com.ieltsmastermind.practice.content.management.controller;
 
 import com.ieltsmastermind.common.response.ApiResponse;
 import com.ieltsmastermind.practice.content.management.business.interfaces.FileUploadService;
+import com.ieltsmastermind.practice.content.management.domain.dto.FileDeleteRequestDto;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,7 @@ public class FileUploadController {
     }
 
     @PreAuthorize("hasRole('Administrator')")
-    @PostMapping(value = "/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/thumbnails", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadThumbnail(@RequestParam("file") MultipartFile file) {
         try {
             String url = fileUploadService.uploadThumbnail(file);
@@ -58,10 +60,12 @@ public class FileUploadController {
     }
 
     @PreAuthorize("hasRole('Administrator')")
-    @DeleteMapping("/thumbnail")
-    public ResponseEntity<ApiResponse<Void>> deleteThumbnail(@RequestParam("thumbnailUrl") String thumbnailUrl) {
+    @DeleteMapping("/thumbnails")
+    public ResponseEntity<ApiResponse<Void>> deleteThumbnail(
+            @Valid @RequestBody FileDeleteRequestDto request
+    ) {
         try {
-            fileUploadService.deleteThumbnailByUrl(thumbnailUrl);
+            fileUploadService.deleteThumbnailByUrl(request);
             return ResponseEntity.ok(ApiResponse.success("Thumbnail deleted successfully", null));
         } catch (RuntimeException e) {
             return ResponseEntity
@@ -77,10 +81,10 @@ public class FileUploadController {
     @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/audio")
     public ResponseEntity<ApiResponse<Void>> deleteAudio(
-            @RequestParam("audioUrl") String audioUrl
+            @Valid @RequestBody FileDeleteRequestDto request
     ) {
         try {
-            fileUploadService.deleteAudioByUrl(audioUrl);
+            fileUploadService.deleteAudioByUrl(request);
             return ResponseEntity.ok(
                     ApiResponse.success("Audio deleted successfully", null)
             );
