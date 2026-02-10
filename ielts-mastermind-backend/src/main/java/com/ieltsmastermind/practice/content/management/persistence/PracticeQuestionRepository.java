@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface PracticeQuestionRepository extends JpaRepository<PracticeQuestion, String> {
 
-    List<PracticeQuestion> findByPracticeContentOrderByOrderIndexAsc(PracticeContent practiceContent);
+    List<PracticeQuestion> findByPracticeContent_IdOrderByOrderIndexAsc(String practiceContentId);
 }
 

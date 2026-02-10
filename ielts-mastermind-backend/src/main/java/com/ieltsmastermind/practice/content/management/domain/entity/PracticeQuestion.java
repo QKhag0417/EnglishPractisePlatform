@@ -19,10 +19,8 @@ public class PracticeQuestion {
     @Column(name = "practice_question_id", nullable = false, updatable = false)
     private String id = UUID.randomUUID().toString();
 
-    // FK to PracticeContent
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "practice_content_id", nullable = false)
-    private PracticeContent practiceContent;
+    @Column(name = "practice_content_id", nullable = false, insertable = false, updatable = false)
+    private String practiceContentId;
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
@@ -39,4 +37,8 @@ public class PracticeQuestion {
     @Column(name = "answer_value", nullable = false)
     @OrderColumn(name = "answer_index")
     private List<String> correctAnswers = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "practice_content_id", nullable = false)
+    private PracticeContent practiceContent;
 }

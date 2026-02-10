@@ -25,18 +25,15 @@ import java.util.List;
 public class PracticeContentServiceImpl implements PracticeContentService {
 
     private final PracticeContentRepository practiceContentRepository;
-    private final PracticeQuestionRepository practiceQuestionRepository;
     private final FileUploadService fileUploadService;
     private final InstructionParser instructionParser;
     private final JsonConverter jsonConverter;
 
     public PracticeContentServiceImpl(PracticeContentRepository practiceContentRepository,
-                                      PracticeQuestionRepository practiceQuestionRepository,
                                       FileUploadService fileUploadService,
                                       InstructionParser instructionParser,
                                       JsonConverter jsonConverter) {
         this.practiceContentRepository = practiceContentRepository;
-        this.practiceQuestionRepository = practiceQuestionRepository;
         this.fileUploadService = fileUploadService;
         this.instructionParser = instructionParser;
         this.jsonConverter = jsonConverter;
@@ -55,7 +52,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         JsonNode parsedJson = jsonConverter.toJsonNode(parsed);
         content.setInstructionsParsed(parsedJson);
 
-        // handle null sets safely
         content.setQuestionTypeTags(
                 request.getQuestionTypeTags() != null
                         ? new HashSet<>(request.getQuestionTypeTags())
@@ -92,23 +88,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         for (PracticeContent content : contents) {
             PracticeContentResponseDto dto = new PracticeContentResponseDto();
-
             dto.setId(content.getId());
-
-            if (includes.has("skill")) dto.setSkill(content.getSkill());
-            if (includes.has("title")) dto.setTitle(content.getTitle());
-            if (includes.has("instructions")) dto.setInstructions(content.getInstructions());
-            if (includes.has("instructionsparsed")) dto.setInstructionsParsed(content.getInstructionsParsed());
-            if (includes.has("task")) dto.setTask(content.getTask());
-            if (includes.has("questiontypetags")) dto.setQuestionTypeTags(content.getQuestionTypeTags());
-            if (includes.has("topictags")) dto.setTopicTags(content.getTopicTags());
-            if (includes.has("thumbnailurl")) dto.setThumbnailUrl(content.getThumbnailUrl());
-            if (includes.has("audiourl")) dto.setAudioUrl(content.getAudioUrl());
-            if (includes.has("durationminutes")) dto.setDurationMinutes(content.getDurationMinutes());
-            if (includes.has("questioncount")) dto.setQuestionCount(content.getQuestionCount());
-            if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
-            if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
-            if (includes.has("status")) dto.setStatus(content.getStatus());
+            applyIncludes(content, dto, includes);
 
             result.add(dto);
         }
@@ -123,23 +104,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
         PracticeContentResponseDto dto = new PracticeContentResponseDto();
-
         dto.setId(content.getId());
-
-        if (includes.has("skill")) dto.setSkill(content.getSkill());
-        if (includes.has("title")) dto.setTitle(content.getTitle());
-        if (includes.has("instructions")) dto.setInstructions(content.getInstructions());
-        if (includes.has("instructionsparsed")) dto.setInstructionsParsed(content.getInstructionsParsed());
-        if (includes.has("task")) dto.setTask(content.getTask());
-        if (includes.has("questiontypetags")) dto.setQuestionTypeTags(content.getQuestionTypeTags());
-        if (includes.has("topictags")) dto.setTopicTags(content.getTopicTags());
-        if (includes.has("thumbnailurl")) dto.setThumbnailUrl(content.getThumbnailUrl());
-        if (includes.has("audiourl")) dto.setAudioUrl(content.getAudioUrl());
-        if (includes.has("durationminutes")) dto.setDurationMinutes(content.getDurationMinutes());
-        if (includes.has("questioncount")) dto.setQuestionCount(content.getQuestionCount());
-        if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
-        if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
-        if (includes.has("status")) dto.setStatus(content.getStatus());
+        applyIncludes(content, dto, includes);
 
         return dto;
     }
@@ -202,17 +168,29 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
+        practiceContentRepository.delete(content);
+
         String oldThumbnailUrl = content.getThumbnailUrl();
         String oldAudioUrl = content.getAudioUrl();
 
-        List<PracticeQuestion> questions =
-                practiceQuestionRepository.findByPracticeContentOrderByOrderIndexAsc(content);
-
-        practiceQuestionRepository.deleteAll(questions);
-
-        practiceContentRepository.delete(content);
-
         fileUploadService.cleanupOldThumbnail(oldThumbnailUrl);
         fileUploadService.cleanupOldAudio(oldAudioUrl);
+    }
+
+    private void applyIncludes(PracticeContent content, PracticeContentResponseDto dto, IncludeSpec includes) {
+        if (includes.has("skill")) dto.setSkill(content.getSkill());
+        if (includes.has("title")) dto.setTitle(content.getTitle());
+        if (includes.has("instructions")) dto.setInstructions(content.getInstructions());
+        if (includes.has("instructionsparsed")) dto.setInstructionsParsed(content.getInstructionsParsed());
+        if (includes.has("task")) dto.setTask(content.getTask());
+        if (includes.has("questiontypetags")) dto.setQuestionTypeTags(content.getQuestionTypeTags());
+        if (includes.has("topictags")) dto.setTopicTags(content.getTopicTags());
+        if (includes.has("thumbnailurl")) dto.setThumbnailUrl(content.getThumbnailUrl());
+        if (includes.has("audiourl")) dto.setAudioUrl(content.getAudioUrl());
+        if (includes.has("durationminutes")) dto.setDurationMinutes(content.getDurationMinutes());
+        if (includes.has("questioncount")) dto.setQuestionCount(content.getQuestionCount());
+        if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
+        if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
+        if (includes.has("status")) dto.setStatus(content.getStatus());
     }
 }

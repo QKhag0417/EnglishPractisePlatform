@@ -68,4 +68,11 @@ public class PracticeContent {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PracticeContentStatus status;
+
+    @OneToMany(
+            mappedBy = "practiceContent",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    private List<PracticeQuestion> questions = new ArrayList<>();
 }
