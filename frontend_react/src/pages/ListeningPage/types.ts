@@ -5,13 +5,14 @@ export type SortBy = "newest" | "oldest" | "attempts" | "a-z" | "z-a";
 
 export interface ExerciseMetadata {
   id: string;
+  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   title: string;
   attempts: string;
   image: string;
   task: number;
   questionTypes: string[];
   topics: string[];
-  status: "draft" | "published" | string;
+  status: "DRAFT" | "PUBLISHED" | string;
   updated: string;
   questions: number;
   duration: number;
@@ -19,6 +20,7 @@ export interface ExerciseMetadata {
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
   "id",
+  "skill",
   "title",
   "thumbnailUrl",
   "task",
@@ -35,6 +37,7 @@ export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
 
 export interface PracticeContentDTO {
   id: string;
+  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   title: string;
   thumbnailUrl: string;
   task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;

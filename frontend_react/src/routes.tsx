@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
   },
   // Listening routes
   {
-    path: "/listening",
+    path: "/:skill/browse",
     Component: ListeningPage,
   },
   {

@@ -22,29 +22,19 @@ function parseTaskNumberFromString(task: string): number {
   return n;
 }
 
-function mapPracticeContentStatusToUiStatus(dtoStatus?: string): string {
-  switch (dtoStatus) {
-    case "DRAFT":
-      return "draft";
-    case "PUBLISHED":
-      return "published";
-    default:
-      return "draft";
-  }
-}
-
 function mapPracticeContentDTOToExerciseMetadata(
   dto: PracticeContentDTO,
 ): ExerciseMetadata {
   return {
     id: dto.id ?? "",
+    skill: dto.skill ?? "",
     title: dto.title ?? "",
     attempts: "0",
     image: dto.thumbnailUrl ?? "",
     task: parseTaskNumberFromString(dto.task),
     questionTypes: dto.questionTypeTags ?? [],
     topics: dto.topicTags ?? [],
-    status: mapPracticeContentStatusToUiStatus(dto.status),
+    status: dto.status,
     updated: formatLocalDateTimeArrayToISODate(dto.updatedOn),
     questions: dto.questionCount ?? 0,
     duration: dto.durationMinutes ?? 0,

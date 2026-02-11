@@ -10,14 +10,12 @@ import {
 import { TagChips } from "./TagChips";
 import { useNavigate } from "react-router";
 import { useState } from "react";
-import { ExerciseMetadata } from "../mocks/exercises.mock";
-import {
-  LearnerExerciseStatus,
-  mockLearnerExerciseStatus,
-} from "../mocks/learnerExerciseStatus.mock";
+import { ExerciseMetadata } from "../types";
+import { buildImageUrl } from "../utils/buildImageUrl";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
+  learnerExerciseStatus: "not-started" | "in-progress" | "completed" | string;
   onClose: () => void;
   onStart: () => void;
   isLoggedIn: boolean;
@@ -26,6 +24,7 @@ interface ExerciseModalProps {
 
 export function ExerciseModal({
   exerciseMetadata,
+  learnerExerciseStatus,
   onClose,
   onStart,
   isLoggedIn,
@@ -33,12 +32,8 @@ export function ExerciseModal({
 }: ExerciseModalProps) {
   const navigate = useNavigate();
 
-  // TODO: Call API with learnerId and exerciseId to fetch this learner's status for the selected exercise,
-  const [learnerExerciseStatus, setLearnerExerciseStatus] =
-    useState<LearnerExerciseStatus>(mockLearnerExerciseStatus);
-
   const getStatusColor = () => {
-    switch (learnerExerciseStatus.status) {
+    switch (learnerExerciseStatus) {
       case "completed":
         return "text-green-600";
       case "in-progress":
@@ -49,7 +44,7 @@ export function ExerciseModal({
   };
 
   const getStatusIcon = () => {
-    switch (learnerExerciseStatus.status) {
+    switch (learnerExerciseStatus) {
       case "completed":
         return <CheckCircle className="w-[20px] h-[20px]" />;
       case "in-progress":
@@ -60,7 +55,7 @@ export function ExerciseModal({
   };
 
   const getStatusText = () => {
-    switch (learnerExerciseStatus.status) {
+    switch (learnerExerciseStatus) {
       case "completed":
         return "Completed";
       case "in-progress":
@@ -101,7 +96,7 @@ export function ExerciseModal({
           {/* Header with Image */}
           <div className="relative h-[300px]">
             <img
-              src={exerciseMetadata.image}
+              src={buildImageUrl(exerciseMetadata.image)}
               alt={exerciseMetadata.title}
               className="w-full h-full object-cover rounded-t-[12px]"
             />
@@ -128,14 +123,9 @@ export function ExerciseModal({
                   Task
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
-                  {exerciseMetadata.task.map((t) => (
-                    <span
-                      key={t}
-                      className="px-[12px] py-[4px] bg-[#fcbf65] rounded-[6px] font-['Inter'] text-[14px] text-black"
-                    >
-                      Task {t}
-                    </span>
-                  ))}
+                  <span className="px-[12px] py-[4px] bg-[#fcbf65] rounded-[6px] font-['Inter'] text-[14px] text-black">
+                    Task {exerciseMetadata.task}
+                  </span>
                 </div>
               </div>
 
@@ -238,9 +228,9 @@ export function ExerciseModal({
               onClick={handleStartPractice}
               className="w-full h-[56px] bg-[#fcbf65] hover:bg-[#e5ab52] rounded-[12px] font-['Inter'] font-bold text-[18px] text-black transition-colors"
             >
-              {learnerExerciseStatus.status === "completed"
+              {learnerExerciseStatus === "completed"
                 ? "Practice Again"
-                : learnerExerciseStatus.status === "in-progress"
+                : learnerExerciseStatus === "in-progress"
                   ? "Continue"
                   : "Start Practice"}
             </button>

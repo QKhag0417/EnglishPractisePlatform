@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { NavBarLearner, NavBarGuest } from "../../components/NavBar";
 import { Footer } from "../../components/Footer";
 import { useAuth } from "../../contexts/AuthContext";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { ExerciseCard } from "../../components/ExerciseCard";
-import { ExerciseModal } from "../../components/ExerciseModal";
-import { ExerciseMetadata, mockExercises } from "../../mocks/exercises.mock";
-import { API_BASE } from "../../env";
+import { ExerciseCard } from "./components/ExerciseCard";
+import { ExerciseModal } from "./components/ExerciseModal";
 import {
   useExerciseFilters,
   useExercisePagination,
   useExerciseSort,
   usePracticeContent,
+  useExercisesBySkill,
 } from "./hooks";
+import { ExerciseMetadata } from "./types";
+import { API_BASE } from "../../env";
+
+import { mockExercises } from "./mocks/exercises.mock";
+
+const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
 export function ListeningPage() {
   // =========================
@@ -32,11 +37,22 @@ export function ListeningPage() {
   // }, [isLoggedIn, navigate]);
 
   // =========================
+  // Route param validation (skill)
+  // =========================
+  const { skill } = useParams();
+
+  useEffect(() => {
+    if (!SKILL_ALLOWED.has((skill ?? "").toLowerCase())) {
+      navigate("/", { replace: true });
+    }
+  }, [skill, navigate]);
+
+  // =========================
   // Data fetching (load exercises metadata)
   // =========================
   const { exercises, loading, error, refetch } = usePracticeContent({
-    // apiBase: API_BASE + "error", // to test mock state
-    apiBase: API_BASE,
+    apiBase: API_BASE + "error", // to test mock state
+    // apiBase: API_BASE,
     initialExercises: mockExercises,
   });
 
@@ -46,10 +62,17 @@ export function ListeningPage() {
   // =========================
   const itemsPerPage = 12;
 
-  const filters = useExerciseFilters({ exercises });
+  const { skill: normalizedSkill, skillExercises } = useExercisesBySkill(
+    exercises,
+    skill,
+  );
+
+  const filters = useExerciseFilters({ exercises: skillExercises });
+
   const sort = useExerciseSort({
     exercises: filters.derived.filteredExercises,
   });
+
   const pagination = useExercisePagination({
     exercises: sort.derived.sortedExercises,
     itemsPerPage,
@@ -440,6 +463,7 @@ export function ListeningPage() {
       {selectedExercise && (
         <ExerciseModal
           exerciseMetadata={selectedExercise}
+          learnerExerciseStatus="not-started"
           onClose={() => setSelectedExercise(null)}
           onStart={() => setSelectedExercise(null)}
           isLoggedIn={isLoggedIn}

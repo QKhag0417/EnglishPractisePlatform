@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
-import { ExerciseMetadata } from "../mocks/exercises.mock";
-import { API_BASE } from "../env";
+import { ExerciseMetadata } from "../types";
+import { buildImageUrl } from "../utils/buildImageUrl";
 
 interface ExerciseCardProps {
   exercise: ExerciseMetadata;
@@ -19,12 +19,6 @@ export function ExerciseCard({
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsBookmarked(!isBookmarked);
-  };
-
-  const buildImageUrl = (img?: string) => {
-    if (!img) return ""; // or placeholder
-    if (img.startsWith("http://") || img.startsWith("https://")) return img;
-    return `${API_BASE}${img.startsWith("/") ? "" : "/"}${img}`;
   };
 
   return (

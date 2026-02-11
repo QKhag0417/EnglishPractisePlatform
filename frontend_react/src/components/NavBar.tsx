@@ -95,7 +95,7 @@ function NavMenu() {
             label: "Overview",
             onClick: () => navigate("/listening/overview"),
           },
-          { label: "Exercise", onClick: () => navigate("/listening") },
+          { label: "Exercise", onClick: () => navigate("/listening/browse") },
         ]}
       />
       <NavItem
@@ -103,7 +103,7 @@ function NavMenu() {
         hasDropdown
         dropdownItems={[
           { label: "Overview", onClick: () => navigate("/reading/overview") },
-          { label: "Exercise", onClick: () => navigate("/reading") },
+          { label: "Exercise", onClick: () => navigate("/reading/browse") },
         ]}
       />
       <NavItem
@@ -111,7 +111,7 @@ function NavMenu() {
         hasDropdown
         dropdownItems={[
           { label: "Overview", onClick: () => navigate("/writing/overview") },
-          { label: "Exercise", onClick: () => navigate("/writing") },
+          { label: "Exercise", onClick: () => navigate("/writing/browse") },
         ]}
       />
       <NavItem
@@ -122,7 +122,7 @@ function NavMenu() {
             label: "Overview",
             onClick: () => navigate("/speaking/overview"),
           },
-          { label: "Exercise", onClick: () => navigate("/speaking") },
+          { label: "Exercise", onClick: () => navigate("/speaking/browse") },
         ]}
       />
       <NavItem
