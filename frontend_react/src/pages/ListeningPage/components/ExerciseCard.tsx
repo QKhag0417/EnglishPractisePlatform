@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { ExerciseMetadata } from "../types";
-import { buildImageUrl } from "../utils/buildImageUrl";
+import { buildImageUrl } from "../../../utils/files/buildImageUrl";
 
 interface ExerciseCardProps {
   exercise: ExerciseMetadata;

@@ -1,4 +1,4 @@
-import { API_BASE } from "../../../env";
+import { API_BASE } from "../../env";
 
 export const buildImageUrl = (img?: string) => {
   if (!img) return "";

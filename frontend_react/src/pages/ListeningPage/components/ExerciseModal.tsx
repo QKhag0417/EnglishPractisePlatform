@@ -9,9 +9,8 @@ import {
 } from "lucide-react";
 import { TagChips } from "./TagChips";
 import { useNavigate } from "react-router";
-import { useState } from "react";
 import { ExerciseMetadata } from "../types";
-import { buildImageUrl } from "../utils/buildImageUrl";
+import { buildImageUrl } from "../../../utils/files/buildImageUrl";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;

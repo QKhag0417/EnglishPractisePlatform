@@ -1,24 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Volume2, Pause, Play } from "lucide-react";
-import { IELTSMastermindLogo } from "../components/Logo";
-import { TestResultScreen } from "../components/TestResultScreen";
-import { InstructionRenderer } from "../components/InstructionParser.tsx";
+import { IELTSMastermindLogo } from "../../components/Logo.tsx";
+import { TestInstructionScreen } from "./components/TestInstructionScreen.tsx";
+import { TestResultScreen } from "./components/TestResultScreen.tsx";
+import { InstructionRenderer } from "../../components/InstructionParser.tsx";
 import { useNavigate, useParams } from "react-router";
-import { useAuth } from "../contexts/AuthContext";
-import { API_BASE } from "../env";
+import { useAuth } from "../../contexts/AuthContext.tsx";
+import { API_BASE } from "../../env.ts";
 
-import {
-  ExerciseInstruction,
-  exerciseInstructions,
-} from "../mocks/instructions.mock";
 import {
   ExercisePrompt,
   mockExercisePrompt1,
-} from "../mocks/exercisePrompts.mock";
+} from "../../mocks/exercisePrompts.mock.ts";
 import {
   ExerciseAnswer,
   mockExerciseAnswers,
-} from "../mocks/exerciseAnswers.mock";
+} from "../../mocks/exerciseAnswers.mock.ts";
 
 type UserAnswers = Record<number, string | string[]>;
 
@@ -57,8 +54,6 @@ export function ListeningTestPage() {
   // =========================
   // Initial data state (instruction + prompt + answers)
   // =========================
-  const [exerciseInstruction, setExerciseInstruction] =
-    useState<ExerciseInstruction>(exerciseInstructions);
 
   const [exercisePrompt, setExercisePrompt] =
     useState<ExercisePrompt>(mockExercisePrompt1);
@@ -343,54 +338,7 @@ export function ListeningTestPage() {
   // Instruction Screen
   if (testState === "instruction") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-        <div className="bg-white rounded-lg shadow-lg max-w-[900px] w-full p-12">
-          <h1 className="text-[32px] font-bold text-[#1977f3] mb-6">
-            {exerciseInstruction.title}
-          </h1>
-
-          <p className="text-[18px] text-gray-600 mb-8">
-            <span className="font-bold">{exerciseInstruction.timeInfo}</span>
-          </p>
-
-          <div className="mb-8">
-            <h2 className="text-[20px] font-bold text-black mb-4">
-              INSTRUCTIONS TO CANDIDATES
-            </h2>
-            <ul className="list-disc list-inside space-y-3 text-[16px] text-gray-700">
-              {exerciseInstruction.candidateInstructions.map(
-                (instruction, index) => (
-                  <li key={index}>{instruction}</li>
-                ),
-              )}
-            </ul>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-[20px] font-bold text-black mb-4">
-              INFORMATION FOR CANDIDATES
-            </h2>
-            <ul className="list-disc list-inside space-y-3 text-[16px] text-gray-700">
-              {exerciseInstruction.candidateInfo.map((info, index) => (
-                <li key={index}>{info}</li>
-              ))}
-            </ul>
-          </div>
-
-          <p className="text-center text-[16px] text-gray-700 font-medium mb-6">
-            Do not click 'Start test' until you are told to do so.
-          </p>
-
-          <div className="flex justify-center">
-            <button
-              onClick={handleStartTest}
-              className="bg-[#dc3545] hover:bg-[#c82333] text-white px-12 py-3 rounded-lg font-semibold text-[18px] transition-colors"
-            >
-              Start test
-            </button>
-          </div>
-        </div>
-      </div>
+      <TestInstructionScreen skill="LISTENING" onStartTest={handleStartTest} />
     );
   }
 

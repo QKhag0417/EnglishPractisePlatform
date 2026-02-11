@@ -48,7 +48,3 @@ export interface PracticeContentDTO {
   questionCount: number;
   durationMinutes: number;
 }
-
-export interface PracticeContentResponseDTO {
-  data?: PracticeContentDTO[];
-}

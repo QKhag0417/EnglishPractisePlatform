@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
-import { NavBarLearner } from "./NavBar";
-import { Footer } from "./Footer";
+import { NavBarLearner } from "../../../components/NavBar";
+import { Footer } from "../../../components/Footer";
 import { useState } from "react";
 
 interface TestResultScreenProps {
   userAnswers: Record<number, string | string[]>;
   exerciseAnswers: Record<number, string | string[]>;
-  timeSpent: number; // in seconds
+  timeSpent: number;
   onReturnToLibrary: () => void;
   onTakeAnotherTest: () => void;
   onLogout?: () => void;
