@@ -1,18 +1,3 @@
-export const taskTypeToNumber = (task?: string): number => {
-  switch (task) {
-    case "TASK_1":
-      return 1;
-    case "TASK_2":
-      return 2;
-    case "TASK_3":
-      return 3;
-    case "TASK_4":
-      return 4;
-    default:
-      return 0;
-  }
-};
-
 export const formatTime = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
 

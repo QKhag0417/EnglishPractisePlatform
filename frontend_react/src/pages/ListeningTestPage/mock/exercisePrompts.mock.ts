@@ -1,11 +1,4 @@
-export type ExercisePrompt = {
-  id: string;
-  task: number;
-  duration: number;
-  audioUrl: string;
-  examText: string;
-  totalQuestions: number;
-};
+import { ExercisePrompt } from "../types";
 
 export const mockExercisePrompt1: ExercisePrompt = {
   id: "1",

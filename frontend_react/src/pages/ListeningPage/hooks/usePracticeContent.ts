@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ExerciseMetadata, PracticeContentDTO } from "../types";
-import { PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY } from "../types";
+import {
+  ExerciseMetadata,
+  PracticeContentDTO,
+  PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
+} from "../types";
 import { apiGet } from "../../../utils/api";
 
 export function formatLocalDateTimeArrayToISODate(arr?: number[]): string {

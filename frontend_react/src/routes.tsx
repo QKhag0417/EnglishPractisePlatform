@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
-import { ListeningPage } from "./pages/ListeningPage/ListeningPage";
+import { BrowsePage } from "./pages/ListeningPage/BrowsePage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
 import { ListeningTestPage } from "./pages/ListeningTestPage/ListeningTestPage";
 import { ReadingPage } from "./pages/ReadingPage";
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
   // Listening routes
   {
     path: "/:skill/browse",
-    Component: ListeningPage,
+    Component: BrowsePage,
   },
   {
     path: "/listening/overview",

@@ -9,20 +9,21 @@ import {
   TestResultScreen,
 } from "./components";
 
-import { useExercisePrompt } from "./hooks/useExercisePrompt";
-import { useExerciseAnswers } from "./hooks/useExerciseAnswers";
-import { useTestFlow } from "./hooks/useTestFlow";
-import { useAudioPlayer } from "./hooks/useAudioPlayer";
-import { useSyncedCountdownTimer } from "./hooks/useSyncedCountdownTimer";
-import { useAudioSrc } from "./hooks/useAudioSrc";
+import {
+  useExercisePrompt,
+  useExerciseAnswers,
+  useTestFlow,
+  useAudioPlayer,
+  useSyncedCountdownTimer,
+  useAudioSrc,
+} from "./hooks";
 
 import { formatTime } from "./utils/tempUtils.ts";
+
 import type { ExerciseAnswer, ExercisePrompt } from "./types";
 
-import { mockExercisePrompt1 } from "../../mocks/exercisePrompts.mock.ts";
-import { mockExerciseAnswers } from "../../mocks/exerciseAnswers.mock.ts";
-
-type UserAnswers = Record<number, string | string[]>;
+import { mockExercisePrompt1 } from "./mock/exercisePrompts.mock.ts";
+import { mockExerciseAnswers } from "./mock/exerciseAnswers.mock.ts";
 
 export function ListeningTestPage() {
   const { exerciseId } = useParams();
@@ -36,20 +37,22 @@ export function ListeningTestPage() {
 
   // data
   const { exercisePrompt } = useExercisePrompt({
-    apiBase: API_BASE,
+    apiBase: API_BASE + "error", // to test mock state
+    // apiBase: API_BASE,
     exerciseId,
     initialPrompt: mockExercisePrompt1 as ExercisePrompt,
   });
 
   const { exerciseAnswers } = useExerciseAnswers({
-    apiBase: API_BASE,
+    apiBase: API_BASE + "error", // to test mock state
+    // apiBase: API_BASE,
     exerciseId,
     initialAnswers: mockExerciseAnswers as ExerciseAnswer,
   });
 
   // flow
   const flow = useTestFlow({
-    onExitToLibrary: () => navigate("/listening"),
+    onExitToLibrary: () => navigate("/listening/browse"),
   });
 
   // timer (fully synced internally)
