@@ -466,7 +466,7 @@ export function BrowsePage() {
           onClose={() => setSelectedExercise(null)}
           onStart={() => setSelectedExercise(null)}
           isLoggedIn={isLoggedIn}
-          pageType="listening"
+          pageType={skill}
         />
       )}
     </div>

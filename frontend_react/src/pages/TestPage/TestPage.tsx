@@ -7,6 +7,7 @@ import {
   TestInstructionScreen,
   TestScreen,
   TestResultScreen,
+  ReadingTestScreen,
 } from "./components/index.ts";
 
 import {
@@ -20,9 +21,12 @@ import {
 
 import { formatTime } from "./utils/tempUtils.ts";
 
-import type { ExerciseAnswer, ExercisePrompt } from "./types.ts";
+import type { ExerciseAnswer, ExercisePrompt, Skill } from "./types.ts";
 
-import { mockExercisePrompt } from "./mock/exercisePrompts.mock.ts";
+import {
+  mockListeningExercisePrompt,
+  mockReadingExercisePrompt,
+} from "./mock/exercisePrompts.mock.ts";
 import { mockExerciseAnswers } from "./mock/exerciseAnswers.mock.ts";
 
 export function TestPage() {
@@ -40,7 +44,7 @@ export function TestPage() {
     apiBase: API_BASE + "error",
     // apiBase: API_BASE,
     exerciseId,
-    initialPrompt: mockExercisePrompt as ExercisePrompt,
+    initialPrompt: mockReadingExercisePrompt as ExercisePrompt,
   });
 
   const { exerciseAnswers } = useExerciseAnswers({
@@ -51,8 +55,10 @@ export function TestPage() {
   });
 
   // flow
+  const browsePath = `/${exercisePrompt.skill.toLowerCase()}/browse`;
+
   const flow = useTestFlow({
-    onExitToLibrary: () => navigate("/listening/browse"),
+    onExitToLibrary: () => navigate(browsePath),
   });
 
   // timer (fully synced internally)
@@ -75,7 +81,10 @@ export function TestPage() {
   // Instruction Screen
   if (flow.testState === "instruction") {
     return (
-      <TestInstructionScreen skill="LISTENING" onStartTest={flow.startTest} />
+      <TestInstructionScreen
+        skill={exercisePrompt.skill as Skill}
+        onStartTest={flow.startTest}
+      />
     );
   }
 
@@ -94,33 +103,58 @@ export function TestPage() {
   }
 
   // Test Screen
-  return (
-    <TestScreen
-      exercisePrompt={exercisePrompt}
-      timeRemaining={timer.secondsRemaining}
-      formatTime={formatTime}
-      answers={flow.answers}
-      currentQuestionIndex={flow.currentQuestionIndex}
-      onAnswerChange={flow.onAnswerChange}
-      audioRef={audio.audioRef}
-      isPlaying={audio.isPlaying}
-      setIsPlaying={audio.togglePlay}
-      audioProgress={audio.audioProgress}
-      currentTime={audio.currentTime}
-      duration={audio.duration}
-      onLoadedMetadata={audio.handleLoadedMetadata}
-      onTimeUpdate={audio.handleTimeUpdate}
-      onEnded={audio.handleEnded}
-      onSeek={audio.handleSeek}
-      buildAudioUrl={() => audioSrc}
-      onExitTest={flow.openExitModal}
-      onSubmit={flow.openSubmitModal}
-      showSubmitModal={flow.showSubmitModal}
-      setShowSubmitModal={flow.setShowSubmitModal}
-      showExitModal={flow.showExitModal}
-      setShowExitModal={flow.setShowExitModal}
-      onConfirmSubmit={flow.confirmSubmit}
-      onConfirmExit={flow.confirmExit}
-    />
-  );
+  if (flow.testState === "test") {
+    if (exercisePrompt.skill === "LISTENING") {
+      return (
+        <TestScreen
+          exercisePrompt={exercisePrompt}
+          timeRemaining={timer.secondsRemaining}
+          formatTime={formatTime}
+          answers={flow.answers}
+          currentQuestionIndex={flow.currentQuestionIndex}
+          onAnswerChange={flow.onAnswerChange}
+          audioRef={audio.audioRef}
+          isPlaying={audio.isPlaying}
+          setIsPlaying={audio.togglePlay}
+          audioProgress={audio.audioProgress}
+          currentTime={audio.currentTime}
+          duration={audio.duration}
+          onLoadedMetadata={audio.handleLoadedMetadata}
+          onTimeUpdate={audio.handleTimeUpdate}
+          onEnded={audio.handleEnded}
+          onSeek={audio.handleSeek}
+          buildAudioUrl={() => audioSrc}
+          onExitTest={flow.openExitModal}
+          onSubmit={flow.openSubmitModal}
+          showSubmitModal={flow.showSubmitModal}
+          setShowSubmitModal={flow.setShowSubmitModal}
+          showExitModal={flow.showExitModal}
+          setShowExitModal={flow.setShowExitModal}
+          onConfirmSubmit={flow.confirmSubmit}
+          onConfirmExit={flow.confirmExit}
+        />
+      );
+    }
+
+    if (exercisePrompt.skill === "READING") {
+      return (
+        <ReadingTestScreen
+          exercisePrompt={exercisePrompt}
+          timeRemaining={timer.secondsRemaining}
+          formatTime={formatTime}
+          answers={flow.answers}
+          currentQuestionIndex={flow.currentQuestionIndex}
+          onAnswerChange={flow.onAnswerChange}
+          onExitTest={flow.openExitModal}
+          onSubmit={flow.openSubmitModal}
+          showSubmitModal={flow.showSubmitModal}
+          setShowSubmitModal={flow.setShowSubmitModal}
+          showExitModal={flow.showExitModal}
+          setShowExitModal={flow.setShowExitModal}
+          onConfirmSubmit={flow.confirmSubmit}
+          onConfirmExit={flow.confirmExit}
+        />
+      );
+    }
+  }
 }

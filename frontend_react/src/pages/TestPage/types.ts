@@ -15,16 +15,14 @@ export type TestState = "instruction" | "test" | "results";
 
 export type ExercisePrompt = {
   id: string;
+  skill: Skill | string;
   task: number;
   duration: number;
-  audioUrl: string;
+  passageTitle?: string;
+  passageText?: string;
+  audioUrl?: string;
   examText: string;
   totalQuestions: number;
-};
-
-export type ExerciseAnswer = {
-  id: string;
-  correctAnswers: Record<number, string | string[]>;
 };
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
@@ -49,3 +47,8 @@ export interface PracticeContentDTO {
   instructionsParsed: string;
   questionCount: number;
 }
+
+export type ExerciseAnswer = {
+  id: string;
+  correctAnswers: Record<number, string | string[]>;
+};

@@ -56,7 +56,7 @@ export const router = createBrowserRouter([
     Component: ListeningOverviewPage,
   },
   {
-    path: "/listening/test/:exerciseId",
+    path: "/test/:exerciseId",
     Component: TestPage,
   },
   //   // Reading routes

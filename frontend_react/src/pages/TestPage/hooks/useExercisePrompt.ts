@@ -32,6 +32,7 @@ function mapPracticeContentDTOToExercisePrompt(
 ): ExercisePrompt {
   return {
     id: dto.id,
+    skill: dto.skill,
     task: taskTypeToNumber(dto.task),
     duration: dto.durationMinutes ?? 0,
     audioUrl: dto.audioUrl ?? "",
