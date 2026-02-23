@@ -1,6 +1,6 @@
 import { ExercisePrompt } from "../types";
 
-export const mockExercisePrompt1: ExercisePrompt = {
+export const mockExercisePrompt: ExercisePrompt = {
   id: "1",
   task: 1,
   duration: 12,

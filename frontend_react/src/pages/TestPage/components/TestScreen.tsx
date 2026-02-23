@@ -4,7 +4,7 @@ import { Pause, Play, Volume2 } from "lucide-react";
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
 
-import type { ExercisePrompt, UserAnswers } from "../types";
+import type { ExercisePrompt, UserAnswers } from "../types.ts";
 
 type Props = {
   exercisePrompt: ExercisePrompt;

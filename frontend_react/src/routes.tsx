@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
-import { BrowsePage } from "./pages/ListeningPage/BrowsePage";
+import { BrowsePage } from "./pages/BrowsePage/BrowsePage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
-import { ListeningTestPage } from "./pages/ListeningTestPage/ListeningTestPage";
+import { TestPage } from "./pages/TestPage/TestPage";
 import { ReadingPage } from "./pages/ReadingPage";
 import { ReadingOverviewPage } from "./pages/ReadingOverviewPage";
 // import { ReadingTestPage } from "./pages/ReadingTestPage";
@@ -57,7 +57,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/listening/test/:exerciseId",
-    Component: ListeningTestPage,
+    Component: TestPage,
   },
   //   // Reading routes
   //   {

@@ -7,7 +7,7 @@ import {
   TestInstructionScreen,
   TestScreen,
   TestResultScreen,
-} from "./components";
+} from "./components/index.ts";
 
 import {
   useExercisePrompt,
@@ -16,16 +16,16 @@ import {
   useAudioPlayer,
   useSyncedCountdownTimer,
   useAudioSrc,
-} from "./hooks";
+} from "./hooks/index.ts";
 
 import { formatTime } from "./utils/tempUtils.ts";
 
-import type { ExerciseAnswer, ExercisePrompt } from "./types";
+import type { ExerciseAnswer, ExercisePrompt } from "./types.ts";
 
-import { mockExercisePrompt1 } from "./mock/exercisePrompts.mock.ts";
+import { mockExercisePrompt } from "./mock/exercisePrompts.mock.ts";
 import { mockExerciseAnswers } from "./mock/exerciseAnswers.mock.ts";
 
-export function ListeningTestPage() {
+export function TestPage() {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -37,14 +37,14 @@ export function ListeningTestPage() {
 
   // data
   const { exercisePrompt } = useExercisePrompt({
-    apiBase: API_BASE + "error", // to test mock state
+    apiBase: API_BASE + "error",
     // apiBase: API_BASE,
     exerciseId,
-    initialPrompt: mockExercisePrompt1 as ExercisePrompt,
+    initialPrompt: mockExercisePrompt as ExercisePrompt,
   });
 
   const { exerciseAnswers } = useExerciseAnswers({
-    apiBase: API_BASE + "error", // to test mock state
+    apiBase: API_BASE + "error",
     // apiBase: API_BASE,
     exerciseId,
     initialAnswers: mockExerciseAnswers as ExerciseAnswer,
