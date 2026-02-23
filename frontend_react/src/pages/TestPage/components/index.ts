@@ -1,4 +1,4 @@
 export { TestInstructionScreen } from "./TestInstructionScreen";
-export { TestScreen } from "./TestScreen";
+export { ListeningTestScreen } from "./ListeningTestScreen";
 export { TestResultScreen } from "./TestResultScreen";
 export { ReadingTestScreen } from "./ReadingTestScreen";

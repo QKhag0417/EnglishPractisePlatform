@@ -5,7 +5,7 @@ import { API_BASE } from "../../env.ts";
 
 import {
   TestInstructionScreen,
-  TestScreen,
+  ListeningTestScreen,
   TestResultScreen,
   ReadingTestScreen,
 } from "./components/index.ts";
@@ -44,7 +44,7 @@ export function TestPage() {
     apiBase: API_BASE + "error",
     // apiBase: API_BASE,
     exerciseId,
-    initialPrompt: mockReadingExercisePrompt as ExercisePrompt,
+    initialPrompt: mockListeningExercisePrompt as ExercisePrompt,
   });
 
   const { exerciseAnswers } = useExerciseAnswers({
@@ -95,7 +95,7 @@ export function TestPage() {
         userAnswers={flow.answers}
         exerciseAnswers={exerciseAnswers.correctAnswers}
         timeSpent={flow.timeSpent}
-        onReturnToLibrary={() => navigate("/listening/browse")}
+        onReturnToLibrary={() => navigate(browsePath)}
         onTakeAnotherTest={resetTest}
         onLogout={handleLogout}
       />
@@ -106,7 +106,7 @@ export function TestPage() {
   if (flow.testState === "test") {
     if (exercisePrompt.skill === "LISTENING") {
       return (
-        <TestScreen
+        <ListeningTestScreen
           exercisePrompt={exercisePrompt}
           timeRemaining={timer.secondsRemaining}
           formatTime={formatTime}

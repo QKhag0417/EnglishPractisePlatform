@@ -44,7 +44,7 @@ type Props = {
   onConfirmExit: () => void;
 };
 
-export function TestScreen({
+export function ListeningTestScreen({
   exercisePrompt,
   timeRemaining,
   formatTime,
