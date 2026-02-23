@@ -4,18 +4,10 @@ import { Pause, Play, Volume2 } from "lucide-react";
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
 
-export type ExercisePromptShape = {
-  task: number;
-  duration: number;
-  audioUrl: string;
-  examText: string;
-  totalQuestions: number;
-};
-
-type UserAnswers = Record<number, string | string[]>;
+import type { ExercisePrompt, UserAnswers } from "../types";
 
 type Props = {
-  exercisePrompt: ExercisePromptShape;
+  exercisePrompt: ExercisePrompt;
 
   // timer
   timeRemaining: number;
