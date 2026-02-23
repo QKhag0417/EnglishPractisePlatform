@@ -1,7 +1,5 @@
-import { useNavigate } from "react-router";
 import { NavBarLearner } from "../../../components/NavBar";
 import { Footer } from "../../../components/Footer";
-import { useState } from "react";
 
 interface TestResultScreenProps {
   userAnswers: Record<number, string | string[]>;
@@ -20,8 +18,6 @@ export function TestResultScreen({
   onTakeAnotherTest,
   onLogout,
 }: TestResultScreenProps) {
-  const navigate = useNavigate();
-
   const normalizeOne = (v: string) =>
     v.trim().toLowerCase().replace(/\s+/g, " ");
 
