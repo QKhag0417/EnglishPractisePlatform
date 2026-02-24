@@ -27,9 +27,6 @@ public class PracticeQuestion {
     @Column(name = "practice_question_id", nullable = false, updatable = false)
     private String id = UUID.randomUUID().toString();
 
-    @Column(name = "practice_content_id", nullable = false, insertable = false, updatable = false)
-    private String practiceContentId;
-
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
 
