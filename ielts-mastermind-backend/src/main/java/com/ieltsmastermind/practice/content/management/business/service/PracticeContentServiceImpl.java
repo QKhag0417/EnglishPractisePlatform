@@ -25,7 +25,6 @@ import java.util.List;
 public class PracticeContentServiceImpl implements PracticeContentService {
 
     private final PracticeContentRepository practiceContentRepository;
-    private final FileUploadService fileUploadService;
     private final InstructionParser instructionParser;
     private final JsonConverter jsonConverter;
 
@@ -34,7 +33,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                                       InstructionParser instructionParser,
                                       JsonConverter jsonConverter) {
         this.practiceContentRepository = practiceContentRepository;
-        this.fileUploadService = fileUploadService;
         this.instructionParser = instructionParser;
         this.jsonConverter = jsonConverter;
     }
