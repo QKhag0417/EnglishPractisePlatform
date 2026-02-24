@@ -18,7 +18,7 @@ import { AuthPromptPage } from "./pages/AuthPromptPage";
 import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { EvaluationTestPage } from "./pages/EvaluationTestPage";
-import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage";
+import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage/ListeningContentEditorPage.tsx";
 import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage";
 import { WritingContentEditorPage } from "./pages/WritingContentEditorPage";
 import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
