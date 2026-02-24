@@ -5,7 +5,9 @@ import com.ieltsmastermind.practice.content.management.domain.enums.PracticeCont
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeTaskType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,8 +17,10 @@ import java.util.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "practice_content")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class PracticeContent {
 
     @Id
@@ -24,7 +28,7 @@ public class PracticeContent {
     private String id = UUID.randomUUID().toString();
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private PracticeContentSkill skill;
 
     private String title;
@@ -57,7 +61,6 @@ public class PracticeContent {
     private Set<String> topicTags = new HashSet<>();
 
     private String thumbnailUrl;
-    private String audioUrl;
 
     private Integer durationMinutes;
     private Integer questionCount;
@@ -75,4 +78,8 @@ public class PracticeContent {
             orphanRemoval = true
     )
     private List<PracticeQuestion> questions = new ArrayList<>();
+
+    protected PracticeContent(PracticeContentSkill skill) {
+        this.skill = skill;
+    }
 }
