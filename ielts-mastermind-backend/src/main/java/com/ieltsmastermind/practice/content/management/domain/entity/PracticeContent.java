@@ -77,6 +77,7 @@ public class PracticeContent {
             cascade = CascadeType.REMOVE,
             orphanRemoval = true
     )
+    @OrderBy("orderIndex ASC")
     private List<PracticeQuestion> questions = new ArrayList<>();
 
     protected PracticeContent(PracticeContentSkill skill) {
