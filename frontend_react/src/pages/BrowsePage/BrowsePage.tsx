@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { NavBarLearner, NavBarGuest } from "../../components/NavBar";
 import { Footer } from "../../components/Footer";
 import { useAuth } from "../../contexts/AuthContext";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { ExerciseCard } from "./components/ExerciseCard";
-import { ExerciseModal } from "./components/ExerciseModal";
+import { ExerciseCard, ExerciseModal } from "./components";
 import {
   useExerciseFilters,
   useExercisePagination,
@@ -20,7 +19,7 @@ import { mockExercises } from "./mocks/exercises.mock";
 
 const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
-export function ListeningPage() {
+export function BrowsePage() {
   // =========================
   // Auth + navigation actions
   // =========================
@@ -467,7 +466,7 @@ export function ListeningPage() {
           onClose={() => setSelectedExercise(null)}
           onStart={() => setSelectedExercise(null)}
           isLoggedIn={isLoggedIn}
-          pageType="listening"
+          pageType={skill}
         />
       )}
     </div>

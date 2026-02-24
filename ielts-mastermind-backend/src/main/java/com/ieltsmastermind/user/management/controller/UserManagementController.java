@@ -1,5 +1,7 @@
 package com.ieltsmastermind.user.management.controller;
 
+import com.ieltsmastermind.common.query.IncludeParser;
+import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.common.response.ApiResponse;
 import com.ieltsmastermind.user.management.business.interfaces.UserService;
 import com.ieltsmastermind.user.management.domain.dto.UserCreateRequestDto;
@@ -45,9 +47,13 @@ public class UserManagementController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllUsers() {
+    public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllUsers(
+            @RequestParam(required = false) String include
+    ) {
         try {
-            List<UserResponseDto> users = userService.getAll();
+            IncludeSpec includes = IncludeParser.parse(include);
+
+            List<UserResponseDto> users = userService.getAll(includes);
             return ResponseEntity.ok(
                     ApiResponse.success("Users fetched successfully", users)
             );
@@ -64,10 +70,13 @@ public class UserManagementController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponseDto>> getUserById(
-            @PathVariable String id
+            @PathVariable String id,
+            @RequestParam(required = false) String include
     ) {
         try {
-            UserResponseDto user = userService.getById(id);
+            IncludeSpec includes = IncludeParser.parse(include);
+
+            UserResponseDto user = userService.getById(id, includes);
             return ResponseEntity.ok(
                     ApiResponse.success("User fetched successfully", user)
             );

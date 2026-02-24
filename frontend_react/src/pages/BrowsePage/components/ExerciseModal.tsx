@@ -18,7 +18,7 @@ interface ExerciseModalProps {
   onClose: () => void;
   onStart: () => void;
   isLoggedIn: boolean;
-  pageType?: "listening" | "reading" | "writing" | "speaking";
+  pageType?: "listening" | "reading" | "writing" | "speaking" | string;
 }
 
 export function ExerciseModal({
@@ -71,7 +71,7 @@ export function ExerciseModal({
     } else {
       onClose();
       if (pageType === "listening" || pageType === "reading") {
-        navigate(`/${pageType}/test/${exerciseMetadata.id}`);
+        navigate(`/test/${exerciseMetadata.id}`);
       } else if (pageType === "writing" || pageType === "speaking") {
         navigate(`/`);
       } else {

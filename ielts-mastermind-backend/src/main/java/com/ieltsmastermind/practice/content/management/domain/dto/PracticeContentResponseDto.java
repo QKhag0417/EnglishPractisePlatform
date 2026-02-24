@@ -26,6 +26,8 @@ public class PracticeContentResponseDto {
     private Set<String> topicTags;
     private String thumbnailUrl;
     private String audioUrl;
+    private String passage;
+    private JsonNode passageParsed;
     private Integer durationMinutes;
     private Integer questionCount;
     private LocalDateTime createdOn;

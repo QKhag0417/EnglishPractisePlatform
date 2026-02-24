@@ -8,8 +8,11 @@ import com.ieltsmastermind.practice.content.management.business.interfaces.FileU
 import com.ieltsmastermind.practice.content.management.business.interfaces.PracticeContentService;
 import com.ieltsmastermind.practice.content.management.business.parser.InstructionParser;
 import com.ieltsmastermind.practice.content.management.domain.dto.*;
+import com.ieltsmastermind.practice.content.management.domain.entity.ListeningPracticeContent;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
+import com.ieltsmastermind.practice.content.management.domain.entity.ReadingPracticeContent;
+import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentSkill;
 import com.ieltsmastermind.practice.content.management.domain.model.doc.DocNode;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeQuestionRepository;
@@ -25,7 +28,6 @@ import java.util.List;
 public class PracticeContentServiceImpl implements PracticeContentService {
 
     private final PracticeContentRepository practiceContentRepository;
-    private final FileUploadService fileUploadService;
     private final InstructionParser instructionParser;
     private final JsonConverter jsonConverter;
 
@@ -34,7 +36,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                                       InstructionParser instructionParser,
                                       JsonConverter jsonConverter) {
         this.practiceContentRepository = practiceContentRepository;
-        this.fileUploadService = fileUploadService;
         this.instructionParser = instructionParser;
         this.jsonConverter = jsonConverter;
     }
@@ -42,8 +43,26 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public PracticeContentResponseDto create(PracticeContentCreateRequestDto request) {
-        PracticeContent content = new PracticeContent();
-        content.setSkill(request.getSkill());
+        PracticeContent content;
+        if (request.getSkill() == PracticeContentSkill.LISTENING) {
+            ListeningPracticeContent listening = new ListeningPracticeContent();
+            listening.setAudioUrl(request.getAudioUrl());
+            content = listening;
+
+        } else if (request.getSkill() == PracticeContentSkill.READING) {
+            ReadingPracticeContent reading = new ReadingPracticeContent();
+
+            reading.setPassage(request.getPassage());
+            List<DocNode> passageNodes = instructionParser.parseInstruction(request.getPassage());
+            JsonNode passageParsedJson = jsonConverter.toJsonNode(passageNodes);
+            reading.setPassageParsed(passageParsedJson);
+
+            content = reading;
+
+        } else {
+            throw new IllegalArgumentException("Unsupported skill: " + request.getSkill());
+        }
+
         content.setTitle(request.getTitle());
         content.setTask(request.getTask());
 
@@ -64,7 +83,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         );
 
         content.setThumbnailUrl(request.getThumbnailUrl());
-        content.setAudioUrl(request.getAudioUrl());
         content.setDurationMinutes(request.getDurationMinutes());
         content.setQuestionCount(request.getQuestionCount());
 
@@ -116,10 +134,10 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
-        String oldThumbnailUrl = content.getThumbnailUrl();
-        String oldAudioUrl = content.getAudioUrl();
+        if (request.getSkill() != null && request.getSkill() != content.getSkill()) {
+            throw new IllegalArgumentException("Cannot change skill of existing PracticeContent (id=" + id + ")");
+        }
 
-        if (request.getSkill() != null) content.setSkill(request.getSkill());
         if (request.getTitle() != null) content.setTitle(request.getTitle());
         if (request.getTask() != null) content.setTask(request.getTask());
 
@@ -138,12 +156,23 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         }
 
         if (request.getThumbnailUrl() != null) content.setThumbnailUrl(request.getThumbnailUrl());
-        if (request.getAudioUrl() != null) content.setAudioUrl(request.getAudioUrl());
         if (request.getDurationMinutes() != null) content.setDurationMinutes(request.getDurationMinutes());
         if (request.getQuestionCount() != null) content.setQuestionCount(request.getQuestionCount());
         if (request.getStatus() != null) content.setStatus(request.getStatus());
 
         content.setUpdatedOn(LocalDateTime.now());
+
+        if (content instanceof ListeningPracticeContent listening) {
+            if (request.getAudioUrl() != null) listening.setAudioUrl(request.getAudioUrl());
+
+        } else if (content instanceof ReadingPracticeContent reading) {
+            if (request.getPassage() != null) {
+                reading.setPassage(request.getPassage());
+                List<DocNode> passageNodes = instructionParser.parseInstruction(request.getPassage());
+                JsonNode passageParsedJson = jsonConverter.toJsonNode(passageNodes);
+                reading.setPassageParsed(passageParsedJson);
+            }
+        }
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
@@ -170,11 +199,17 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         if (includes.has("questiontypetags")) dto.setQuestionTypeTags(content.getQuestionTypeTags());
         if (includes.has("topictags")) dto.setTopicTags(content.getTopicTags());
         if (includes.has("thumbnailurl")) dto.setThumbnailUrl(content.getThumbnailUrl());
-        if (includes.has("audiourl")) dto.setAudioUrl(content.getAudioUrl());
         if (includes.has("durationminutes")) dto.setDurationMinutes(content.getDurationMinutes());
         if (includes.has("questioncount")) dto.setQuestionCount(content.getQuestionCount());
         if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
         if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
         if (includes.has("status")) dto.setStatus(content.getStatus());
+
+        if (content instanceof ListeningPracticeContent listening) {
+            if (includes.has("audiourl")) dto.setAudioUrl(listening.getAudioUrl());
+        } else if (content instanceof ReadingPracticeContent reading) {
+            if (includes.has("passage")) dto.setPassage(reading.getPassage());
+            if (includes.has("passageparsed")) dto.setPassageParsed(reading.getPassageParsed());
+        }
     }
 }

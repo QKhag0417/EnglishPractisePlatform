@@ -1,7 +1,5 @@
 // InstructionScreen.tsx
-import React, { useMemo } from "react";
-import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
-import type { ExerciseInstruction, Skill } from "../types.ts";
+import type { Skill } from "../types.ts";
 import { exerciseInstructionsBySkill } from "../mock/instructions.mock.ts";
 
 interface TestInstructionScreenProps {

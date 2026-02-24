@@ -1,15 +1,11 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { MockTestPage } from "./pages/MockTestPage";
-import { ListeningPage } from "./pages/ListeningPage/ListeningPage";
+import { BrowsePage } from "./pages/BrowsePage/BrowsePage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
-import { ListeningTestPage } from "./pages/ListeningTestPage/ListeningTestPage";
-import { ReadingPage } from "./pages/ReadingPage";
+import { TestPage } from "./pages/TestPage/TestPage";
 import { ReadingOverviewPage } from "./pages/ReadingOverviewPage";
-// import { ReadingTestPage } from "./pages/ReadingTestPage";
-import { WritingPage } from "./pages/WritingPage";
 import { WritingOverviewPage } from "./pages/WritingOverviewPage";
-import { SpeakingPage } from "./pages/SpeakingPage";
 import { SpeakingOverviewPage } from "./pages/SpeakingOverviewPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -49,15 +45,15 @@ export const router = createBrowserRouter([
   // Listening routes
   {
     path: "/:skill/browse",
-    Component: ListeningPage,
+    Component: BrowsePage,
   },
   {
     path: "/listening/overview",
     Component: ListeningOverviewPage,
   },
   {
-    path: "/listening/test/:exerciseId",
-    Component: ListeningTestPage,
+    path: "/test/:exerciseId",
+    Component: TestPage,
   },
   //   // Reading routes
   //   {

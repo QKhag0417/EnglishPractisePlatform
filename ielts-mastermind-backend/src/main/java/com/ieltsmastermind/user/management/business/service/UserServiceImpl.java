@@ -1,5 +1,6 @@
 package com.ieltsmastermind.user.management.business.service;
 
+import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.user.management.business.interfaces.UserService;
 import com.ieltsmastermind.user.management.domain.dto.UserCreateRequestDto;
 import com.ieltsmastermind.user.management.domain.dto.UserResponseDto;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -60,25 +62,39 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
 
-        return mapToResponseDto(saved);
+        UserResponseDto responseDto = new UserResponseDto();
+        responseDto.setUserId(saved.getUserId());
+
+        return responseDto;
     }
 
     @Override
     @Transactional
-    public List<UserResponseDto> getAll() {
+    public List<UserResponseDto> getAll(IncludeSpec includes) {
         List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(this::mapToResponseDto)
-                .toList();
+        List<UserResponseDto> result = new ArrayList<>();
+
+        for (User user : users) {
+            UserResponseDto dto = new UserResponseDto();
+            dto.setUserId(user.getUserId());
+            applyIncludes(user, dto, includes);
+            result.add(dto);
+        }
+
+        return result;
     }
 
     @Override
     @Transactional
-    public UserResponseDto getById(String id) {
+    public UserResponseDto getById(String id, IncludeSpec includes) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        return mapToResponseDto(user);
+        UserResponseDto dto = new UserResponseDto();
+        dto.setUserId(user.getUserId());   // always include id (recommended)
+        applyIncludes(user, dto, includes);
+
+        return dto;
     }
 
     @Override
@@ -99,17 +115,17 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Phone already in use: " + request.getPhone());
         }
 
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setFirstname(request.getFirstname());
-        user.setLastname(request.getLastname());
-        user.setCountry(request.getCountry());
-        user.setTimezone(request.getTimezone());
-        user.setAvatarUrl(request.getAvatarUrl());
-        user.setTargetBand(request.getTargetBand());
-        user.setExamDate(request.getExamDate());
-        user.setRole(request.getRole());
-        user.setIsActive(request.getIsActive());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getFirstname() != null) user.setFirstname(request.getFirstname());
+        if (request.getLastname() != null) user.setLastname(request.getLastname());
+        if (request.getCountry() != null) user.setCountry(request.getCountry());
+        if (request.getTimezone() != null) user.setTimezone(request.getTimezone());
+        if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
+        if (request.getTargetBand() != null) user.setTargetBand(request.getTargetBand());
+        if (request.getExamDate() != null) user.setExamDate(request.getExamDate());
+        if (request.getRole() != null) user.setRole(request.getRole());
+        if (request.getIsActive() != null) user.setIsActive(request.getIsActive());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
@@ -117,7 +133,9 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
 
-        return mapToResponseDto(saved);
+        UserResponseDto responseDto = new UserResponseDto();
+        responseDto.setUserId(saved.getUserId());
+        return responseDto;
     }
 
     @Override
@@ -146,5 +164,21 @@ public class UserServiceImpl implements UserService {
         dto.setTargetBand(saved.getTargetBand());
         dto.setExamDate(saved.getExamDate());
         return dto;
+    }
+
+    private void applyIncludes(User user, UserResponseDto dto, IncludeSpec includes) {
+        if (includes.has("email")) dto.setEmail(user.getEmail());
+        if (includes.has("phone")) dto.setPhone(user.getPhone());
+        if (includes.has("isactive")) dto.setIsActive(user.getIsActive());
+        if (includes.has("createdat")) dto.setCreatedAt(user.getCreatedAt());
+        if (includes.has("lastloginat")) dto.setLastLoginAt(user.getLastLoginAt());
+        if (includes.has("role")) dto.setRole(user.getRole());
+        if (includes.has("firstname")) dto.setFirstname(user.getFirstname());
+        if (includes.has("lastname")) dto.setLastname(user.getLastname());
+        if (includes.has("country")) dto.setCountry(user.getCountry());
+        if (includes.has("timezone")) dto.setTimezone(user.getTimezone());
+        if (includes.has("avatarurl")) dto.setAvatarUrl(user.getAvatarUrl());
+        if (includes.has("targetband")) dto.setTargetBand(user.getTargetBand());
+        if (includes.has("examdate")) dto.setExamDate(user.getExamDate());
     }
 }
