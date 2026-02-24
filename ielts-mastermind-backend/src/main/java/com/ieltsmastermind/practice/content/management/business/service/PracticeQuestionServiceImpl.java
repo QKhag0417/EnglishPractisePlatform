@@ -72,7 +72,7 @@ public class PracticeQuestionServiceImpl implements PracticeQuestionService {
         for (PracticeQuestion q : questions) {
             PracticeQuestionResponseDto dto = new PracticeQuestionResponseDto();
             dto.setId(q.getId());
-            dto.setPracticeContentId(q.getPracticeContentId());
+            dto.setPracticeContentId(practiceContentId);
             applyIncludes(q, dto, includes);
             result.add(dto);
         }
@@ -94,7 +94,6 @@ public class PracticeQuestionServiceImpl implements PracticeQuestionService {
 
         PracticeQuestionResponseDto dto = new PracticeQuestionResponseDto();
         dto.setId(saved.getId());
-        dto.setPracticeContentId(saved.getPracticeContentId());
 
         return dto;
     }

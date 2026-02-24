@@ -51,11 +51,7 @@ public class UserPracticeSubmission {
             insertable = false, updatable = false)
     private User user;
 
-    @OneToMany(
-            mappedBy = "submission",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<UserPracticeSubmissionAnswer> answerRows = new ArrayList<>();
 }
