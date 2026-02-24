@@ -72,11 +72,8 @@ public class PracticeContent {
     @Column(nullable = false)
     private PracticeContentStatus status;
 
-    @OneToMany(
-            mappedBy = "practiceContent",
-            cascade = CascadeType.REMOVE,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
     private List<PracticeQuestion> questions = new ArrayList<>();
 
     protected PracticeContent(PracticeContentSkill skill) {
