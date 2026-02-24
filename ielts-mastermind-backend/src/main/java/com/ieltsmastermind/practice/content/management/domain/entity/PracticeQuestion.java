@@ -4,6 +4,8 @@ import com.ieltsmastermind.practice.content.management.domain.enums.PracticeQues
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +28,6 @@ public class PracticeQuestion {
     @Id
     @Column(name = "practice_question_id", nullable = false, updatable = false)
     private String id = UUID.randomUUID().toString();
-
-    @Column(name = "practice_content_id", nullable = false, insertable = false, updatable = false)
-    private String practiceContentId;
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
