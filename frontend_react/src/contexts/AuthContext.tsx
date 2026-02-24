@@ -30,8 +30,8 @@ interface AuthContextType {
     role?: UserRole,
   ) => Promise<void>;
   logout: () => Promise<void>;
-
   updateUserRole: (role: UserRole) => void;
+  updateProfile: (profileData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -216,6 +216,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateProfile = (profileData: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...profileData });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -225,6 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateUserRole,
+        updateProfile,
       }}
     >
       {children}

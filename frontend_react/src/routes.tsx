@@ -18,6 +18,7 @@ import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage";
 import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage";
 import { WritingContentEditorPage } from "./pages/WritingContentEditorPage";
 import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
+import { MyProfilePage } from "./pages/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -182,4 +183,8 @@ export const router = createBrowserRouter([
   //     path: "*",
   //     element: <Navigate to="/" replace />,
   //   },
+  {
+    path: "/my-profile",
+    Component: MyProfilePage,
+  },
 ]);
