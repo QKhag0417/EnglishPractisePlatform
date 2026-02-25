@@ -71,50 +71,60 @@ function NavMenu() {
 
   return (
     <div className="content-stretch flex gap-[32px] items-center justify-center relative shrink-0">
-      <NavItem label="Home" onClick={() => navigate('/')} />
-      <NavItem 
-        label="Listening" 
-        hasDropdown 
+      <NavItem label="Home" onClick={() => navigate("/")} />
+      <NavItem
+        label="Listening"
+        hasDropdown
         dropdownItems={[
-          { label: 'Overview', onClick: () => navigate('/listening/overview/1') },
-          { label: 'Exercise', onClick: () => navigate('/listening') },
+          {
+            label: "Overview",
+            onClick: () => navigate("/listening/overview"),
+          },
+          { label: "Exercise", onClick: () => navigate("/listening/browse") },
         ]}
       />
-      <NavItem 
-        label="Reading" 
-        hasDropdown 
+      <NavItem
+        label="Reading"
+        hasDropdown
         dropdownItems={[
-          { label: 'Overview', onClick: () => navigate('/reading/overview/1') },
-          { label: 'Exercise', onClick: () => navigate('/reading') },
+          { label: "Overview", onClick: () => navigate("/reading/overview") },
+          { label: "Exercise", onClick: () => navigate("/reading/browse") },
         ]}
       />
-      <NavItem 
-        label="Writing" 
-        hasDropdown 
+      <NavItem
+        label="Writing"
+        hasDropdown
         dropdownItems={[
-          { label: 'Overview', onClick: () => navigate('/writing/overview/1') },
-          { label: 'Exercise', onClick: () => navigate('/writing') },
+          { label: "Overview", onClick: () => navigate("/writing/overview") },
+          { label: "Exercise", onClick: () => navigate("/writing/browse") },
         ]}
       />
-      <NavItem 
-        label="Speaking" 
-        hasDropdown 
+      <NavItem
+        label="Speaking"
+        hasDropdown
         dropdownItems={[
-          { label: 'Overview', onClick: () => navigate('/speaking/overview/1') },
-          { label: 'Exercise', onClick: () => navigate('/speaking') },
+          {
+            label: "Overview",
+            onClick: () => navigate("/speaking/overview"),
+          },
+          { label: "Exercise", onClick: () => navigate("/speaking/browse") },
         ]}
       />
-      <NavItem 
-        label="Test" 
-        hasDropdown 
+      <NavItem
+        label="Test"
+        hasDropdown
         dropdownItems={[
-          { label: 'Mock Test', onClick: () => navigate('/mocktest') },
-          { label: 'Evaluation Test', onClick: () => navigate('/evaluation-test') },
+          { label: "Mock Test", onClick: () => navigate("/mocktest") },
+          {
+            label: "Evaluation Test",
+            onClick: () => navigate("/evaluation-test"),
+          },
         ]}
       />
     </div>
   );
 }
+
 
 interface ProfileProps {
   onLogout: () => void;
@@ -125,7 +135,8 @@ function Profile({ onLogout }: ProfileProps) {
   const { user } = useAuth();
 
   const getInitials = () => {
-    if (user?.name) {
+    if (user?.firstname) return user.firstname[0].toUpperCase();
+    else if (user?.name) {
       return user.name[0].toUpperCase();
     }
     return 'U';
@@ -138,12 +149,12 @@ function Profile({ onLogout }: ProfileProps) {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="relative shrink-0 size-[49px] rounded-full overflow-hidden bg-[#c8511b] flex items-center justify-center">
-          {user?.avatar ? (
+          {user?.avatarUrl ? (
             <ImageWithFallback 
               alt="User profile" 
               className="block max-w-none size-full object-cover" 
               height="49" 
-              src={user.avatar} 
+              src={user.avatarUrl} 
               width="49" 
             />
           ) : (
