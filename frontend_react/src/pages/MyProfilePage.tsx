@@ -14,6 +14,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { format } from 'date-fns@4.1.0';
 import { DatePicker } from '../components/DatePicker';
+import { API_BASE } from '../env';
 
 export function MyProfilePage() {
   const navigate = useNavigate();
@@ -61,28 +62,66 @@ export function MyProfilePage() {
     return `${year}-${month}-${day}`;
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB');
-        return;
-      }
+const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please upload an image file');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  try {
+    // Validate size (25MB)
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("File must be smaller than 25MB");
+      return;
     }
-  };
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE}/api/files/avatar`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Upload failed");
+    }
+
+    const returnedValue = result.data;
+    let fullAvatarUrl = "";
+
+    if (returnedValue.startsWith("http")) {
+      fullAvatarUrl = returnedValue;
+    } else if (returnedValue.startsWith("/files")) {
+      fullAvatarUrl = `${API_BASE}${returnedValue}`;
+    } else {
+      fullAvatarUrl = `${API_BASE}/files/avatars/${returnedValue}`;
+    }
+
+    // 🔥 Delete old avatar (extract filename only)
+    if (avatarUrl && avatarUrl !== fullAvatarUrl) {
+      const oldFileName = avatarUrl.split("/").pop();
+
+      await fetch(`${API_BASE}/api/files/avatars/${oldFileName}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+    }
+
+    setAvatar(fullAvatarUrl);
+
+    toast.success("Avatar uploaded successfully");
+
+  } catch (error: any) {
+    toast.error(error?.message || "Avatar upload failed");
+  }
+};
 
   const handleSaveChanges = async () => {
     if (isSaving) return;
@@ -404,95 +443,7 @@ function PracticeTestHistoryContent() {
       status: 'in-progress',
       scoreByExaminer: 'By Examiner: -',
       scoreByAI: 'By AI: -',
-      timeSpent: '',
-    },
-    {
-      date: '24/02/2022',
-      testName: 'IELTS Mock Test 2020 October_Reading Practice Test 1',
-      skill: 'reading',
-      type: 'practice',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '00:29',
-      score: '5.5',
-    },
-    {
-      date: '24/02/2022',
-      testName: 'IELTS Mock Test 2020 October_Reading Practice Test 1',
-      skill: 'reading',
-      type: 'practice',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '16:26',
-      score: '5',
-    },
-    {
-      date: '24/02/2022',
-      testName: 'IELTS Mock Test 2020 October_Reading Practice Test 1',
-      skill: 'reading',
-      type: 'practice',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '14:23',
-      score: '4',
-    },
-    {
-      date: '23/02/2022',
-      testName: 'IELTS Mock Test 2021 April_Listening Practice Test 1',
-      skill: 'listening',
-      type: 'practice',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '07:48',
-      score: '8.5',
-    },
-    {
-      date: '23/02/2022',
-      testName: 'IELTS Mock Test 2021 April_Listening Practice Test 1',
-      skill: 'listening',
-      type: 'practice',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '08:32',
-      score: '6.5',
-    },
-    {
-      date: '23/02/2022',
-      testName: 'IELTS Mock Test 2021 April_Listening Practice Test 1',
-      skill: 'listening',
-      type: 'mock',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '07:10',
-      score: '4.5',
-    },
-    {
-      date: '19/02/2022',
-      testName: 'IELTS Recent Mock Tests Volume 1_Listening Practice Test 1',
-      skill: 'listening',
-      type: 'mock',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '06:52',
-      score: '8',
-    },
-    {
-      date: '19/02/2022',
-      testName: 'IELTS Recent Mock Tests Volume 1_Listening Practice Test 1',
-      skill: 'listening',
-      type: 'mock',
-      status: 'completed',
-      scoreByExaminer: '',
-      scoreByAI: '',
-      timeSpent: '05:04',
-      score: '4.5',
+      timeSpent: '5:50',
     },
   ];
 
