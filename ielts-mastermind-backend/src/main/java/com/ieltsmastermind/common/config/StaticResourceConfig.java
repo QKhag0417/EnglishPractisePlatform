@@ -18,5 +18,8 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler(AUDIO_PUBLIC_BASE_PATH + "**")
                 .addResourceLocations("file:" + AUDIO_UPLOAD_DIR + "/");
+
+        registry.addResourceHandler(AVATAR_PUBLIC_BASE_PATH + "**")
+                .addResourceLocations("file:" + AVATAR_UPLOAD_DIR + "/");
     }
 }

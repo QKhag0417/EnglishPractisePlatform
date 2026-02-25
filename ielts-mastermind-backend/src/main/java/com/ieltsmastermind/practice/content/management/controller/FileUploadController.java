@@ -59,6 +59,28 @@ public class FileUploadController {
         }
     }
 
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> uploadMyAvatar(
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            String url = fileUploadService.uploadAvatar(file);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Avatar uploaded successfully", url));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
     @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/thumbnails")
     public ResponseEntity<ApiResponse<Void>> deleteThumbnail(
@@ -88,6 +110,24 @@ public class FileUploadController {
             return ResponseEntity.ok(
                     ApiResponse.success("Audio deleted successfully", null)
             );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @DeleteMapping("/avatars")
+    public ResponseEntity<ApiResponse<Void>> deleteAvatar(
+            @Valid @RequestBody FileDeleteRequestDto request
+    ) {
+        try {
+            fileUploadService.deleteAvatarByUrl(request);
+            return ResponseEntity.ok(ApiResponse.success("Avatar deleted successfully", null));
         } catch (RuntimeException e) {
             return ResponseEntity
                     .badRequest()
