@@ -43,6 +43,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public PracticeContentResponseDto create(PracticeContentCreateRequestDto request) {
+
         PracticeContent content;
         if (request.getSkill() == PracticeContentSkill.LISTENING) {
             ListeningPracticeContent listening = new ListeningPracticeContent();
