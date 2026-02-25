@@ -11,8 +11,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.Authentication;
 import java.util.List;
 
 @RestController
@@ -133,4 +134,33 @@ public class UserManagementController {
                     .body(ApiResponse.error("Internal server error"));
         }
     }
+
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateProfile(
+            @Valid @RequestBody UserUpdateRequestDto request
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder
+                    .getContext()
+                    .getAuthentication();
+
+            String userId = authentication.getName(); // JWT user id
+
+            UserResponseDto updated = userService.update(userId, request);
+
+            return ResponseEntity.ok(
+                    ApiResponse.success("Profile updated successfully", updated)
+            );
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
 }

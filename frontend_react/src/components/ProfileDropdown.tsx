@@ -19,7 +19,8 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
   };
 
   const getInitials = () => {
-    if (user?.name) {
+    if (user?.firstname) return user.firstname[0].toUpperCase();
+    else if (user?.name) {
       return user.name[0].toUpperCase();
     }
     return 'U';
@@ -38,9 +39,9 @@ export function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
         {/* Profile Info */}
         <div className="flex gap-[16px] items-center mb-[10px] pb-[10px] border-b border-gray-200">
           <div className="relative shrink-0 w-[50px] h-[50px] rounded-full overflow-hidden bg-[#c8511b] flex items-center justify-center">
-            {user?.avatar ? (
+            {user?.avatarUrl ? (
               <ImageWithFallback 
-                src={user.avatar}
+                src={user.avatarUrl}
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />

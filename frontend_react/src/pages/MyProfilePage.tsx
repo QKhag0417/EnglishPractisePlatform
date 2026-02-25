@@ -20,6 +20,7 @@ export function MyProfilePage() {
   const { user, logout, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'history'>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -27,31 +28,38 @@ export function MyProfilePage() {
   };
 
   // Profile form state
-  const [firstName, setFirstName] = useState(user?.firstName || '');
-  const [lastName, setLastName] = useState(user?.lastName || '');
-  const [dateOfBirth, setDateOfBirth] = useState(user?.dateOfBirth || '');
-  const [gender, setGender] = useState<'male' | 'female' | ''>(user?.gender || '');
+  const [firstName, setFirstName] = useState(user?.firstname ||'');
+  const [lastName, setLastName] = useState(user?.lastname || '');
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [gender, setGender] = useState<"male" | "female" | undefined>(undefined);
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [avatarUrl, setAvatar] = useState(user?.avatarUrl || '');
   const [email, setEmail] = useState(user?.email || '');
-
-  // Error states
-  const [phoneError, setPhoneError] = useState('');
-  const [dateError, setDateError] = useState('');
-  const [emailError, setEmailError] = useState('');
 
   // Update form when user changes
   useEffect(() => {
-    if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setDateOfBirth(user.dateOfBirth || '');
-      setGender(user.gender || '');
-      setPhoneNumber(user.phoneNumber || '');
-      setAvatar(user.avatar || '');
-      setEmail(user.email || '');
-    }
+    if (!user) return;
+
+    setFirstName(user.firstname ?? '');
+    setLastName(user.lastname ?? '');
+    setEmail(user.email ?? '');
+    setGender(user.gender ?? undefined);
+    setPhoneNumber(user.phoneNumber ?? '');
+    setDateOfBirth(user.dateOfBirth ?? '');
+    setAvatar(user.avatarUrl ?? '');
   }, [user]);
+
+  const formatToDisplay = (isoDate: string) => {
+    if (!isoDate) return "";
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatToISO = (displayDate: string) => {
+    if (!displayDate) return "";
+    const [day, month, year] = displayDate.split("/");
+    return `${year}-${month}-${day}`;
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,155 +84,40 @@ export function MyProfilePage() {
     }
   };
 
-  const validatePhoneNumber = (number: string): boolean => {
-    if (!number) {
-      setPhoneError('');
-      return true;
+  const handleSaveChanges = async () => {
+    if (isSaving) return;
+
+    try {
+      setIsSaving(true);
+
+      await updateProfile({
+        firstName,
+        lastName,
+        email,
+        gender,
+        phoneNumber,
+        dateOfBirth,
+        avatarUrl,
+      });
+
+      toast.success("Profile updated successfully", {
+        description: "Your changes have been saved.",
+        duration: 3000,
+      });
+
+    } catch (error: any) {
+      toast.error("Update failed", {
+        description: error?.message || "Something went wrong. Please try again.",
+        duration: 4000,
+      });
+    } finally {
+      setIsSaving(false);
     }
-    
-    // Remove spaces and dashes
-    const cleaned = number.replace(/[\s-]/g, '');
-    
-    // Check if it's all digits
-    if (!/^\d+$/.test(cleaned)) {
-      setPhoneError('Phone number must contain only digits');
-      return false;
-    }
-
-    // Check length (should be between 8-15 digits)
-    if (cleaned.length < 8 || cleaned.length > 15) {
-      setPhoneError('Phone number must be between 8-15 digits');
-      return false;
-    }
-
-    setPhoneError('');
-    return true;
-  };
-
-  const validateDateOfBirth = (date: string): boolean => {
-    if (!date) {
-      setDateError('');
-      return true;
-    }
-
-    // Check format DD/MM/YYYY
-    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = date.match(datePattern);
-
-    if (!match) {
-      setDateError('Date must be in DD/MM/YYYY format');
-      return false;
-    }
-
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10);
-    const year = parseInt(match[3], 10);
-
-    // Validate ranges
-    if (month < 1 || month > 12) {
-      setDateError('Invalid month');
-      return false;
-    }
-
-    if (day < 1 || day > 31) {
-      setDateError('Invalid day');
-      return false;
-    }
-
-    // Check if date is in the past
-    const inputDate = new Date(year, month - 1, day);
-    const today = new Date();
-    
-    if (inputDate > today) {
-      setDateError('Date of birth cannot be in the future');
-      return false;
-    }
-
-    // Check if user is at least 10 years old
-    const age = today.getFullYear() - year;
-    if (age < 10) {
-      setDateError('You must be at least 10 years old');
-      return false;
-    }
-
-    setDateError('');
-    return true;
-  };
-
-  const validateEmail = (email: string): boolean => {
-    if (!email) {
-      setEmailError('');
-      return true;
-    }
-
-    // Simple email validation regex
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      setEmailError('Invalid email format');
-      return false;
-    }
-
-    setEmailError('');
-    return true;
-  };
-
-  const handleSaveChanges = () => {
-    // Validate required fields
-    if (!firstName.trim()) {
-      toast.error('First name is required');
-      return;
-    }
-
-    if (!lastName.trim()) {
-      toast.error('Last name is required');
-      return;
-    }
-
-    if (!dateOfBirth) {
-      toast.error('Date of birth is required');
-      return;
-    }
-
-    if (!gender) {
-      toast.error('Gender is required');
-      return;
-    }
-
-    // Validate date
-    if (!validateDateOfBirth(dateOfBirth)) {
-      return;
-    }
-
-    // Validate phone if provided
-    if (!validatePhoneNumber(phoneNumber)) {
-      return;
-    }
-
-    // Validate email if provided
-    if (!validateEmail(email)) {
-      return;
-    }
-
-    // Update profile
-    updateProfile({
-      firstName,
-      lastName,
-      dateOfBirth,
-      gender,
-      phoneNumber,
-      avatar,
-      name: `${firstName} ${lastName}`,
-      email,
-    });
-
-    toast.success('Profile updated successfully!');
   };
 
   const getInitials = () => {
-    if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    }
-    if (user?.name) {
+    if (user?.firstname) return user.firstname[0].toUpperCase();
+    else if (user?.name) {
       return user.name[0].toUpperCase();
     }
     return 'U';
@@ -278,9 +171,9 @@ export function MyProfilePage() {
                     {/* Profile Picture */}
                     <div className="flex flex-col items-center gap-[16px]">
                       <div className="w-[120px] h-[120px] rounded-full overflow-hidden bg-[#c8511b] flex items-center justify-center">
-                        {avatar ? (
+                        {avatarUrl ? (
                           <ImageWithFallback 
-                            src={avatar} 
+                            src={avatarUrl} 
                             alt="Profile" 
                             className="w-full h-full object-cover"
                           />
@@ -317,7 +210,7 @@ export function MyProfilePage() {
                       <div className="grid grid-cols-2 gap-[20px]">
                         <div>
                           <Label className="font-['Inter'] text-[14px] font-medium text-gray-700 mb-[8px] block">
-                            First name <span className="text-red-500">*</span>
+                            First name 
                           </Label>
                           <Input
                             value={firstName}
@@ -328,7 +221,7 @@ export function MyProfilePage() {
                         </div>
                         <div>
                           <Label className="font-['Inter'] text-[14px] font-medium text-gray-700 mb-[8px] block">
-                            Last name <span className="text-red-500">*</span>
+                            Last name 
                           </Label>
                           <Input
                             value={lastName}
@@ -343,17 +236,17 @@ export function MyProfilePage() {
                       <div className="grid grid-cols-2 gap-[20px]">
                         <div>
                           <Label className="font-['Inter'] text-[14px] font-medium text-gray-700 mb-[8px] block">
-                            Date of birth <span className="text-red-500">*</span>
+                            Date of birth 
                           </Label>
                           <Popover>
                             <PopoverTrigger asChild>
                               <div className="relative cursor-pointer">
                                 <Input
                                   type="text"
-                                  value={dateOfBirth}
+                                  value={formatToDisplay(dateOfBirth)}
                                   onChange={(e) => {
-                                    setDateOfBirth(e.target.value);
-                                    validateDateOfBirth(e.target.value);
+                                    const value = e.target.value;
+                                    setDateOfBirth(formatToISO(value));
                                   }}
                                   placeholder="DD/MM/YYYY"
                                   className="h-[44px] pr-[40px] cursor-pointer"
@@ -364,23 +257,17 @@ export function MyProfilePage() {
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
                               <DatePicker
-                                value={dateOfBirth}
+                                value={formatToDisplay(dateOfBirth)}
                                 onChange={(date) => {
-                                  setDateOfBirth(date);
-                                  validateDateOfBirth(date);
+                                  setDateOfBirth(formatToISO(date));
                                 }}
                               />
                             </PopoverContent>
                           </Popover>
-                          {dateError && (
-                            <p className="font-['Inter'] text-[12px] text-red-500 mt-[6px]">
-                              {dateError}
-                            </p>
-                          )}
                         </div>
                         <div>
                           <Label className="font-['Inter'] text-[14px] font-medium text-gray-700 mb-[8px] block">
-                            Gender <span className="text-red-500">*</span>
+                            Gender
                           </Label>
                           <div className="flex gap-[24px] h-[44px] items-center">
                             <label className="flex items-center gap-[8px] cursor-pointer">
@@ -420,15 +307,9 @@ export function MyProfilePage() {
                             value={email}
                             onChange={(e) => {
                               setEmail(e.target.value);
-                              validateEmail(e.target.value);
                             }}
                             className="h-[44px] flex-1"
                           />
-                          {emailError && (
-                            <p className="font-['Inter'] text-[12px] text-red-500 mt-[6px]">
-                              {emailError}
-                            </p>
-                          )}
                         </div>
                         <div>
                           <Label className="font-['Inter'] text-[14px] font-medium text-gray-700 mb-[8px] block">
@@ -439,16 +320,10 @@ export function MyProfilePage() {
                             value={phoneNumber}
                             onChange={(e) => {
                               setPhoneNumber(e.target.value);
-                              validatePhoneNumber(e.target.value);
                             }}
                             placeholder="Enter your phone number"
                             className="h-[44px] flex-1"
                           />
-                          {phoneError && (
-                            <p className="font-['Inter'] text-[12px] text-red-500 mt-[6px]">
-                              {phoneError}
-                            </p>
-                          )}
                         </div>
                       </div>
 
@@ -456,13 +331,45 @@ export function MyProfilePage() {
                       <div className="pt-[16px] flex justify-end">
                         <Button
                           onClick={handleSaveChanges}
-                          className="bg-[#1977f3] hover:bg-[#1567d3] font-['Inter'] h-[44px] px-[32px] gap-[8px]"
+                          disabled={isSaving}
+                          className={`font-['Inter'] h-[44px] px-[32px] gap-[8px] transition-all duration-200
+                            ${isSaving 
+                              ? "bg-gray-400 cursor-not-allowed" 
+                              : "bg-[#1977f3] hover:bg-[#1567d3] active:scale-[0.98]"
+                            }`}
                         >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M5 8L7 10L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          Save changes
+                          {isSaving ? (
+                            <>
+                              <svg
+                                className="animate-spin h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                />
+                              </svg>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M5 8L7 10L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Save changes
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>

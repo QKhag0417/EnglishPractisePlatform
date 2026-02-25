@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class User {
     private String email;
 
     @Column(unique = true)
-    private String phone;
+    private String phoneNumber;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -43,6 +44,12 @@ public class User {
 
     @Column(name = "lastname")
     private String lastname;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @Column(name = "country")
     private String country;
