@@ -10,7 +10,7 @@ const SKILL_MAP = {
 
 export type AllowedSkill = (typeof SKILL_MAP)[keyof typeof SKILL_MAP];
 
-export function useExercisesBySkill(
+export function useFilterExercisesBySkill(
   exercises: ExerciseMetadata[],
   skillParam?: string,
 ) {

@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { ExerciseMetadata } from "../types";
+import { useAuth } from "../../../contexts/AuthContext";
 import { buildImageUrl } from "../utils/buildImageUrl";
 
 interface ExerciseCardProps {
   exercise: ExerciseMetadata;
   onSelect: () => void;
-  isLoggedIn?: boolean;
 }
 
-export function ExerciseCard({
-  exercise,
-  onSelect,
-  isLoggedIn = false,
-}: ExerciseCardProps) {
+export function ExerciseCard({ exercise, onSelect }: ExerciseCardProps) {
+  // =========================
+  // Auth
+  // =========================
+  const { isLoggedIn } = useAuth();
+
+  // =========================
+  // Bookmark
+  // =========================
+
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleBookmarkClick = (e: React.MouseEvent) => {

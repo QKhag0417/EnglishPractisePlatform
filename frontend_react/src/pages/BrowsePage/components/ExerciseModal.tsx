@@ -11,25 +11,34 @@ import { TagChips } from "./TagChips";
 import { useNavigate } from "react-router";
 import { ExerciseMetadata } from "../types";
 import { buildImageUrl } from "../utils/buildImageUrl";
+import { useAuth } from "../../../contexts/AuthContext";
+
+type LearnerExerciseStatus = "not-started" | "in-progress" | "completed";
+
+const MOCK_LEARNER_EXERCISE_STATUS: LearnerExerciseStatus = "not-started";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
-  learnerExerciseStatus: "not-started" | "in-progress" | "completed" | string;
-  onClose: () => void;
-  onStart: () => void;
-  isLoggedIn: boolean;
   pageType?: "listening" | "reading" | "writing" | "speaking" | string;
+  onClose: () => void;
 }
 
 export function ExerciseModal({
   exerciseMetadata,
-  learnerExerciseStatus,
-  onClose,
-  onStart,
-  isLoggedIn,
   pageType,
+  onClose,
 }: ExerciseModalProps) {
+  // =========================
+  // Auth
+  // =========================
+  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
+
+  // =========================
+  // Learner exercise status (mocked for now)
+  // =========================
+
+  const learnerExerciseStatus = MOCK_LEARNER_EXERCISE_STATUS;
 
   const getStatusColor = () => {
     switch (learnerExerciseStatus) {
@@ -63,6 +72,10 @@ export function ExerciseModal({
         return "Not Started";
     }
   };
+
+  // =========================
+  // Start practice action
+  // =========================
 
   const handleStartPractice = () => {
     if (!isLoggedIn) {

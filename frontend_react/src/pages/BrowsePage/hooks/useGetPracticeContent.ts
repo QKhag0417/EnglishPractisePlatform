@@ -6,7 +6,6 @@ import {
   PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
 } from "../types";
 import { mockExercises } from "../mocks/exercises.mock";
-import { useEffect } from "react";
 
 function mapTime(arr?: number[]): string {
   if (!arr || arr.length < 3) return "";
@@ -50,7 +49,7 @@ function mapPracticeContentDTOListToExerciseMetadataList(
   return (dtos ?? []).map(mapPracticeContentDTOToExerciseMetadata);
 }
 
-export function usePracticeContent() {
+export function useGetPracticeContent() {
   const {
     item: exercises,
     setItem: setExercises,

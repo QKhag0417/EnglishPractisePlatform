@@ -1,10 +1,13 @@
 package com.ieltsmastermind.user.management.domain.entity;
 
+import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -58,4 +61,7 @@ public class User {
 
     @Column(name = "exam_date")
     private LocalDateTime examDate;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserPracticeSubmission> practiceSubmissions = new ArrayList<>();
 }

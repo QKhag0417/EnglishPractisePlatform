@@ -6,11 +6,14 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ExerciseCard, ExerciseModal } from "./components";
 import {
-  useExerciseFilters,
   useExercisePagination,
   useExerciseSort,
-  usePracticeContent,
-  useExercisesBySkill,
+  useGetPracticeContent,
+  useFilterExercisesBySkill,
+  useFilterExercisesBySearch,
+  useFilterExercisesByTask,
+  useFilterExercisesByQuestionType,
+  useFilterExercisesByTopic,
 } from "./hooks";
 import { ExerciseMetadata } from "./types";
 
@@ -18,7 +21,7 @@ const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
 export function BrowsePage() {
   // =========================
-  // Auth + navigation actions
+  // Auth and navigation
   // =========================
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -28,12 +31,8 @@ export function BrowsePage() {
     navigate("/");
   };
 
-  // useEffect(() => {
-  //   if (!isLoggedIn) navigate("/");
-  // }, [isLoggedIn, navigate]);
-
   // =========================
-  // Route param validation (skill)
+  // Page route param
   // =========================
   const { skill } = useParams();
 
@@ -44,71 +43,93 @@ export function BrowsePage() {
   }, [skill, navigate]);
 
   // =========================
-  // Data fetching (load exercises metadata)
+  // Get practice content
   // =========================
-  const { exercises, get: getExercises } = usePracticeContent();
+  const { exercises, get: getExercises } = useGetPracticeContent();
 
   useEffect(() => {
     void getExercises();
   }, [getExercises]);
 
   // =========================
-  // Compose 3 hooks directly
-  // filters -> sort -> pagination
+  // Filter exercises by skill
   // =========================
-  const itemsPerPage = 12;
 
-  const { skill: normalizedSkill, skillExercises } = useExercisesBySkill(
-    exercises,
-    skill,
-  );
+  const { skillExercises: filteredExercisesBySkill } =
+    useFilterExercisesBySkill(exercises, skill);
 
-  const filters = useExerciseFilters({ exercises: skillExercises });
+  // =========================
+  // Filter exercises by search
+  // =========================
+
+  const search = useFilterExercisesBySearch({
+    exercises: filteredExercisesBySkill,
+  });
+
+  const searchQuery = search.state.searchQuery;
+  const setSearchQuery = search.setters.setSearchQuery;
+
+  // =========================
+  // Filter exercises by task
+  // =========================
+
+  const task = useFilterExercisesByTask({
+    exercises: search.derived.filteredExercises,
+  });
+
+  const selectedTask = task.state.selectedTask;
+  const setSelectedTask = task.setters.setSelectedTask;
+  const availableTasks = task.derived.availableTasks;
+
+  // =========================
+  // Filter exercises by question type
+  // =========================
+
+  const questionType = useFilterExercisesByQuestionType({
+    exercises: task.derived.filteredExercises,
+  });
+
+  const selectedQuestionType = questionType.state.selectedQuestionType;
+  const setSelectedQuestionType = questionType.setters.setSelectedQuestionType;
+  const availableQuestionTypes = questionType.derived.availableQuestionTypes;
+
+  // =========================
+  // Filter exercises by topic
+  // =========================
+
+  const topic = useFilterExercisesByTopic({
+    exercises: questionType.derived.filteredExercises,
+  });
+
+  const selectedTopic = topic.state.selectedTopic;
+  const setSelectedTopic = topic.setters.setSelectedTopic;
+  const availableTopics = topic.derived.availableTopics;
+
+  // =========================
+  // Sort exercises
+  // =========================
 
   const sort = useExerciseSort({
-    exercises: filters.derived.filteredExercises,
+    exercises: topic.derived.filteredExercises,
   });
+
+  const sortBy = sort.state.sortBy;
+  const setSortBy = sort.setters.setSortBy;
+  const sortedExercises = sort.derived.sortedExercises;
+
+  // =========================
+  // Paginate exercises
+  // =========================
+
+  const itemsPerPage = 12;
 
   const pagination = useExercisePagination({
     exercises: sort.derived.sortedExercises,
     itemsPerPage,
   });
 
-  // =========================
-  // UI-only state
-  // =========================
-  const [selectedExercise, setSelectedExercise] =
-    useState<ExerciseMetadata | null>(null);
-
-  // =========================
-  // Reset page when filters/sort change
-  // (your JSX already calls this after setX)
-  // =========================
   const handleFilterChange = () => pagination.actions.resetPage();
 
-  // =========================
-  // Aliases to keep your JSX unchanged
-  // =========================
-  const searchQuery = filters.state.searchQuery;
-  const setSearchQuery = filters.setters.setSearchQuery;
-
-  const selectedTask = filters.state.selectedTask;
-  const setSelectedTask = filters.setters.setSelectedTask;
-
-  const selectedQuestionType = filters.state.selectedQuestionType;
-  const setSelectedQuestionType = filters.setters.setSelectedQuestionType;
-
-  const selectedTopic = filters.state.selectedTopic;
-  const setSelectedTopic = filters.setters.setSelectedTopic;
-
-  const sortBy = sort.state.sortBy;
-  const setSortBy = sort.setters.setSortBy;
-
-  const availableTasks = filters.derived.availableTasks;
-  const availableQuestionTypes = filters.derived.availableQuestionTypes;
-  const availableTopics = filters.derived.availableTopics;
-
-  const sortedExercises = sort.derived.sortedExercises;
   const currentExercises = pagination.derived.currentExercises;
 
   const paginationPage = pagination.state.page;
@@ -117,6 +138,12 @@ export function BrowsePage() {
 
   const startIndex = (paginationPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
+
+  // =========================
+  // Selected exercise for modal
+  // =========================
+  const [selectedExercise, setSelectedExercise] =
+    useState<ExerciseMetadata | null>(null);
 
   return (
     <div className="bg-white min-h-screen">
@@ -397,7 +424,6 @@ export function BrowsePage() {
                   key={exercise.id}
                   exercise={exercise}
                   onSelect={() => setSelectedExercise(exercise)}
-                  isLoggedIn={isLoggedIn}
                 />
               ))}
             </div>
@@ -459,11 +485,8 @@ export function BrowsePage() {
       {selectedExercise && (
         <ExerciseModal
           exerciseMetadata={selectedExercise}
-          learnerExerciseStatus="not-started"
-          onClose={() => setSelectedExercise(null)}
-          onStart={() => setSelectedExercise(null)}
-          isLoggedIn={isLoggedIn}
           pageType={skill}
+          onClose={() => setSelectedExercise(null)}
         />
       )}
     </div>
