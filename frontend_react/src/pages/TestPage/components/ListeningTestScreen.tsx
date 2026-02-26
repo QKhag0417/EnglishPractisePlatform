@@ -1,76 +1,83 @@
-import React from "react";
+import React, { use } from "react";
 import { Pause, Play, Volume2 } from "lucide-react";
+import { useNavigate } from "react-router";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
 
 import type { ExercisePrompt, UserAnswers } from "../types.ts";
 
+import { API_BASE } from "../../../env.ts";
+import { mockListeningExercisePrompt } from "../mock/exercisePrompts.mock.ts";
+import {
+  useExercisePrompt,
+  useCountdownTimer,
+  useSubmitModal,
+  useUserAnswer,
+  useAudioPlayer,
+  useExitModal,
+} from "../hooks/index.ts";
+
+import { formatTime } from "../utils/formatTime.ts";
+import { buildAudioUrl } from "../utils/buildAudioUrl.ts";
+
 type Props = {
-  exercisePrompt: ExercisePrompt;
-
-  // timer
-  timeRemaining: number;
-  formatTime: (seconds: number) => string;
-
-  // answers
-  answers: UserAnswers;
-  currentQuestionIndex: number;
-  onAnswerChange: (questionId: number, value: string | string[]) => void;
-
-  // audio
-  audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean;
-  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
-  audioProgress: number;
-  currentTime: number;
-  duration: number;
-  onLoadedMetadata: () => void;
-  onTimeUpdate: () => void;
-  onEnded: () => void;
-  onSeek: (e: React.MouseEvent<HTMLDivElement>) => void;
-  buildAudioUrl: (path?: string) => string;
-
-  // actions
-  onExitTest: () => void;
-  onSubmit: () => void;
-
-  // modals
-  showSubmitModal: boolean;
-  setShowSubmitModal: React.Dispatch<React.SetStateAction<boolean>>;
-  showExitModal: boolean;
-  setShowExitModal: React.Dispatch<React.SetStateAction<boolean>>;
-  onConfirmSubmit: () => void;
-  onConfirmExit: () => void;
+  exerciseId: string;
 };
 
-export function ListeningTestScreen({
-  exercisePrompt,
-  timeRemaining,
-  formatTime,
-  answers,
-  currentQuestionIndex,
-  onAnswerChange,
-  audioRef,
-  isPlaying,
-  setIsPlaying,
-  audioProgress,
-  currentTime,
-  duration,
-  onLoadedMetadata,
-  onTimeUpdate,
-  onEnded,
-  onSeek,
-  buildAudioUrl,
-  onExitTest,
-  onSubmit,
-  showSubmitModal,
-  setShowSubmitModal,
-  showExitModal,
-  setShowExitModal,
-  onConfirmSubmit,
-  onConfirmExit,
-}: Props) {
+export function ListeningTestScreen({ exerciseId }: Props) {
+  // =========================
+  // Navigation
+  // =========================
+  const navigate = useNavigate();
+
+  // =========================
+  // Get exercise test data
+  // =========================
+  const { exercisePrompt } = useExercisePrompt({
+    apiBase: API_BASE + "error",
+    // apiBase: API_BASE,
+    exerciseId,
+    initialPrompt: mockListeningExercisePrompt as ExercisePrompt,
+  });
+
+  // =========================
+  // Submit Modal
+  // =========================
+
+  const submitModal = useSubmitModal({});
+
+  // =========================
+  // Countdown Timer
+  // =========================
+  const countdownTimer = useCountdownTimer({
+    durationMinutes: exercisePrompt.duration,
+    isRunning: true,
+    onExpire: submitModal.openSubmitModal,
+  });
+
+  // =========================
+  // User Answers
+  // =========================
+
+  const userAnswer = useUserAnswer({});
+
+  // =========================
+  // Audio Player
+  // =========================
+
+  const audioPlayer = useAudioPlayer({
+    audioUrl: exercisePrompt.audioUrl || "",
+  }); // TODO: handle missing audioUrl case better
+
+  // =========================
+  // Exit Modal
+  // =========================
+
+  const exitPath = `/${exercisePrompt.skill.toLowerCase()}/browse`;
+
+  const exitModal = useExitModal({ onExit: () => navigate(exitPath) });
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -86,13 +93,13 @@ export function ListeningTestScreen({
             </span>
             <div className="bg-white px-5 py-2 rounded-md">
               <span className="text-[18px] font-bold text-[#1977f3]">
-                {formatTime(timeRemaining)}
+                {formatTime(countdownTimer.secondsRemaining)}
               </span>
             </div>
           </div>
 
           <button
-            onClick={onExitTest}
+            onClick={exitModal.openExitModal}
             className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-colors"
           >
             Exit test
@@ -104,23 +111,23 @@ export function ListeningTestScreen({
       <div className="max-w-[1200px] mx-auto px-8 py-8">
         {/* Audio Player */}
         <audio
-          ref={audioRef}
-          src={buildAudioUrl(exercisePrompt.audioUrl)}
+          ref={audioPlayer.audioRef}
+          src={buildAudioUrl(exercisePrompt.audioUrl || "")} // TODO: handle missing audioUrl case better
           preload="metadata"
-          onLoadedMetadata={onLoadedMetadata}
-          onTimeUpdate={onTimeUpdate}
-          onEnded={onEnded}
+          onLoadedMetadata={audioPlayer.handleLoadedMetadata}
+          onTimeUpdate={audioPlayer.handleTimeUpdate}
+          onEnded={audioPlayer.handleEnded}
         />
 
         <div className="bg-[#f5f5dc] border border-gray-300 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsPlaying((p) => !p)}
+                onClick={audioPlayer.togglePlay}
                 className="bg-[#fcbf65] hover:bg-[#e5ab52] text-white p-3 rounded-full transition-colors"
                 type="button"
               >
-                {isPlaying ? (
+                {audioPlayer.isPlaying ? (
                   <Pause className="w-6 h-6" />
                 ) : (
                   <Play className="w-6 h-6" />
@@ -131,23 +138,25 @@ export function ListeningTestScreen({
             </div>
 
             <div className="text-[16px] text-gray-600">
-              <span className="font-medium">{formatTime(currentTime)}</span> /{" "}
-              <span>{formatTime(duration)}</span>
+              <span className="font-medium">
+                {formatTime(audioPlayer.currentTime)}
+              </span>{" "}
+              / <span>{formatTime(audioPlayer.duration)}</span>
             </div>
           </div>
 
           {/* Progress Bar */}
           <div
             className="w-full bg-gray-300 rounded-full h-2 cursor-pointer"
-            onClick={onSeek}
+            onClick={audioPlayer.handleSeek}
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={Math.round(audioProgress)}
+            aria-valuenow={Math.round(audioPlayer.audioProgress)}
           >
             <div
               className="bg-[#fcbf65] h-2 rounded-full transition-all"
-              style={{ width: `${audioProgress}%` }}
+              style={{ width: `${audioPlayer.audioProgress}%` }}
             />
           </div>
         </div>
@@ -160,8 +169,8 @@ export function ListeningTestScreen({
 
           <InstructionRenderer
             instruction={exercisePrompt.examText}
-            userAnswers={answers}
-            onAnswerChange={onAnswerChange}
+            userAnswers={userAnswer.answers}
+            onAnswerChange={userAnswer.onAnswerChange}
           />
         </div>
 
@@ -170,13 +179,13 @@ export function ListeningTestScreen({
           <div className="flex items-center gap-3 flex-wrap">
             {Array.from({ length: exercisePrompt.totalQuestions }).map(
               (_, index) => {
-                const answer = answers[index + 1];
+                const answer = userAnswer.answers[index + 1];
 
                 const isAnswered = Array.isArray(answer)
                   ? answer.length > 0
                   : typeof answer === "string" && answer.trim().length > 0;
 
-                const isCurrent = currentQuestionIndex === index;
+                const isCurrent = userAnswer.currentQuestionIndex === index;
 
                 return (
                   <button
@@ -193,7 +202,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
           </div>
 
           <button
-            onClick={onSubmit}
+            onClick={submitModal.openSubmitModal}
             className="bg-[#fcbf65] hover:bg-[#e5ab52] text-black px-10 py-3 rounded-lg font-bold text-[18px] transition-colors"
           >
             Submit
@@ -202,28 +211,28 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
       </div>
 
       {/* Submit Confirmation Modal */}
-      {showSubmitModal && (
+      {submitModal.showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
               Submit Test?
             </h2>
             <p className="font-['Inter'] text-[16px] text-gray-700 mb-6">
-              {timeRemaining === 0
+              {countdownTimer.secondsRemaining === 0
                 ? "Time is up! Your test will be submitted automatically."
                 : "Are you sure you want to submit your test? You cannot change your answers after submission."}
             </p>
             <div className="flex gap-4">
-              {timeRemaining > 0 && (
+              {countdownTimer.secondsRemaining > 0 && (
                 <button
-                  onClick={() => setShowSubmitModal(false)}
+                  onClick={() => submitModal.setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 >
                   Continue Test
                 </button>
               )}
               <button
-                onClick={onConfirmSubmit}
+                onClick={submitModal.confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
                 Submit
@@ -234,7 +243,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
       )}
 
       {/* Exit Confirmation Modal */}
-      {showExitModal && (
+      {exitModal.showExitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
@@ -246,13 +255,13 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
             </p>
             <div className="flex gap-4">
               <button
-                onClick={() => setShowExitModal(false)}
+                onClick={() => exitModal.setShowExitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={onConfirmExit}
+                onClick={exitModal.confirmExit}
                 className="flex-1 px-6 py-3 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
                 Exit

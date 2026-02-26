@@ -1,4 +1,4 @@
-export type Skill = "LISTENING" | "READING" | "WRITING" | "SPEAKING";
+export type Skill = "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
 
 export interface ExerciseInstruction {
   id: string;
@@ -15,7 +15,7 @@ export type TestState = "instruction" | "test" | "results";
 
 export type ExercisePrompt = {
   id: string;
-  skill: Skill | string;
+  skill: Skill;
   task: number;
   duration: number;
   passageTitle?: string;

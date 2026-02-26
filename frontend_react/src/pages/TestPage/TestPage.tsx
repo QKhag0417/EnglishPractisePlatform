@@ -10,18 +10,9 @@ import {
   ReadingTestScreen,
 } from "./components/index.ts";
 
-import {
-  useExercisePrompt,
-  useExerciseAnswers,
-  useTestFlow,
-  useAudioPlayer,
-  useSyncedCountdownTimer,
-  useAudioSrc,
-} from "./hooks/index.ts";
+import { useExercisePrompt } from "./hooks/index.ts";
 
-import { formatTime } from "./utils/tempUtils.ts";
-
-import type { ExerciseAnswer, ExercisePrompt, Skill } from "./types.ts";
+import type { ExercisePrompt } from "./types.ts";
 
 import {
   mockListeningExercisePrompt,
@@ -29,8 +20,12 @@ import {
 } from "./mock/exercisePrompts.mock.ts";
 import { mockExerciseAnswers } from "./mock/exerciseAnswers.mock.ts";
 
+import { useTestFlow } from "./hooks";
+
 export function TestPage() {
-  const { exerciseId } = useParams();
+  // =========================
+  // Auth and navigation
+  // =========================
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -38,6 +33,16 @@ export function TestPage() {
     logout();
     navigate("/");
   };
+
+  // =========================
+  // Choosen exercise id
+  // =========================
+
+  const { exerciseId } = useParams();
+
+  // =========================
+  // Get exercise data
+  // =========================
 
   // data
   const { exercisePrompt } = useExercisePrompt({
@@ -47,57 +52,16 @@ export function TestPage() {
     initialPrompt: mockListeningExercisePrompt as ExercisePrompt,
   });
 
-  const { exerciseAnswers } = useExerciseAnswers({
-    apiBase: API_BASE + "error",
-    // apiBase: API_BASE,
-    exerciseId,
-    initialAnswers: mockExerciseAnswers as ExerciseAnswer,
-  });
-
   // flow
-  const browsePath = `/${exercisePrompt.skill.toLowerCase()}/browse`;
 
-  const flow = useTestFlow({
-    onExitToLibrary: () => navigate(browsePath),
-  });
-
-  // timer (fully synced internally)
-  const timer = useSyncedCountdownTimer({
-    durationMinutes: exercisePrompt.duration,
-    isRunning: flow.testState === "test",
-    onExpire: flow.openSubmitModal,
-  });
-
-  // audio
-  const audio = useAudioPlayer({ resetKey: exercisePrompt.audioUrl });
-  const audioSrc = useAudioSrc(API_BASE, exercisePrompt.audioUrl);
-
-  const resetTest = () => {
-    audio.resetAudio();
-    flow.resetFlow(0);
-    timer.reset(exercisePrompt.duration);
-  };
+  const flow = useTestFlow({});
 
   // Instruction Screen
   if (flow.testState === "instruction") {
     return (
       <TestInstructionScreen
-        skill={exercisePrompt.skill as Skill}
+        skill={exercisePrompt.skill}
         onStartTest={flow.startTest}
-      />
-    );
-  }
-
-  // Results Screen
-  if (flow.testState === "results") {
-    return (
-      <TestResultScreen
-        userAnswers={flow.answers}
-        exerciseAnswers={exerciseAnswers.correctAnswers}
-        timeSpent={flow.timeSpent}
-        onReturnToLibrary={() => navigate(browsePath)}
-        onTakeAnotherTest={resetTest}
-        onLogout={handleLogout}
       />
     );
   }
@@ -105,56 +69,42 @@ export function TestPage() {
   // Test Screen
   if (flow.testState === "test") {
     if (exercisePrompt.skill === "LISTENING") {
-      return (
-        <ListeningTestScreen
-          exercisePrompt={exercisePrompt}
-          timeRemaining={timer.secondsRemaining}
-          formatTime={formatTime}
-          answers={flow.answers}
-          currentQuestionIndex={flow.currentQuestionIndex}
-          onAnswerChange={flow.onAnswerChange}
-          audioRef={audio.audioRef}
-          isPlaying={audio.isPlaying}
-          setIsPlaying={audio.togglePlay}
-          audioProgress={audio.audioProgress}
-          currentTime={audio.currentTime}
-          duration={audio.duration}
-          onLoadedMetadata={audio.handleLoadedMetadata}
-          onTimeUpdate={audio.handleTimeUpdate}
-          onEnded={audio.handleEnded}
-          onSeek={audio.handleSeek}
-          buildAudioUrl={() => audioSrc}
-          onExitTest={flow.openExitModal}
-          onSubmit={flow.openSubmitModal}
-          showSubmitModal={flow.showSubmitModal}
-          setShowSubmitModal={flow.setShowSubmitModal}
-          showExitModal={flow.showExitModal}
-          setShowExitModal={flow.setShowExitModal}
-          onConfirmSubmit={flow.confirmSubmit}
-          onConfirmExit={flow.confirmExit}
-        />
-      );
+      return <ListeningTestScreen exerciseId={exerciseId || ""} />;
     }
 
-    if (exercisePrompt.skill === "READING") {
-      return (
-        <ReadingTestScreen
-          exercisePrompt={exercisePrompt}
-          timeRemaining={timer.secondsRemaining}
-          formatTime={formatTime}
-          answers={flow.answers}
-          currentQuestionIndex={flow.currentQuestionIndex}
-          onAnswerChange={flow.onAnswerChange}
-          onExitTest={flow.openExitModal}
-          onSubmit={flow.openSubmitModal}
-          showSubmitModal={flow.showSubmitModal}
-          setShowSubmitModal={flow.setShowSubmitModal}
-          showExitModal={flow.showExitModal}
-          setShowExitModal={flow.setShowExitModal}
-          onConfirmSubmit={flow.confirmSubmit}
-          onConfirmExit={flow.confirmExit}
-        />
-      );
-    }
+    // if (exercisePrompt.skill === "READING") {
+    //   return (
+    //     <ReadingTestScreen
+    //       exercisePrompt={exercisePrompt}
+    //       timeRemaining={timer.secondsRemaining}
+    //       formatTime={formatTime}
+    //       answers={flow.answers}
+    //       currentQuestionIndex={flow.currentQuestionIndex}
+    //       onAnswerChange={flow.onAnswerChange}
+    //       onExitTest={flow.openExitModal}
+    //       onSubmit={flow.openSubmitModal}
+    //       showSubmitModal={flow.showSubmitModal}
+    //       setShowSubmitModal={flow.setShowSubmitModal}
+    //       showExitModal={flow.showExitModal}
+    //       setShowExitModal={flow.setShowExitModal}
+    //       onConfirmSubmit={flow.confirmSubmit}
+    //       onConfirmExit={flow.confirmExit}
+    //     />
+    //   );
+    // }
   }
+
+  // // Results Screen
+  // if (flow.testState === "results") {
+  //   return (
+  //     <TestResultScreen
+  //       userAnswers={flow.answers}
+  //       exerciseAnswers={exerciseAnswers.correctAnswers}
+  //       timeSpent={flow.timeSpent}
+  //       onReturnToLibrary={() => navigate(browsePath)}
+  //       onTakeAnotherTest={resetTest}
+  //       onLogout={handleLogout}
+  //     />
+  //   );
+  // }
 }

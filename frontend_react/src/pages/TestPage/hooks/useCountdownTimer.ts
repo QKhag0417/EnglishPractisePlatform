@@ -7,7 +7,7 @@ type Args = {
   syncWhenNotRunning?: boolean; // default true
 };
 
-export function useSyncedCountdownTimer({
+export function useCountdownTimer({
   durationMinutes,
   isRunning,
   onExpire,
@@ -20,7 +20,7 @@ export function useSyncedCountdownTimer({
 
   const [secondsRemaining, setSecondsRemaining] = useState(initialSeconds);
 
-  // ✅ sync to new duration when NOT running (no page-level useEffect needed)
+  // sync to new duration when NOT running (no page-level useEffect needed)
   useEffect(() => {
     if (!syncWhenNotRunning) return;
     if (!isRunning) setSecondsRemaining(initialSeconds);

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Args = {
-  resetKey?: string; // change this to reset audio UI (e.g. audioUrl)
+  audioUrl: string;
 };
 
-export function useAudioPlayer({ resetKey }: Args) {
+export function useAudioPlayer({ audioUrl }: Args) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -36,7 +36,7 @@ export function useAudioPlayer({ resetKey }: Args) {
     setAudioProgress(0);
     setCurrentTime(0);
     setDuration(0);
-  }, [resetKey]);
+  }, [audioUrl]);
 
   const togglePlay = useCallback(() => {
     setIsPlaying((p) => !p);
