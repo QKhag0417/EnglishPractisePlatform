@@ -16,7 +16,7 @@ export function ExerciseCard({ exercise, onSelect }: ExerciseCardProps) {
   const { isLoggedIn } = useAuth();
 
   // =========================
-  // Bookmark
+  // Bookmark practice content
   // =========================
 
   const [isBookmarked, setIsBookmarked] = useState(false);

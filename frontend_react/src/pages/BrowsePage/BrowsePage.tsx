@@ -19,6 +19,8 @@ import { ExerciseMetadata } from "./types";
 
 const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
+// TODO: We need to implement publish/draft, learner exercise status, bookmark, attempts
+
 export function BrowsePage() {
   // =========================
   // Auth and navigation
@@ -26,6 +28,7 @@ export function BrowsePage() {
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
+  // TODO: Why do BrowsePage care about handleLogout? We should change Navbar to support logout directly without passing down the handler from BrowsePage
   const handleLogout = () => {
     logout();
     navigate("/");

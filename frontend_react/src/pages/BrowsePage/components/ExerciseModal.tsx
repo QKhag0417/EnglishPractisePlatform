@@ -35,7 +35,7 @@ export function ExerciseModal({
   const navigate = useNavigate();
 
   // =========================
-  // Learner exercise status (mocked for now)
+  // Learner exercise status
   // =========================
 
   const learnerExerciseStatus = MOCK_LEARNER_EXERCISE_STATUS;
