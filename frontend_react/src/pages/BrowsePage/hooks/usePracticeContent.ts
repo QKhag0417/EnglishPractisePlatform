@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { API_BASE } from "../../../env";
+import { useApiGet } from "../../../utils/api/useApiGet";
 import {
   ExerciseMetadata,
   PracticeContentDTO,
   PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
 } from "../types";
-import { apiGet } from "../../../utils/api";
+import { mockExercises } from "../mocks/exercises.mock";
+import { useEffect } from "react";
 
-export function formatLocalDateTimeArrayToISODate(arr?: number[]): string {
+function mapTime(arr?: number[]): string {
   if (!arr || arr.length < 3) return "";
 
   const [y, m, d] = arr;
@@ -18,11 +20,9 @@ export function formatLocalDateTimeArrayToISODate(arr?: number[]): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function parseTaskNumberFromString(task: string): number {
+function mapTask(task: string): number {
   const match = task.match(/(\d+)/);
-  const n = match ? Number(match[1]) : NaN;
-
-  return n;
+  return match ? Number(match[1]) : NaN;
 }
 
 function mapPracticeContentDTOToExerciseMetadata(
@@ -34,77 +34,44 @@ function mapPracticeContentDTOToExerciseMetadata(
     title: dto.title ?? "",
     attempts: "0",
     image: dto.thumbnailUrl ?? "",
-    task: parseTaskNumberFromString(dto.task),
+    task: mapTask(dto.task),
     questionTypes: dto.questionTypeTags ?? [],
     topics: dto.topicTags ?? [],
     status: dto.status,
-    updated: formatLocalDateTimeArrayToISODate(dto.updatedOn),
+    updated: mapTime(dto.updatedOn),
     questions: dto.questionCount ?? 0,
     duration: dto.durationMinutes ?? 0,
   };
 }
 
-export function usePracticeContent(params: {
-  apiBase: string;
-  initialExercises?: ExerciseMetadata[];
-}) {
-  const { apiBase, initialExercises = [] } = params;
+function mapPracticeContentDTOListToExerciseMetadataList(
+  dtos: PracticeContentDTO[] | null,
+): ExerciseMetadata[] {
+  return (dtos ?? []).map(mapPracticeContentDTOToExerciseMetadata);
+}
 
-  const [exercises, setExercises] =
-    useState<ExerciseMetadata[]>(initialExercises);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function usePracticeContent() {
+  const {
+    item: exercises,
+    setItem: setExercises,
+    loading,
+    error,
+    get,
+  } = useApiGet<PracticeContentDTO[], ExerciseMetadata[]>({
+    request: {
+      apiBase: API_BASE,
+      path: "/api/practice-content",
+      include: PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
+    },
+    initialItem: mockExercises,
+    mapItem: mapPracticeContentDTOListToExerciseMetadataList,
+  });
 
-  const abortRef = useRef<AbortController | null>(null);
-
-  const fetchExercises = useCallback(async () => {
-    abortRef.current?.abort();
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await apiGet<PracticeContentDTO[]>({
-        apiBase,
-        path: "/api/practice-content",
-        include: PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
-        signal: controller.signal,
-      });
-
-      if (controller.signal.aborted) return;
-
-      if (!res.ok) {
-        setError(res.message);
-        return;
-      }
-
-      setExercises(
-        (res.data ?? []).map(mapPracticeContentDTOToExerciseMetadata),
-      );
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }, [apiBase]);
-
-  useEffect(() => {
-    void fetchExercises();
-
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, [fetchExercises]);
-
-  return useMemo(
-    () => ({
-      exercises,
-      setExercises,
-      loading,
-      error,
-      refetch: fetchExercises,
-    }),
-    [exercises, loading, error, fetchExercises],
-  );
+  return {
+    exercises,
+    setExercises,
+    loading,
+    error,
+    get,
+  };
 }

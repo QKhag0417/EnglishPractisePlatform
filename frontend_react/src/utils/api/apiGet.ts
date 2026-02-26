@@ -43,18 +43,24 @@ export async function apiGet<T>(params: {
     (ok ? console.info : console.error)("[apiGet]", result);
     return result;
   } catch (e: any) {
-    const message =
-      e?.name === "AbortError"
-        ? "Request aborted"
-        : (e?.message ?? "Network error");
+    if (e?.name === "AbortError") {
+      const result: ApiResult<T> = {
+        ok: false,
+        data: null,
+        message: "Request aborted",
+        url: url.toString(),
+      };
+      console.info("[apiGet]", result);
+      return result;
+    }
 
+    const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,
       data: null,
       message,
       url: url.toString(),
     };
-
     console.error("[apiGet]", result, e);
     return result;
   }

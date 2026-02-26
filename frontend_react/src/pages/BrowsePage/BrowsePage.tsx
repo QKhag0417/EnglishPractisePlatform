@@ -13,9 +13,6 @@ import {
   useExercisesBySkill,
 } from "./hooks";
 import { ExerciseMetadata } from "./types";
-import { API_BASE } from "../../env";
-
-import { mockExercises } from "./mocks/exercises.mock";
 
 const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
@@ -49,11 +46,11 @@ export function BrowsePage() {
   // =========================
   // Data fetching (load exercises metadata)
   // =========================
-  const { exercises, loading, error, refetch } = usePracticeContent({
-    apiBase: API_BASE + "error", // to test mock state
-    // apiBase: API_BASE,
-    initialExercises: mockExercises,
-  });
+  const { exercises, get: getExercises } = usePracticeContent();
+
+  useEffect(() => {
+    void getExercises();
+  }, [getExercises]);
 
   // =========================
   // Compose 3 hooks directly

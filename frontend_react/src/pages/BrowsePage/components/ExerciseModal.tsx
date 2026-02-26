@@ -10,7 +10,7 @@ import {
 import { TagChips } from "./TagChips";
 import { useNavigate } from "react-router";
 import { ExerciseMetadata } from "../types";
-import { buildImageUrl } from "../../../utils/files/buildImageUrl";
+import { buildImageUrl } from "../utils/buildImageUrl";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
