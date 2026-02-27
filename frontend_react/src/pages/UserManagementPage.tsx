@@ -123,18 +123,16 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   // API mapping + error helpers
   // =========================
   function mapApiUser(u: ApiUser): UserData {
-    const createdAt = u.createdAt ?? new Date().toISOString();
-    const lastActive = u.lastLoginAt ?? createdAt;
-
     return {
       id: String(u.userId),
-      name: `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || "(No name)",
-      email: u.email ?? "",
+      name:
+        `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || "(No name)",
+      email: u.email ?? "—",
       role: u.role === "Administrator" ? "Administrator" : "Learner",
       status: u.isActive ? "Active" : "Inactive",
-      joinedDate: createdAt,
-      lastActive,
-      testsCompleted: u.testsCompleted ?? 0,
+      joinedDate: u.createdAt ?? new Date().toISOString(),
+      lastActive: u.lastLoginAt ?? u.createdAt ?? new Date().toISOString(),
+      testsCompleted: 0, // remove if not used
     };
   }
 
@@ -155,11 +153,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/user`, {
-        method: "GET",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
+      const res = await fetch(
+        `${API_BASE}/api/user?include=email,firstname,lastname,isactive,createdat,lastloginat,role`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        }
+      );
 
       if (res.status === 401) {
         handleUnauthorized();
@@ -334,7 +335,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           await fetchUsers();
         }
       } else {
-        const res = await fetch(API_BASE, {
+        const res = await fetch(`${API_BASE}/api/user`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -464,7 +465,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               />
             </div>
 
-            <Select value={filterRole} onValueChange={handleFormRoleChange}>
+            <Select value={filterRole} onValueChange={handleRoleFilterChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
