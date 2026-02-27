@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 
-type Args = {};
+type Args = { onSubmitTest: () => void };
 
-export function useSubmitModal({}: Args) {
+export function useSubmitModal({ onSubmitTest }: Args) {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const openSubmitModal = useCallback(() => setShowSubmitModal(true), []);
@@ -10,7 +10,8 @@ export function useSubmitModal({}: Args) {
 
   const confirmSubmit = useCallback(() => {
     setShowSubmitModal(false);
-  }, []);
+    onSubmitTest();
+  }, [onSubmitTest]);
 
   return {
     showSubmitModal,

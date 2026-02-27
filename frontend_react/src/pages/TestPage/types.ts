@@ -1,4 +1,4 @@
-export type Skill = "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
+export type Skill = "listening" | "reading" | "writing" | "speaking" | string;
 
 export interface ExerciseInstruction {
   id: string;
@@ -13,16 +13,22 @@ export type UserAnswers = Record<number, string | string[]>;
 
 export type TestState = "instruction" | "test" | "results";
 
-export type ExercisePrompt = {
+export type ExerciseBase = {
   id: string;
-  skill: Skill;
   task: number;
   duration: number;
-  passageTitle?: string;
-  passageText?: string;
-  audioUrl?: string;
   examText: string;
   totalQuestions: number;
+};
+
+export type ListeningExercise = ExerciseBase & {
+  skill: "listening";
+  audioUrl: string;
+};
+
+export type ReadingExercise = ExerciseBase & {
+  skill: "reading";
+  passageText: string;
 };
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [

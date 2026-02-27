@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 
 import { useAuth } from "../../contexts/AuthContext.tsx";
-import { API_BASE } from "../../env.ts";
 
 import {
   TestInstructionScreen,
@@ -10,22 +9,13 @@ import {
   ReadingTestScreen,
 } from "./components/index.ts";
 
-import { useExercisePrompt } from "./hooks/index.ts";
-
-import type { ExercisePrompt } from "./types.ts";
-
-import {
-  mockListeningExercisePrompt,
-  mockReadingExercisePrompt,
-} from "./mock/exercisePrompts.mock.ts";
-import { mockExerciseAnswers } from "./mock/exerciseAnswers.mock.ts";
-
 import { useTestFlow } from "./hooks";
 
 export function TestPage() {
   // =========================
   // Auth and navigation
   // =========================
+
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -38,38 +28,30 @@ export function TestPage() {
   // Choosen exercise id
   // =========================
 
-  const { exerciseId } = useParams();
+  const { skill, exerciseId } = useParams();
 
   // =========================
-  // Get exercise data
+  // Test flow management
   // =========================
-
-  // data
-  const { exercisePrompt } = useExercisePrompt({
-    apiBase: API_BASE + "error",
-    // apiBase: API_BASE,
-    exerciseId,
-    initialPrompt: mockListeningExercisePrompt as ExercisePrompt,
-  });
-
-  // flow
 
   const flow = useTestFlow({});
 
   // Instruction Screen
   if (flow.testState === "instruction") {
     return (
-      <TestInstructionScreen
-        skill={exercisePrompt.skill}
-        onStartTest={flow.startTest}
-      />
+      <TestInstructionScreen skill={skill || ""} onStartTest={flow.startTest} />
     );
   }
 
   // Test Screen
   if (flow.testState === "test") {
-    if (exercisePrompt.skill === "LISTENING") {
-      return <ListeningTestScreen exerciseId={exerciseId || ""} />;
+    if (skill === "listening") {
+      return (
+        <ListeningTestScreen
+          exerciseId={exerciseId || ""}
+          onSubmitTest={flow.submitTest}
+        />
+      );
     }
 
     // if (exercisePrompt.skill === "READING") {

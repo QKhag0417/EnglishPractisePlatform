@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
 
-import type { ExercisePrompt, UserAnswers } from "../types.ts";
+import type { ListeningExercise } from "../types.ts";
 
 import { API_BASE } from "../../../env.ts";
 import { mockListeningExercisePrompt } from "../mock/exercisePrompts.mock.ts";
@@ -23,33 +23,37 @@ import { buildAudioUrl } from "../utils/buildAudioUrl.ts";
 
 type Props = {
   exerciseId: string;
+  onSubmitTest: () => void;
 };
 
-export function ListeningTestScreen({ exerciseId }: Props) {
+export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
   // =========================
   // Navigation
   // =========================
+
   const navigate = useNavigate();
 
   // =========================
   // Get exercise test data
   // =========================
+
   const { exercisePrompt } = useExercisePrompt({
     apiBase: API_BASE + "error",
     // apiBase: API_BASE,
     exerciseId,
-    initialPrompt: mockListeningExercisePrompt as ExercisePrompt,
+    initialPrompt: mockListeningExercisePrompt as ListeningExercise,
   });
 
   // =========================
   // Submit Modal
   // =========================
 
-  const submitModal = useSubmitModal({});
+  const submitModal = useSubmitModal({ onSubmitTest });
 
   // =========================
   // Countdown Timer
   // =========================
+
   const countdownTimer = useCountdownTimer({
     durationMinutes: exercisePrompt.duration,
     isRunning: true,
@@ -112,7 +116,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
         {/* Audio Player */}
         <audio
           ref={audioPlayer.audioRef}
-          src={buildAudioUrl(exercisePrompt.audioUrl || "")} // TODO: handle missing audioUrl case better
+          src={buildAudioUrl(API_BASE, exercisePrompt.audioUrl || "")} // TODO: handle missing audioUrl case better
           preload="metadata"
           onLoadedMetadata={audioPlayer.handleLoadedMetadata}
           onTimeUpdate={audioPlayer.handleTimeUpdate}

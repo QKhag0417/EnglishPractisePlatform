@@ -1,8 +1,8 @@
-import { ExercisePrompt } from "../types";
+import { ListeningExercise, ReadingExercise } from "../types";
 
-export const mockListeningExercisePrompt: ExercisePrompt = {
+export const mockListeningExercisePrompt: ListeningExercise = {
   id: "1",
-  skill: "LISTENING",
+  skill: "listening",
   task: 1,
   duration: 12,
   audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
@@ -53,12 +53,11 @@ Statement: The course starts next Monday.
   totalQuestions: 5,
 };
 
-export const mockReadingExercisePrompt: ExercisePrompt = {
+export const mockReadingExercisePrompt: ReadingExercise = {
   id: "2",
-  skill: "READING",
+  skill: "reading",
   task: 1,
   duration: 18,
-  passageTitle: "Urban Gardening",
   passageText: `
 Urban gardening has grown rapidly over the past decade as more people move into cities and look for ways to produce fresh food locally. Rooftops, balconies, and small community plots are being transformed into green spaces that provide vegetables, herbs, and even fruit. Supporters say these gardens not only improve access to healthy food, but also reduce the “food miles” required to transport produce from rural farms to urban supermarkets.
 

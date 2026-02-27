@@ -1,7 +1,7 @@
 import { ExerciseInstruction, Skill } from "../types.ts";
 
 export const exerciseInstructionsBySkill: Record<Skill, ExerciseInstruction> = {
-  LISTENING: {
+  listening: {
     id: "1",
     skill: "LISTENING",
     title: "IELTS Academic Listening",
@@ -19,7 +19,7 @@ export const exerciseInstructionsBySkill: Record<Skill, ExerciseInstruction> = {
     ],
   },
 
-  READING: {
+  reading: {
     id: "2",
     skill: "READING",
     title: "IELTS Academic Reading",
@@ -37,7 +37,7 @@ export const exerciseInstructionsBySkill: Record<Skill, ExerciseInstruction> = {
     ],
   },
 
-  WRITING: {
+  writing: {
     id: "3",
     skill: "WRITING",
     title: "IELTS Academic Writing",
@@ -55,7 +55,7 @@ export const exerciseInstructionsBySkill: Record<Skill, ExerciseInstruction> = {
     ],
   },
 
-  SPEAKING: {
+  speaking: {
     id: "4",
     skill: "SPEAKING",
     title: "IELTS Speaking",

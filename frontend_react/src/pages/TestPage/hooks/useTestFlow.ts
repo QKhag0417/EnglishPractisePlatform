@@ -10,9 +10,14 @@ export function useTestFlow({}: Args) {
     setTestState("test");
   }, []);
 
+  const submitTest = useCallback(() => {
+    setTestState("results");
+  }, []);
+
   return {
     testState,
     setTestState,
     startTest,
+    submitTest,
   };
 }
