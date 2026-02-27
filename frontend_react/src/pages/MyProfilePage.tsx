@@ -568,7 +568,7 @@ function PracticeTestHistoryContent() {
                   </div>
                 </td>
                 <td className="px-[20px] py-[16px] font-['Inter'] text-[14px] text-gray-900">
-                  {test.score || '-'}
+                  {test.scoreByAI || '-'}
                 </td>
                 <td className="px-[20px] py-[16px] font-['Inter'] text-[14px] text-gray-900 whitespace-nowrap">
                   {test.timeSpent || '-'}

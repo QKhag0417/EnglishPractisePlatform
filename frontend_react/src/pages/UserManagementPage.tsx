@@ -245,7 +245,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     setFormEmail(user.email);
     setFormRole(user.role);
     setFormStatus(user.status);
-    setFormPassword(""); // clear
+    setFormPassword("");
     setFormError("");
   };
 
@@ -357,15 +357,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           return;
         }
 
-        const json = (await res.json()) as ApiResponse<ApiUser>;
-        const created = json.data ? mapApiUser(json.data) : null;
-
-        if (created) {
-          setUsers((prev) => [...prev, created]);
-        } else {
-          // fallback
-          await fetchUsers();
-        }
+        await fetchUsers();
       }
 
       // reset + close
@@ -652,10 +644,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
-                  id="password"
+                  id="user-password-input"
+                  name="user_password_input"
                   type="password"
+                  autoComplete="new-password"
                   value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormPassword(e.target.value)
+                  }
                   placeholder="Enter password"
                 />
               </div>
@@ -663,11 +659,15 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password (optional)</Label>
                 <Input
-                  id="password"
+                  id="user-password-input"
+                  name="user_password_input"
                   type="password"
+                  autoComplete="new-password"
                   value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormPassword(e.target.value)
+                  }
+                  placeholder="Enter password"
                 />
                 <p className="text-[13px] text-gray-500">
                   Leave blank to keep the current password.
