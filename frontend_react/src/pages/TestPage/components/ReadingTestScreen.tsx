@@ -1,7 +1,7 @@
 import React from "react";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
-import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
+import { InstructionRenderer } from "./InstructionParser.tsx";
 
 import type { ExercisePrompt, UserAnswers } from "../types.ts";
 

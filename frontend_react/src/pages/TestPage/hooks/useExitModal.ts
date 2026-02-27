@@ -8,6 +8,7 @@ export function useExitModal({ onExit }: Args) {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const openExitModal = useCallback(() => setShowExitModal(true), []);
+
   const cancelExitModal = useCallback(() => setShowExitModal(false), []);
 
   const confirmExit = useCallback(() => {

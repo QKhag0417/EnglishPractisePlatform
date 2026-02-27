@@ -1,12 +1,50 @@
 // InstructionRenderer.tsx
-import React from "react";
-import {
-  DocNode,
-  InlineNode,
-  parseInstruction,
-} from "../utils/instructionParser";
+import React, { useMemo } from "react";
+import { UserAnswers } from "../types";
 
-type UserAnswers = Record<number, string | string[]>;
+type FontWeight = number | "normal" | "bold" | "bolder" | "lighter";
+type FontStyle = "normal" | "italic" | "oblique";
+
+export type InlineNode =
+  | {
+      type: "text";
+      value: string;
+      size?: number;
+      weight?: FontWeight;
+      style?: FontStyle;
+      color?: string;
+    }
+  | { type: "gap"; n: number };
+
+export type TableCellNode = {
+  colspan?: number;
+  content: InlineNode[];
+};
+
+export type TableRowNode = { cells: TableCellNode[] };
+
+export type MultipleChoiceOption = {
+  key: string;
+  label: string;
+};
+
+export type DocNode =
+  | { type: "paragraph"; inlines: InlineNode[] }
+  | { type: "table"; rows: TableRowNode[] }
+  | { type: "image"; src: string; alt?: string; width?: number }
+  | {
+      type: "multiple-choice";
+      n: number;
+      pick: number;
+      options: MultipleChoiceOption[];
+    };
+
+type Format = {
+  size?: number;
+  weight?: FontWeight;
+  style?: FontStyle;
+  color?: string;
+};
 
 function GapInput({
   n,
@@ -201,16 +239,40 @@ function MultipleChoiceRenderer({
   );
 }
 
+function isDocNodeArray(v: unknown): v is DocNode[] {
+  return (
+    Array.isArray(v) &&
+    v.every((x) => x && typeof x === "object" && "type" in x)
+  );
+}
+
+function normalizeInstruction(
+  instruction: string | DocNode[] | null | undefined,
+): DocNode[] {
+  if (!instruction) return [];
+  if (isDocNodeArray(instruction)) return instruction;
+
+  const trimmed = instruction.trim();
+  if (!trimmed) return [];
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    return isDocNodeArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export function InstructionRenderer({
   instruction,
   userAnswers,
   onAnswerChange,
 }: {
-  instruction: string;
+  instruction: string | DocNode[];
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string | string[]) => void;
 }) {
-  const doc = React.useMemo(() => parseInstruction(instruction), [instruction]);
+  const doc = useMemo(() => normalizeInstruction(instruction), [instruction]);
 
   return (
     <div className="space-y-3 mb-8">

@@ -1,6 +1,5 @@
 export { useAudioPlayer } from "./useAudioPlayer";
-export { useExerciseAnswers } from "./useExerciseAnswers";
-export { useExercisePrompt } from "./useExercisePrompt";
+export { useGetListeningExercise } from "./useGetListeningExercise";
 export { useCountdownTimer } from "./useCountdownTimer";
 export { useTestFlow } from "./useTestFlow";
 export { useSubmitModal } from "./useSubmitModal";

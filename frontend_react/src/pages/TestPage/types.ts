@@ -31,28 +31,33 @@ export type ReadingExercise = ExerciseBase & {
   passageText: string;
 };
 
-export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
+export const PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS = [
   "id",
-  "skill",
   "task",
   "durationMinutes",
-  "audioUrl",
   "instructionsParsed",
   "questionCount",
+  "audioUrl",
 ] as const;
 
-export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
-  PRACTICE_CONTENT_DTO_INCLUDE_FIELDS.join(",");
+export const PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
+  PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS.join(",");
 
-export interface PracticeContentDTO {
+export type PracticeContentDTO = {
   id: string;
-  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
   durationMinutes: number;
-  audioUrl: string;
   instructionsParsed: string;
   questionCount: number;
-}
+};
+
+export type PracticeListeningContentDTO = PracticeContentDTO & {
+  audioUrl: string;
+};
+
+export type PracticeReadingContentDTO = PracticeContentDTO & {
+  passageText: string;
+};
 
 export type ExerciseAnswer = {
   id: string;

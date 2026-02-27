@@ -1,16 +1,16 @@
-import React, { use } from "react";
+import React, { use, useEffect } from "react";
 import { Pause, Play, Volume2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
-import { InstructionRenderer } from "../../../components/InstructionParser.tsx";
+import { InstructionRenderer } from "./InstructionParser.tsx";
 
 import type { ListeningExercise } from "../types.ts";
 
 import { API_BASE } from "../../../env.ts";
 import { mockListeningExercisePrompt } from "../mock/exercisePrompts.mock.ts";
 import {
-  useExercisePrompt,
+  useGetListeningExercise,
   useCountdownTimer,
   useSubmitModal,
   useUserAnswer,
@@ -37,12 +37,11 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
   // Get exercise test data
   // =========================
 
-  const { exercisePrompt } = useExercisePrompt({
-    apiBase: API_BASE + "error",
-    // apiBase: API_BASE,
-    exerciseId,
-    initialPrompt: mockListeningExercisePrompt as ListeningExercise,
-  });
+  const getListeningExercise = useGetListeningExercise(exerciseId);
+
+  useEffect(() => {
+    void getListeningExercise.get();
+  }, [getListeningExercise.get]);
 
   // =========================
   // Submit Modal
@@ -55,7 +54,7 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
   // =========================
 
   const countdownTimer = useCountdownTimer({
-    durationMinutes: exercisePrompt.duration,
+    durationMinutes: getListeningExercise.exercise.duration,
     isRunning: true,
     onExpire: submitModal.openSubmitModal,
   });
@@ -71,14 +70,14 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
   // =========================
 
   const audioPlayer = useAudioPlayer({
-    audioUrl: exercisePrompt.audioUrl || "",
+    audioUrl: getListeningExercise.exercise.audioUrl || "",
   }); // TODO: handle missing audioUrl case better
 
   // =========================
   // Exit Modal
   // =========================
 
-  const exitPath = `/${exercisePrompt.skill.toLowerCase()}/browse`;
+  const exitPath = `/${getListeningExercise.exercise.skill.toLowerCase()}/browse`;
 
   const exitModal = useExitModal({ onExit: () => navigate(exitPath) });
 
@@ -116,7 +115,10 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
         {/* Audio Player */}
         <audio
           ref={audioPlayer.audioRef}
-          src={buildAudioUrl(API_BASE, exercisePrompt.audioUrl || "")} // TODO: handle missing audioUrl case better
+          src={buildAudioUrl(
+            API_BASE,
+            getListeningExercise.exercise.audioUrl || "",
+          )} // TODO: handle missing audioUrl case better
           preload="metadata"
           onLoadedMetadata={audioPlayer.handleLoadedMetadata}
           onTimeUpdate={audioPlayer.handleTimeUpdate}
@@ -168,41 +170,41 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
         {/* Questions */}
         <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
           <h3 className="text-[20px] font-bold text-black mb-2">
-            Part {exercisePrompt.task}
+            Part {getListeningExercise.exercise.task}
           </h3>
 
           <InstructionRenderer
-            instruction={exercisePrompt.examText}
+            instruction={getListeningExercise.exercise.examText}
             userAnswers={userAnswer.answers}
             onAnswerChange={userAnswer.onAnswerChange}
           />
         </div>
 
-        {/* Navigation + Submit */}
+        {/* Navigation and Submit */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            {Array.from({ length: exercisePrompt.totalQuestions }).map(
-              (_, index) => {
-                const answer = userAnswer.answers[index + 1];
+            {Array.from({
+              length: getListeningExercise.exercise.totalQuestions,
+            }).map((_, index) => {
+              const answer = userAnswer.answers[index + 1];
 
-                const isAnswered = Array.isArray(answer)
-                  ? answer.length > 0
-                  : typeof answer === "string" && answer.trim().length > 0;
+              const isAnswered = Array.isArray(answer)
+                ? answer.length > 0
+                : typeof answer === "string" && answer.trim().length > 0;
 
-                const isCurrent = userAnswer.currentQuestionIndex === index;
+              const isCurrent = userAnswer.currentQuestionIndex === index;
 
-                return (
-                  <button
-                    key={index}
-                    className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
+              return (
+                <button
+                  key={index}
+                  className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
 ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
 ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              },
-            )}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
           </div>
 
           <button
