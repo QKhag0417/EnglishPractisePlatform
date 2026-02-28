@@ -39,7 +39,7 @@ export function TestPage() {
   // Instruction Screen
   if (flow.testState === "instruction") {
     return (
-      <TestInstructionScreen skill={skill || ""} onStartTest={flow.startTest} />
+      <TestInstructionScreen skill={skill || ""} onStartTest={flow.goToTest} />
     );
   }
 
@@ -49,7 +49,7 @@ export function TestPage() {
       return (
         <ListeningTestScreen
           exerciseId={exerciseId || ""}
-          onSubmitTest={flow.submitTest}
+          onGoToResults={flow.goToResults}
         />
       );
     }

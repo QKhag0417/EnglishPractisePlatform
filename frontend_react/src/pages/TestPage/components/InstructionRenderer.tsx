@@ -2,10 +2,10 @@
 import React, { useMemo } from "react";
 import { UserAnswers } from "../types";
 
-type FontWeight = number | "normal" | "bold" | "bolder" | "lighter";
-type FontStyle = "normal" | "italic" | "oblique";
+type FontWeight = React.CSSProperties["fontWeight"];
+type FontStyle = React.CSSProperties["fontStyle"];
 
-export type InlineNode =
+type InlineNode =
   | {
       type: "text";
       value: string;
@@ -16,19 +16,19 @@ export type InlineNode =
     }
   | { type: "gap"; n: number };
 
-export type TableCellNode = {
+type TableCellNode = {
   colspan?: number;
   content: InlineNode[];
 };
 
-export type TableRowNode = { cells: TableCellNode[] };
+type TableRowNode = { cells: TableCellNode[] };
 
-export type MultipleChoiceOption = {
+type MultipleChoiceOption = {
   key: string;
   label: string;
 };
 
-export type DocNode =
+type DocNode =
   | { type: "paragraph"; inlines: InlineNode[] }
   | { type: "table"; rows: TableRowNode[] }
   | { type: "image"; src: string; alt?: string; width?: number }
@@ -39,20 +39,17 @@ export type DocNode =
       options: MultipleChoiceOption[];
     };
 
-type Format = {
-  size?: number;
-  weight?: FontWeight;
-  style?: FontStyle;
-  color?: string;
-};
-
 function GapInput({
   n,
+  userAnswers,
   onAnswerChange,
 }: {
   n: number;
-  onAnswerChange?: (questionNumber: number, value: string) => void;
+  userAnswers: UserAnswers;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
+  const selectedAnswers = userAnswers[n] ?? [];
+
   return (
     <span className="inline-flex items-center gap-2 align-middle">
       <span className="flex items-center justify-center w-6 h-6 bg-[#1977f3] text-white rounded-full font-bold text-[12px] flex-shrink-0">
@@ -60,7 +57,8 @@ function GapInput({
       </span>
       <input
         className="h-8 w-[220px] rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
-        onChange={(e) => onAnswerChange?.(n, e.target.value)}
+        value={selectedAnswers[0] ?? ""}
+        onChange={(e) => onAnswerChange?.(n, [e.target.value])}
         placeholder=""
       />
     </span>
@@ -69,10 +67,12 @@ function GapInput({
 
 function InlineRenderer({
   nodes,
+  userAnswers,
   onAnswerChange,
 }: {
   nodes: InlineNode[];
-  onAnswerChange?: (questionNumber: number, value: string) => void;
+  userAnswers: UserAnswers;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
   return (
     <>
@@ -81,8 +81,8 @@ function InlineRenderer({
           const spanStyle: React.CSSProperties = {
             color: node.color,
             fontSize: node.size != null ? `${node.size}px` : undefined,
-            fontWeight: node.weight, // number | "normal" | "bold" | ...
-            fontStyle: node.style, // "normal" | "italic" | "oblique"
+            fontWeight: node.weight,
+            fontStyle: node.style,
           };
 
           return (
@@ -90,25 +90,69 @@ function InlineRenderer({
               {node.value}
             </span>
           );
+        } else if (node.type === "gap") {
+          return (
+            <GapInput
+              key={idx}
+              n={node.n}
+              userAnswers={userAnswers}
+              onAnswerChange={onAnswerChange}
+            />
+          );
         }
 
-        // gap
-        return (
-          <GapInput key={idx} n={node.n} onAnswerChange={onAnswerChange} />
-        );
+        return null;
       })}
     </>
   );
 }
 
+function ParagraphRenderer({
+  node,
+  userAnswers,
+  onAnswerChange,
+}: {
+  node: Extract<DocNode, { type: "paragraph" }>;
+  userAnswers: UserAnswers;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
+}) {
+  return (
+    <p className={"text-[14px] text-gray-700 leading-relaxed"}>
+      <InlineRenderer
+        nodes={node.inlines}
+        userAnswers={userAnswers}
+        onAnswerChange={onAnswerChange}
+      />
+    </p>
+  );
+}
+
+function ImageRenderer({
+  node,
+}: {
+  node: Extract<DocNode, { type: "image" }>;
+}) {
+  return (
+    <figure className="my-3">
+      <img
+        src={node.src}
+        alt={node.alt ?? ""}
+        style={node.width ? { width: node.width } : undefined}
+        className="rounded-lg border border-gray-200"
+      />
+    </figure>
+  );
+}
+
 function TableRenderer({
   node,
+  userAnswers,
   onAnswerChange,
 }: {
   node: Extract<DocNode, { type: "table" }>;
-  onAnswerChange?: (questionNumber: number, value: string) => void;
+  userAnswers: UserAnswers;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
-  // Total logical columns in the widest row (respecting colspan)
   const colCount = Math.max(
     1,
     ...node.rows.map((row) =>
@@ -144,6 +188,7 @@ function TableRenderer({
                   <div className="text-[14px] text-gray-800">
                     <InlineRenderer
                       nodes={cell.content}
+                      userAnswers={userAnswers}
                       onAnswerChange={onAnswerChange}
                     />
                   </div>
@@ -157,32 +202,24 @@ function TableRenderer({
   );
 }
 
-function MultipleChoiceRenderer({
+function MultipleChoiceRender({
   node,
-  value,
+  userAnswers,
   onAnswerChange,
 }: {
   node: Extract<DocNode, { type: "multiple-choice" }>;
-  value?: string | string[];
-  onAnswerChange?: (questionNumber: number, value: string | string[]) => void;
+  userAnswers: UserAnswers;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
   const pick = node.pick ?? 1;
   const questionNumber = node.n;
 
   const isSinglePick = pick <= 1;
 
-  const selectedAnswers: string[] = Array.isArray(value)
-    ? value
-    : typeof value === "string" && value
-      ? [value]
-      : [];
+  const selectedAnswers = userAnswers[questionNumber] ?? [];
 
   const setSelected = (next: string[]) => {
-    if (isSinglePick) {
-      onAnswerChange?.(questionNumber, next[0] ?? "");
-    } else {
-      onAnswerChange?.(questionNumber, next);
-    }
+    onAnswerChange?.(questionNumber, next);
   };
 
   const handleSelect = (letter: string) => {
@@ -239,29 +276,24 @@ function MultipleChoiceRenderer({
   );
 }
 
-function isDocNodeArray(v: unknown): v is DocNode[] {
-  return (
-    Array.isArray(v) &&
-    v.every((x) => x && typeof x === "object" && "type" in x)
-  );
-}
+const isDocNodeArray = (v: unknown): v is DocNode[] =>
+  Array.isArray(v) &&
+  v.every((n): n is DocNode => !!n && typeof n === "object" && "type" in n);
 
-function normalizeInstruction(
-  instruction: string | DocNode[] | null | undefined,
-): DocNode[] {
-  if (!instruction) return [];
-  if (isDocNodeArray(instruction)) return instruction;
+const toDocNodes = (v: unknown): DocNode[] => {
+  if (isDocNodeArray(v)) return v;
 
-  const trimmed = instruction.trim();
-  if (!trimmed) return [];
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    return isDocNodeArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+  if (typeof v === "string") {
+    const s = v.trim();
+    if (!s) return [];
+    try {
+      const parsed: unknown = JSON.parse(s);
+      if (isDocNodeArray(parsed)) return parsed;
+    } catch {}
   }
-}
+
+  return [];
+};
 
 export function InstructionRenderer({
   instruction,
@@ -270,35 +302,26 @@ export function InstructionRenderer({
 }: {
   instruction: string | DocNode[];
   userAnswers: UserAnswers;
-  onAnswerChange?: (questionNumber: number, value: string | string[]) => void;
+  onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
-  const doc = useMemo(() => normalizeInstruction(instruction), [instruction]);
+  const doc = useMemo(() => toDocNodes(instruction), [instruction]);
 
   return (
     <div className="space-y-3 mb-8">
       {doc.map((node, idx) => {
         if (node.type === "paragraph") {
           return (
-            <p key={idx} className="text-[14px] text-gray-700 leading-relaxed">
-              <InlineRenderer
-                nodes={node.inlines}
-                onAnswerChange={onAnswerChange}
-              />
-            </p>
+            <ParagraphRenderer
+              key={idx}
+              node={node}
+              userAnswers={userAnswers}
+              onAnswerChange={onAnswerChange}
+            />
           );
         }
 
         if (node.type === "image") {
-          return (
-            <figure key={idx} className="my-3">
-              <img
-                src={node.src}
-                alt={node.alt ?? ""}
-                style={node.width ? { width: node.width } : undefined}
-                className="rounded-lg border border-gray-200"
-              />
-            </figure>
-          );
+          return <ImageRenderer key={idx} node={node} />;
         }
 
         if (node.type === "table") {
@@ -306,6 +329,7 @@ export function InstructionRenderer({
             <TableRenderer
               key={idx}
               node={node}
+              userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
             />
           );
@@ -313,10 +337,10 @@ export function InstructionRenderer({
 
         if (node.type === "multiple-choice") {
           return (
-            <MultipleChoiceRenderer
+            <MultipleChoiceRender
               key={idx}
               node={node}
-              value={userAnswers[node.n]}
+              userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
             />
           );

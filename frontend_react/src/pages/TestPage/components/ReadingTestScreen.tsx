@@ -1,12 +1,12 @@
 import React from "react";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
-import { InstructionRenderer } from "./InstructionParser.tsx";
+import { InstructionRenderer } from "./InstructionRenderer.tsx";
 
-import type { ExercisePrompt, UserAnswers } from "../types.ts";
+import type { ReadingExercise, UserAnswers } from "../types.ts";
 
 type Props = {
-  exercisePrompt: ExercisePrompt;
+  exercisePrompt: ReadingExercise;
 
   // timer
   timeRemaining: number;

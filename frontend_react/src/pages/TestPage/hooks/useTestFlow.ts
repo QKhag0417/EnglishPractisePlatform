@@ -6,18 +6,18 @@ type Args = {};
 export function useTestFlow({}: Args) {
   const [testState, setTestState] = useState<TestState>("instruction");
 
-  const startTest = useCallback(() => {
+  const goToTest = useCallback(() => {
     setTestState("test");
   }, []);
 
-  const submitTest = useCallback(() => {
+  const goToResults = useCallback(() => {
     setTestState("results");
   }, []);
 
   return {
     testState,
     setTestState,
-    startTest,
-    submitTest,
+    goToTest,
+    goToResults,
   };
 }

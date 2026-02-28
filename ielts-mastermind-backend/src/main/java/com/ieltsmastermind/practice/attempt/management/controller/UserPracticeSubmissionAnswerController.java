@@ -4,6 +4,7 @@ import com.ieltsmastermind.common.query.IncludeParser;
 import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.common.response.ApiResponse;
 import com.ieltsmastermind.practice.attempt.management.business.interfaces.UserPracticeSubmissionAnswerService;
+import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerBulkCreateRequestDto;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerCreateRequestDto;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerResponseDto;
 import jakarta.validation.Valid;
@@ -32,6 +33,28 @@ public class UserPracticeSubmissionAnswerController {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(ApiResponse.success("Submission answer created successfully", created));
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse<List<UserPracticeSubmissionAnswerResponseDto>>> createBulk(
+            @Valid @RequestBody UserPracticeSubmissionAnswerBulkCreateRequestDto request
+    ) {
+        try {
+            List<UserPracticeSubmissionAnswerResponseDto> created =
+                    userPracticeSubmissionAnswerService.createBulk(request);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Submission answers created successfully", created));
         } catch (RuntimeException e) {
             return ResponseEntity
                     .badRequest()

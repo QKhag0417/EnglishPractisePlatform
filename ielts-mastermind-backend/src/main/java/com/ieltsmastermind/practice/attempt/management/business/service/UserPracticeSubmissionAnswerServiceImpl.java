@@ -2,6 +2,7 @@ package com.ieltsmastermind.practice.attempt.management.business.service;
 
 import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.practice.attempt.management.business.interfaces.UserPracticeSubmissionAnswerService;
+import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerBulkCreateRequestDto;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerCreateRequestDto;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerResponseDto;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
@@ -46,6 +47,40 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
         UserPracticeSubmissionAnswerResponseDto responseDto = new UserPracticeSubmissionAnswerResponseDto();
         responseDto.setId(saved.getId());
         return responseDto;
+    }
+
+    @Override
+    @Transactional
+    public List<UserPracticeSubmissionAnswerResponseDto> createBulk(
+            UserPracticeSubmissionAnswerBulkCreateRequestDto request
+    ) {
+        System.out.println("userPracticeSubmissionId = " + request.getUserPracticeSubmissionId());
+        UserPracticeSubmission submission = submissionRepository
+                .findById(request.getUserPracticeSubmissionId())
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+
+
+        List<UserPracticeSubmissionAnswerCreateRequestDto> reqs = request.getAnswers();
+
+        List<UserPracticeSubmissionAnswer> entities = new ArrayList<>(reqs.size());
+        for (UserPracticeSubmissionAnswerCreateRequestDto r : reqs) {
+            UserPracticeSubmissionAnswer answer = new UserPracticeSubmissionAnswer();
+            answer.setSubmission(submission);
+            answer.setOrderIndex(r.getOrderIndex());
+            answer.setAnswers(new ArrayList<>(r.getAnswers()));
+            entities.add(answer);
+        }
+
+        List<UserPracticeSubmissionAnswer> saved = answerRepository.saveAll(entities);
+
+        List<UserPracticeSubmissionAnswerResponseDto> response = new ArrayList<>(saved.size());
+        for (UserPracticeSubmissionAnswer s : saved) {
+            UserPracticeSubmissionAnswerResponseDto dto = new UserPracticeSubmissionAnswerResponseDto();
+            dto.setId(s.getId());
+            response.add(dto);
+        }
+
+        return response;
     }
 
     @Override

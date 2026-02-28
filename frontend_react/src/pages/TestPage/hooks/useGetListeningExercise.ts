@@ -28,7 +28,7 @@ function mapPracticeListeningContentDTOToListeningExercise(
 const initialListeningExercise: ListeningExercise = {
   id: "",
   skill: "listening",
-  task: NaN,
+  task: -1,
   duration: 0,
   examText: "",
   totalQuestions: 0,

@@ -9,7 +9,7 @@ export interface ExerciseInstruction {
   candidateInfo: string[];
 }
 
-export type UserAnswers = Record<number, string | string[]>;
+export type UserAnswers = Record<number, string[]>;
 
 export type TestState = "instruction" | "test" | "results";
 
@@ -62,4 +62,53 @@ export type PracticeReadingContentDTO = PracticeContentDTO & {
 export type ExerciseAnswer = {
   id: string;
   correctAnswers: Record<number, string | string[]>;
+};
+
+export type PracticeSubmissionDTO = {
+  id: string;
+};
+
+export type PracticeSubmission = {
+  practiceSubmissionId: string;
+};
+
+export type PracticeSubmissionPostBody = {
+  userId: string;
+  practiceContentId: string;
+  timeSpentSeconds: number;
+  score: number;
+};
+
+export type UserAnswerDTO = {
+  userAnswerId: string;
+};
+
+export type UserAnswer = {
+  userAnswerId: string;
+};
+
+export type UserAnswerPostBody = {
+  userPracticeSubmissionId: string;
+  orderIndex: string;
+  answers: string[];
+};
+
+export type BulkSubmissionAnswerRowPostBody = {
+  orderIndex: number;
+  answers: string[];
+};
+
+export type BulkSubmissionAnswerPostBody = {
+  userPracticeSubmissionId: string;
+  answers: BulkSubmissionAnswerRowPostBody[];
+};
+
+export type BulkSubmissionAnswerRowDTO = {
+  id?: string;
+};
+
+export type BulkSubmissionAnswerResponseDTO = BulkSubmissionAnswerRowDTO[];
+
+export type BulkSubmissionAnswerResponse = {
+  ids: string[];
 };

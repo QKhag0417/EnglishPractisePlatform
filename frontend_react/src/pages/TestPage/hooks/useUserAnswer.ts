@@ -7,12 +7,9 @@ export function useUserAnswer({}: Args = {}) {
   const [answers, setAnswers] = useState<UserAnswers>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  const onAnswerChange = useCallback(
-    (questionId: number, value: string | string[]) => {
-      setAnswers((prev) => ({ ...prev, [questionId]: value }));
-    },
-    [],
-  );
+  const onAnswerChange = useCallback((questionId: number, value: string[]) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }, []);
 
   return {
     answers,

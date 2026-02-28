@@ -1,14 +1,11 @@
-import React, { use, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Pause, Play, Volume2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
-import { InstructionRenderer } from "./InstructionParser.tsx";
-
-import type { ListeningExercise } from "../types.ts";
+import { InstructionRenderer } from "./InstructionRenderer.tsx";
 
 import { API_BASE } from "../../../env.ts";
-import { mockListeningExercisePrompt } from "../mock/exercisePrompts.mock.ts";
 import {
   useGetListeningExercise,
   useCountdownTimer,
@@ -16,17 +13,27 @@ import {
   useUserAnswer,
   useAudioPlayer,
   useExitModal,
+  usePostUserSubmission,
+  usePostUserAnswer,
+  usePostUserAnswersBulk,
 } from "../hooks/index.ts";
 
 import { formatTime } from "../utils/formatTime.ts";
 import { buildAudioUrl } from "../utils/buildAudioUrl.ts";
+import { useAuth } from "../../../contexts/AuthContext.tsx";
 
 type Props = {
   exerciseId: string;
-  onSubmitTest: () => void;
+  onGoToResults: () => void;
 };
 
-export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
+export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
+  // =========================
+  // Auth information
+  // =========================
+
+  const { user } = useAuth();
+
   // =========================
   // Navigation
   // =========================
@@ -44,26 +51,58 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
   }, [getListeningExercise.get]);
 
   // =========================
-  // Submit Modal
+  // User Answers
   // =========================
 
-  const submitModal = useSubmitModal({ onSubmitTest });
+  const userAnswer = useUserAnswer({});
 
   // =========================
   // Countdown Timer
   // =========================
 
+  const onExpireRef = useRef<() => void>(() => {});
+
   const countdownTimer = useCountdownTimer({
     durationMinutes: getListeningExercise.exercise.duration,
-    isRunning: true,
-    onExpire: submitModal.openSubmitModal,
+    isRunning: getListeningExercise.exercise.duration > 0,
+    onExpire: () => onExpireRef.current(),
   });
 
   // =========================
-  // User Answers
+  // Post User Submission
   // =========================
 
-  const userAnswer = useUserAnswer({});
+  const postUserSubmission = usePostUserSubmission({
+    userId: user?.id || "",
+    practiceContentId: exerciseId,
+    timeSpentSeconds:
+      getListeningExercise.exercise.duration * 60 -
+      countdownTimer.secondsRemaining,
+    score: 0,
+  });
+
+  // =========================
+  // Post User Answers Bulk
+  // =========================
+  const postUserAnswersBulk = usePostUserAnswersBulk({
+    userPracticeSubmissionId:
+      postUserSubmission.submission.practiceSubmissionId || "",
+    answers: userAnswer.answers,
+  });
+
+  // =========================
+  // Submit Modal
+  // =========================
+
+  const submitModal = useSubmitModal({
+    onGoToResults,
+    onPostSubmission: postUserSubmission.post,
+    onPostSubmissionAnswers: postUserAnswersBulk.post,
+  });
+
+  useEffect(() => {
+    onExpireRef.current = submitModal.openSubmitModal;
+  }, [submitModal.openSubmitModal]);
 
   // =========================
   // Audio Player
@@ -188,9 +227,7 @@ export function ListeningTestScreen({ exerciseId, onSubmitTest }: Props) {
             }).map((_, index) => {
               const answer = userAnswer.answers[index + 1];
 
-              const isAnswered = Array.isArray(answer)
-                ? answer.length > 0
-                : typeof answer === "string" && answer.trim().length > 0;
+              const isAnswered = (answer?.length ?? 0) > 0;
 
               const isCurrent = userAnswer.currentQuestionIndex === index;
 
