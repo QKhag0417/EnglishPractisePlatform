@@ -36,14 +36,14 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Email already in use: " + request.getEmail());
         }
 
-        if (request.getPhone() != null &&
-                userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already in use: " + request.getPhone());
+        if (request.getPhoneNumber() != null &&
+                userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new RuntimeException("Phone already in use: " + request.getPhoneNumber());
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
+        user.setPhoneNumber(request.getPhoneNumber());
 
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
@@ -109,16 +109,18 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Email already in use: " + request.getEmail());
         }
 
-        if (request.getPhone() != null
-                && !request.getPhone().equals(user.getPhone())
-                && userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already in use: " + request.getPhone());
+        if (request.getPhoneNumber() != null
+                && !request.getPhoneNumber().equals(user.getPhoneNumber())
+                && userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new RuntimeException("Phone already in use: " + request.getPhoneNumber());
         }
 
         if (request.getEmail() != null) user.setEmail(request.getEmail());
-        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
         if (request.getFirstname() != null) user.setFirstname(request.getFirstname());
         if (request.getLastname() != null) user.setLastname(request.getLastname());
+        if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
         if (request.getCountry() != null) user.setCountry(request.getCountry());
         if (request.getTimezone() != null) user.setTimezone(request.getTimezone());
         if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
@@ -133,9 +135,7 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
 
-        UserResponseDto responseDto = new UserResponseDto();
-        responseDto.setUserId(saved.getUserId());
-        return responseDto;
+        return mapToResponseDto(saved);
     }
 
     @Override
@@ -151,13 +151,15 @@ public class UserServiceImpl implements UserService {
         UserResponseDto dto = new UserResponseDto();
         dto.setUserId(saved.getUserId());
         dto.setEmail(saved.getEmail());
-        dto.setPhone(saved.getPhone());
+        dto.setPhoneNumber(saved.getPhoneNumber());
         dto.setIsActive(saved.getIsActive());
         dto.setCreatedAt(saved.getCreatedAt());
         dto.setLastLoginAt(saved.getLastLoginAt());
         dto.setRole(saved.getRole());
         dto.setFirstname(saved.getFirstname());
         dto.setLastname(saved.getLastname());
+        dto.setGender(saved.getGender());        
+        dto.setDateOfBirth(saved.getDateOfBirth());
         dto.setCountry(saved.getCountry());
         dto.setTimezone(saved.getTimezone());
         dto.setAvatarUrl(saved.getAvatarUrl());
@@ -168,13 +170,15 @@ public class UserServiceImpl implements UserService {
 
     private void applyIncludes(User user, UserResponseDto dto, IncludeSpec includes) {
         if (includes.has("email")) dto.setEmail(user.getEmail());
-        if (includes.has("phone")) dto.setPhone(user.getPhone());
+        if (includes.has("phonenumber")) dto.setPhoneNumber(user.getPhoneNumber());
         if (includes.has("isactive")) dto.setIsActive(user.getIsActive());
         if (includes.has("createdat")) dto.setCreatedAt(user.getCreatedAt());
         if (includes.has("lastloginat")) dto.setLastLoginAt(user.getLastLoginAt());
         if (includes.has("role")) dto.setRole(user.getRole());
         if (includes.has("firstname")) dto.setFirstname(user.getFirstname());
         if (includes.has("lastname")) dto.setLastname(user.getLastname());
+        if (includes.has("dateofbirth")) dto.setDateOfBirth(user.getDateOfBirth());
+        if (includes.has("gender")) dto.setGender(user.getGender());
         if (includes.has("country")) dto.setCountry(user.getCountry());
         if (includes.has("timezone")) dto.setTimezone(user.getTimezone());
         if (includes.has("avatarurl")) dto.setAvatarUrl(user.getAvatarUrl());

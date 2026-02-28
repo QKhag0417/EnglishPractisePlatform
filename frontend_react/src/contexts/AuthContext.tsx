@@ -11,11 +11,26 @@ export type UserRole = "learner" | "administrator";
 
 export interface User {
   id: string;
+  firstname: string;
+  lastname: string;
   name: string;
   email: string;
   role: UserRole;
-  avatar?: string;
+  gender?: "male" | "female";
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
 }
+
+export type UpdateProfilePayload = {
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  gender?: "male" | "female";
+  phoneNumber?: string;
+  avatarUrl?: string;
+  email?: string;
+};
 
 interface AuthContextType {
   user: User | null;
@@ -30,8 +45,8 @@ interface AuthContextType {
     role?: UserRole,
   ) => Promise<void>;
   logout: () => Promise<void>;
-
   updateUserRole: (role: UserRole) => void;
+  updateProfile: (profileData: UpdateProfilePayload) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,93 +95,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restoreSession();
   }, []);
 
-  const restoreSession = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/home`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      const api = await readApiBody(res);
-
-      if (!res.ok) {
-        setUser(null);
-        localStorage.removeItem("user");
-
-        return;
-      }
-
-      const info = api?.data ?? api;
-
-      const role = mapRole(info?.role);
-      if (!role) {
-        setUser(null);
-        localStorage.removeItem("user");
-
-        return;
-      }
-
-      const restoredUser: User = {
-        id: String(info?.id ?? ""),
-        name: buildName(info) || "User",
-        email: String(info?.email ?? ""),
-        role,
-        avatar: info?.avatar ? String(info.avatar) : undefined,
-      };
-
-      setUser(restoredUser);
-      localStorage.setItem("user", JSON.stringify(restoredUser));
-
-      return restoredUser;
-    } catch (err) {
-      console.log("Session restore failed:", err);
-      setUser(null);
-      localStorage.removeItem("user");
-
-      return;
-    }
-  };
-
-  const login = async (email: string, password: string): Promise<User> => {
-    const res = await fetch("http://localhost:8080/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+const restoreSession = async (): Promise<User | null> => {
+  try {
+    // 1️⃣ First get basic session info
+    const homeRes = await fetch(`${API_BASE}/api/home`, {
+      method: "GET",
       credentials: "include",
     });
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      throw new Error(errText || "Login failed");
+    if (!homeRes.ok) {
+      setUser(null);
+      localStorage.removeItem("user");
+      return null;
     }
 
-    const api = await readApiBody(res);
+    const homeApi = await readApiBody(homeRes);
+    const homeInfo = homeApi?.data ?? homeApi;
 
-    if (!res.ok) {
-      throw normalizeError(api, "Login failed");
+    const role = mapRole(homeInfo?.role);
+    if (!role || !homeInfo?.id) {
+      setUser(null);
+      localStorage.removeItem("user");
+      return null;
     }
 
-    const data = api?.data ?? api;
-    const role = mapRole(data?.role);
-    if (!role) {
-      throw new Error("Login succeeded but user role is invalid/missing");
+    const userId = homeInfo.id;
+
+    const userRes = await fetch(
+      `${API_BASE}/api/user/${userId}?include=email,firstname,lastname,role,avatarurl,gender,phonenumber,dateOfbirth`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    if (!userRes.ok) {
+      setUser(null);
+      localStorage.removeItem("user");
+      return null;
     }
 
-    const loggedInUser: User = {
-      id: String(data?.id ?? Date.now()),
-      name:
-        `${data?.firstname ?? ""} ${data?.lastname ?? ""}`.trim() ||
-        String(data?.fullName ?? data?.name ?? email.split("@")[0]),
-      email: String(data?.email ?? email),
+    const userApi = await readApiBody(userRes);
+    const info = userApi?.data ?? userApi;
+
+    const restoredUser: User = {
+      id: String(info?.userId ?? userId),
+      firstname: String(info?.firstname ?? ""),
+      lastname: String(info?.lastname ?? ""),
+      name: `${info?.firstname ?? ""} ${info?.lastname ?? ""}`.trim() || "User",
+      email: String(info?.email ?? ""),
       role,
-      avatar: data?.avatar ? String(data.avatar) : undefined,
+      gender:
+        info?.gender === "male" || info?.gender === "female"
+          ? info.gender
+          : undefined,
+      phoneNumber: info?.phoneNumber ?? undefined,
+      dateOfBirth: info?.dateOfBirth ?? undefined,
+      avatarUrl: info?.avatarUrl ?? undefined,
     };
 
-    setUser(loggedInUser);
-    localStorage.setItem("user", JSON.stringify(loggedInUser));
+    setUser(restoredUser);
+    localStorage.setItem("user", JSON.stringify(restoredUser));
 
-    return loggedInUser;
-  };
+    return restoredUser;
+  } catch (err) {
+    console.log("Session restore failed:", err);
+    setUser(null);
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
+const login = async (email: string, password: string): Promise<User> => {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(errText || "Login failed");
+  }
+
+  const restoredUser = await restoreSession();
+
+  if (!restoredUser) {
+    throw new Error("Failed to restore session after login");
+  }
+
+  return restoredUser;
+};
 
   const register = async (
     firstname: string,
@@ -174,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string,
   ): Promise<void> => {
-    const res = await fetch("http://localhost:8080/api/auth/register", {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -195,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (): Promise<void> => {
     try {
-      await fetch("http://localhost:8080/api/auth/logout", {
+      await fetch(`${API_BASE}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -216,6 +236,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+const updateProfile = async (
+  profileData: UpdateProfilePayload
+): Promise<void> => {
+  if (!user) return;
+
+  const res = await fetch(`${API_BASE}/api/user/profile`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      firstname: profileData.firstName,
+      lastname: profileData.lastName,
+      email: profileData.email,
+      gender: profileData.gender,
+      phoneNumber: profileData.phoneNumber,
+      dateOfBirth: profileData.dateOfBirth,
+      avatarUrl: profileData.avatarUrl,
+    }),
+  });
+
+  const api = await readApiBody(res);
+
+  if (!res.ok) {
+    throw normalizeError(api, "Profile update failed");
+  }
+
+  const data = api?.data ?? api;
+
+  const updatedUser: User = {
+    ...user,
+    firstname: data?.firstname ?? user.firstname,
+    lastname: data?.lastname ?? user.lastname,
+    name: `${data?.firstname ?? user.firstname} ${
+      data?.lastname ?? user.lastname
+    }`.trim(),
+    gender:
+      data?.gender === "male" || data?.gender === "female"
+        ? data.gender
+        : undefined,
+    phoneNumber: data?.phoneNumber ?? user.phoneNumber,
+    dateOfBirth: data?.dateOfBirth ?? user.dateOfBirth,
+    avatarUrl: data?.avatarUrl ?? user.avatarUrl,
+    email: data?.email ?? user.email,
+  };
+
+  setUser(updatedUser);
+  localStorage.setItem("user", JSON.stringify(updatedUser));
+};
+
   return (
     <AuthContext.Provider
       value={{
@@ -225,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateUserRole,
+        updateProfile,
       }}
     >
       {children}

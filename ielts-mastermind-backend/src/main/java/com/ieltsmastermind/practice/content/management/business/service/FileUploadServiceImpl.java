@@ -36,6 +36,13 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     @Override
+    public String uploadAvatar(MultipartFile file) {
+        validateAvatar(file);
+
+        return storeFile(file, AVATAR_UPLOAD_DIR, AVATAR_PUBLIC_BASE_PATH);
+    }
+
+    @Override
     public void deleteThumbnailByUrl(FileDeleteRequestDto request) {
         String thumbnailUrl = request.getFileUrl();
 
@@ -81,6 +88,30 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
     }
 
+    @Override
+    public void deleteAvatarByUrl(FileDeleteRequestDto request) {
+        String avatarUrl = request.getFileUrl();
+
+        if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+            throw new RuntimeException("avatarUrl is required");
+        }
+
+        String filename = extractFilenameFromPublicUrl(avatarUrl, AVATAR_PUBLIC_BASE_PATH);
+
+        Path uploadPath = Paths.get(AVATAR_UPLOAD_DIR).toAbsolutePath().normalize();
+        Path target = uploadPath.resolve(filename).normalize();
+
+        try {
+            boolean deleted = Files.deleteIfExists(target);
+            if (!deleted) {
+                throw new RuntimeException("Avatar file not found");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete avatar", e);
+        }
+    }
+
     private void validateFileBase(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Empty file");
@@ -115,6 +146,15 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
     }
 
+    private void validateAvatar(MultipartFile file) {
+        validateFileBase(file);
+
+        String contentType = file.getContentType();
+        if (!Set.of("image/png", "image/jpeg", "image/webp").contains(contentType)) {
+            throw new RuntimeException("Invalid image type");
+        }
+    }
+
     private String storeFile(MultipartFile file, String uploadDir, String publicBasePath) {
         try {
             String originalName = file.getOriginalFilename();
@@ -135,23 +175,23 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     private String extractFilenameFromPublicUrl(String urlOrPath, String publicBasePath) {
         if (urlOrPath == null) {
-            throw new RuntimeException("thumbnailUrl is required");
+            throw new RuntimeException("File Url is required");
         }
 
         String path = urlOrPath.trim();
 
         if (!path.startsWith(publicBasePath)) {
-            throw new RuntimeException("thumbnailUrl must start with " + publicBasePath);
+            throw new RuntimeException("File Url must start with " + publicBasePath);
         }
 
         String filename = path.substring(publicBasePath.length());
 
         if (filename.isBlank()) {
-            throw new RuntimeException("thumbnailUrl missing filename");
+            throw new RuntimeException("File Url missing filename");
         }
 
         if (filename.contains("/") || filename.contains("\\") || filename.contains("..")) {
-            throw new RuntimeException("Invalid thumbnailUrl");
+            throw new RuntimeException("Invalid File Url");
         }
 
         return filename;

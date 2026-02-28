@@ -10,7 +10,11 @@ public interface FileUploadService {
 
     String uploadAudio(MultipartFile file);
 
+    String uploadAvatar(MultipartFile file);
+
     void deleteThumbnailByUrl(FileDeleteRequestDto request);
 
     void deleteAudioByUrl(FileDeleteRequestDto request);
+
+    void deleteAvatarByUrl(FileDeleteRequestDto request);
 }

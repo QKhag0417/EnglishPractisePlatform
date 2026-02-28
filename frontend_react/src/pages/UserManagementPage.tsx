@@ -123,18 +123,16 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   // API mapping + error helpers
   // =========================
   function mapApiUser(u: ApiUser): UserData {
-    const createdAt = u.createdAt ?? new Date().toISOString();
-    const lastActive = u.lastLoginAt ?? createdAt;
-
     return {
       id: String(u.userId),
-      name: `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || "(No name)",
-      email: u.email ?? "",
+      name:
+        `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || "(No name)",
+      email: u.email ?? "—",
       role: u.role === "Administrator" ? "Administrator" : "Learner",
       status: u.isActive ? "Active" : "Inactive",
-      joinedDate: createdAt,
-      lastActive,
-      testsCompleted: u.testsCompleted ?? 0,
+      joinedDate: u.createdAt ?? new Date().toISOString(),
+      lastActive: u.lastLoginAt ?? u.createdAt ?? new Date().toISOString(),
+      testsCompleted: 0, // remove if not used
     };
   }
 
@@ -155,11 +153,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/user`, {
-        method: "GET",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
+      const res = await fetch(
+        `${API_BASE}/api/user?include=email,firstname,lastname,isactive,createdat,lastloginat,role`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        }
+      );
 
       if (res.status === 401) {
         handleUnauthorized();
@@ -244,7 +245,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
     setFormEmail(user.email);
     setFormRole(user.role);
     setFormStatus(user.status);
-    setFormPassword(""); // clear
+    setFormPassword("");
     setFormError("");
   };
 
@@ -334,7 +335,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           await fetchUsers();
         }
       } else {
-        const res = await fetch(API_BASE, {
+        const res = await fetch(`${API_BASE}/api/user`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -356,15 +357,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
           return;
         }
 
-        const json = (await res.json()) as ApiResponse<ApiUser>;
-        const created = json.data ? mapApiUser(json.data) : null;
-
-        if (created) {
-          setUsers((prev) => [...prev, created]);
-        } else {
-          // fallback
-          await fetchUsers();
-        }
+        await fetchUsers();
       }
 
       // reset + close
@@ -464,7 +457,7 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               />
             </div>
 
-            <Select value={filterRole} onValueChange={handleFormRoleChange}>
+            <Select value={filterRole} onValueChange={handleRoleFilterChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -651,10 +644,14 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
-                  id="password"
+                  id="user-password-input"
+                  name="user_password_input"
                   type="password"
+                  autoComplete="new-password"
                   value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormPassword(e.target.value)
+                  }
                   placeholder="Enter password"
                 />
               </div>
@@ -662,11 +659,15 @@ export function UserManagementPage({ onLogout }: UserManagementPageProps) {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password (optional)</Label>
                 <Input
-                  id="password"
+                  id="user-password-input"
+                  name="user_password_input"
                   type="password"
+                  autoComplete="new-password"
                   value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormPassword(e.target.value)
+                  }
+                  placeholder="Enter password"
                 />
                 <p className="text-[13px] text-gray-500">
                   Leave blank to keep the current password.
