@@ -1,9 +1,3 @@
-export interface Option {
-  id: string;
-  text: string;
-  feedback: string;
-  isCorrect: boolean;
-}
 
 export type QuestionType =
   | "mcq-single"
@@ -12,7 +6,8 @@ export type QuestionType =
   | "written-response";
 
 export interface Question {
-  id: string;
+  id?: string;            // DB id (chỉ có khi BE trả về)
+  tempId: string;
   number: number;
   type: "Short Text" | "MCQ - Single" | "MCQ - Multiple" | "Written Response";
   points: number;
@@ -21,8 +16,6 @@ export interface Question {
   questionType: QuestionType;
   questionText: string;
   correctAnswers: string[];
-  options: Option[];
-  shuffleOptions: boolean;
   explanation: string;
 }
 

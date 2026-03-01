@@ -54,6 +54,7 @@ public class PracticeContentManagementController {
             IncludeSpec includes = IncludeParser.parse(include);
 
             List<PracticeContentResponseDto> contents = practiceContentService.getAll(includes);
+
             return ResponseEntity.ok(
                     ApiResponse.success("Practice contents fetched successfully", contents)
             );

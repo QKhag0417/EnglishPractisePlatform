@@ -1,7 +1,6 @@
 package com.ieltsmastermind.practice.content.management.business.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ieltsmastermind.common.json.JsonConverter;
 import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.practice.content.management.business.interfaces.FileUploadService;
@@ -30,6 +29,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     private final PracticeContentRepository practiceContentRepository;
     private final InstructionParser instructionParser;
     private final JsonConverter jsonConverter;
+    private final FileUploadService fileUploadService;
 
     public PracticeContentServiceImpl(PracticeContentRepository practiceContentRepository,
                                       FileUploadService fileUploadService,
@@ -38,6 +38,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         this.practiceContentRepository = practiceContentRepository;
         this.instructionParser = instructionParser;
         this.jsonConverter = jsonConverter;
+        this.fileUploadService = fileUploadService;
     }
 
     @Override
@@ -131,6 +132,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public PracticeContentResponseDto update(String id, PracticeContentUpdateRequestDto request) {
+
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
@@ -155,7 +157,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             content.setTopicTags(new HashSet<>(request.getTopicTags()));
         }
 
-        if (request.getThumbnailUrl() != null) content.setThumbnailUrl(request.getThumbnailUrl());
+
         if (request.getDurationMinutes() != null) content.setDurationMinutes(request.getDurationMinutes());
         if (request.getQuestionCount() != null) content.setQuestionCount(request.getQuestionCount());
         if (request.getStatus() != null) content.setStatus(request.getStatus());
@@ -163,7 +165,18 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         content.setUpdatedOn(LocalDateTime.now());
 
         if (content instanceof ListeningPracticeContent listening) {
-            if (request.getAudioUrl() != null) listening.setAudioUrl(request.getAudioUrl());
+
+            String oldUrl = listening.getAudioUrl();
+            String newUrl = request.getAudioUrl();
+
+            if (newUrl != null && !newUrl.equals(oldUrl)) {
+                if (oldUrl != null) {
+                    FileDeleteRequestDto dto = new FileDeleteRequestDto();
+                    dto.setFileUrl(oldUrl);
+                    fileUploadService.deleteAudioByUrl(dto);
+                }
+                listening.setAudioUrl(newUrl);
+            }
 
         } else if (content instanceof ReadingPracticeContent reading) {
             if (request.getPassage() != null) {
@@ -173,6 +186,16 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 reading.setPassageParsed(passageParsedJson);
             }
         }
+
+        // override thumbnailfile
+        String oldUrl = content.getThumbnailUrl();
+        String newUrl = request.getThumbnailUrl();
+        if (oldUrl != null && (!oldUrl.equals(newUrl))) {
+            FileDeleteRequestDto deleteThumbnailDto = new FileDeleteRequestDto();
+            deleteThumbnailDto.setFileUrl(oldUrl);
+            fileUploadService.deleteThumbnailByUrl(deleteThumbnailDto);
+        }
+        content.setThumbnailUrl(newUrl);
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
@@ -184,9 +207,28 @@ public class PracticeContentServiceImpl implements PracticeContentService {
     @Override
     @Transactional
     public void delete(String id) {
+
         PracticeContent content = practiceContentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Practice content not found with id: " + id));
 
+        // Delete audio if listening
+        if (content instanceof ListeningPracticeContent listening
+                && listening.getAudioUrl() != null) {
+
+            FileDeleteRequestDto dto = new FileDeleteRequestDto();
+            dto.setFileUrl(listening.getAudioUrl());
+            fileUploadService.deleteAudioByUrl(dto);
+        }
+
+        // Delete thumbnail
+        if (content.getThumbnailUrl() != null) {
+
+            FileDeleteRequestDto dto = new FileDeleteRequestDto();
+            dto.setFileUrl(content.getThumbnailUrl());
+            fileUploadService.deleteThumbnailByUrl(dto);
+        }
+
+        //  Let JPA cascade handle everything else
         practiceContentRepository.delete(content);
     }
 

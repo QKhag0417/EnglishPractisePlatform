@@ -5,7 +5,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 
 interface QuestionsTableProps {
   questions: Question[];
-  selectedQuestionId: string;
+  selectedQuestionTempId: string;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
@@ -13,7 +13,7 @@ interface QuestionsTableProps {
 
 export function QuestionsTable({
   questions,
-  selectedQuestionId,
+  selectedQuestionTempId,
   onSelect,
   onDelete,
   onAdd,
@@ -64,10 +64,10 @@ export function QuestionsTable({
         <div>
           {questions.map((question) => (
             <div
-              key={question.id}
-              onClick={() => onSelect(question.id)}
+              key={question.tempId}
+              onClick={() => onSelect(question.tempId)}
               className={`grid grid-cols-[80px_140px_1fr_100px] gap-[16px] px-[20px] py-[16px] border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${
-                selectedQuestionId === question.id
+                selectedQuestionTempId === question.tempId
                   ? "bg-blue-50 border-l-4 border-l-[#1977f3]"
                   : "hover:bg-gray-50"
               }`}
@@ -81,14 +81,16 @@ export function QuestionsTable({
               </span>
 
               <span className="font-['Inter'] text-[14px] text-gray-700 truncate">
-                {question.correctAnswer || "(not set)"}
+                {question.correctAnswers && question.correctAnswers.length > 0
+                  ? question.correctAnswers.join(", ")
+                  : "(not set)"}
               </span>
 
               <div className="flex items-center justify-center gap-[8px]">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSelect(question.id);
+                    onSelect(question.tempId);
                   }}
                   className="p-[6px] hover:bg-white rounded-[4px] transition-colors"
                 >
@@ -98,7 +100,7 @@ export function QuestionsTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(question.id);
+                    onDelete(question.tempId);
                   }}
                   disabled={questions.length <= 1}
                   className="p-[6px] hover:bg-white rounded-[4px] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"

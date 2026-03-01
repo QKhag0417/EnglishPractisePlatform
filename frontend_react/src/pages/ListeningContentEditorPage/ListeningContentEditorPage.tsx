@@ -27,8 +27,8 @@ export function ListeningContentEditorPage() {
     const handleCancel = () => {
         navigate("/admin/content-management");
     };
-    const { id } = useParams();
-    const isEditMode = !!id;
+    const { exerciseId } = useParams();
+    const isEditMode = !!exerciseId;
 
     const {
       title,
@@ -42,8 +42,8 @@ export function ListeningContentEditorPage() {
       status,
       setStatus,
       questions,
-      selectedQuestionId,
-      setSelectedQuestionId,
+      selectedQuestionTempId,
+      setSelectedQuestionTempId,
       selectedQuestion,
       addNewQuestion,
       deleteQuestion,
@@ -67,10 +67,15 @@ export function ListeningContentEditorPage() {
       handleCancelQuestion,
       thumbnailPreview,
       setThumbnailPreview,
+      thumbnailFile,
+      setThumbnailFile,
       thumbnailInputRef,
       handleThumbnailChange,
       handleAudioChange,
       audioInputRef,
+      audioFile,
+      safeRevokeObjectUrl,
+      setAudioFile,
       handleThumbnailDrop,
       audioPreview,
       setAudioPreview,
@@ -79,7 +84,7 @@ export function ListeningContentEditorPage() {
       displayUpdatedOn,
       updatedOn,
       setUpdatedOn,
-    } = useListeningEditorState(isEditMode);
+    } = useListeningEditorState(isEditMode, exerciseId);
 
 
     return (
@@ -117,8 +122,8 @@ export function ListeningContentEditorPage() {
 
                 <QuestionsTable
                   questions={questions}
-                  selectedQuestionId={selectedQuestionId}
-                  onSelect={setSelectedQuestionId}
+                  selectedQuestionTempId={selectedQuestionTempId}
+                  onSelect={setSelectedQuestionTempId}
                   onDelete={deleteQuestion}
                   onAdd={addNewQuestion}
                 />
@@ -144,10 +149,12 @@ export function ListeningContentEditorPage() {
               <div className="space-y-[24px]">
 
                 <UploadThumbnailCard
-                  preview={thumbnailPreview}
+                  thumbnailPreview={thumbnailPreview}
                   inputRef={thumbnailInputRef}
-                  onChange={handleThumbnailChange}
+                  onFileChange={handleThumbnailChange}
                   onDrop={handleThumbnailDrop}
+                  onDragOver={handleDragOver}
+                  onBrowseClick={() => thumbnailInputRef.current?.click()}
                   onRemove={() => {
                     safeRevokeObjectUrl(thumbnailPreview);
                     setThumbnailFile(null);
@@ -156,10 +163,11 @@ export function ListeningContentEditorPage() {
                 />
 
                 <UploadAudioCard
-                  preview={audioPreview}
+                  audioPreview={audioPreview}
                   inputRef={audioInputRef}
-                  onChange={handleAudioChange}
+                  onFileChange={handleAudioChange}
                   onDrop={handleAudioDrop}
+                  onDragOver={handleDragOver}
                   onRemove={() => {
                     safeRevokeObjectUrl(audioPreview);
                     setAudioFile(null);

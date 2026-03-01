@@ -18,9 +18,6 @@ interface Props {
   questionType: QuestionType;
   setQuestionType: (v: QuestionType) => void;
 
-  options: Option[];
-  setOptions: React.Dispatch<React.SetStateAction<Option[]>>;
-
   correctAnswers: string[];
   setCorrectAnswers: React.Dispatch<React.SetStateAction<string[]>>;
 
@@ -38,8 +35,6 @@ export function AnswerScoringPanel({
   selectedQuestionNumber,
   questionType,
   setQuestionType,
-  options,
-  setOptions,
   correctAnswers,
   setCorrectAnswers,
   newAnswerInput,
@@ -53,40 +48,8 @@ export function AnswerScoringPanel({
   // Option handlers
   // ========================
 
-  const addOption = () => {
-    const newOption: Option = {
-      id: Date.now().toString(),
-      text: "",
-      feedback: "",
-      isCorrect: false,
-    };
-    setOptions([...options, newOption]);
-    markAsUnsaved();
-  };
 
-  const deleteOption = (id: string) => {
-    if (options.length <= 2) return;
-    setOptions(options.filter((o) => o.id !== id));
-    markAsUnsaved();
-  };
 
-  const updateOption = (
-    id: string,
-    field: keyof Option,
-    value: string | boolean,
-  ) => {
-    setOptions((prev) =>
-      prev.map((opt) => (opt.id === id ? { ...opt, [field]: value } : opt)),
-    );
-    markAsUnsaved();
-  };
-
-  const setCorrectOption = (id: string) => {
-    setOptions((prev) =>
-      prev.map((opt) => ({ ...opt, isCorrect: opt.id === id })),
-    );
-    markAsUnsaved();
-  };
 
   // ========================
   // Short text handlers
@@ -168,79 +131,10 @@ export function AnswerScoringPanel({
         </Select>
       </div>
 
-      {/* MCQ */}
-      {(questionType === "mcq-single" ||
-        questionType === "mcq-multiple") && (
-        <div className="space-y-[16px]">
 
-          {/* Header row */}
-          <div className="grid grid-cols-[60px_1fr_40px] gap-[12px] pb-[8px] border-b border-gray-200">
-            <span className="font-['Inter'] font-medium text-[12px] text-gray-500 uppercase">
-              Correct
-            </span>
-            <span className="font-['Inter'] font-medium text-[12px] text-gray-500 uppercase">
-              Option Text
-            </span>
-            <span></span>
-          </div>
-
-          {options.map((option, index) => (
-            <div
-              key={option.id}
-              className="grid grid-cols-[60px_1fr_40px] gap-[12px] items-start"
-            >
-              <div className="flex items-center justify-center pt-[10px]">
-                {questionType === "mcq-single" ? (
-                  <input
-                    type="radio"
-                    name="correct-option"
-                    checked={option.isCorrect}
-                    onChange={() => setCorrectOption(option.id)}
-                    className="w-[18px] h-[18px] cursor-pointer"
-                  />
-                ) : (
-                  <input
-                    type="checkbox"
-                    checked={option.isCorrect}
-                    onChange={(e) =>
-                      updateOption(option.id, "isCorrect", e.target.checked)
-                    }
-                    className="w-[18px] h-[18px] cursor-pointer"
-                  />
-                )}
-              </div>
-
-              <Input
-                placeholder={`Option ${index + 1}`}
-                value={option.text}
-                onChange={(e) =>
-                  updateOption(option.id, "text", e.target.value)
-                }
-              />
-
-              <button
-                onClick={() => deleteOption(option.id)}
-                disabled={options.length <= 2}
-                className="p-[8px] hover:bg-gray-100 rounded-[6px] transition-colors disabled:opacity-30 disabled:cursor-not-allowed mt-[2px]"
-              >
-                <Trash2 className="w-[16px] h-[16px] text-red-500" />
-              </button>
-            </div>
-          ))}
-
-          <Button
-            variant="outline"
-            onClick={addOption}
-            className="w-full mt-[8px]"
-          >
-            <Plus className="w-[16px] h-[16px] mr-[8px]" />
-            Add option
-          </Button>
-        </div>
-      )}
 
       {/* Short Text */}
-      {questionType === "short-text" && (
+
         <div className="space-y-[16px]">
           <div>
             <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
@@ -291,7 +185,7 @@ export function AnswerScoringPanel({
             </p>
           </div>
         </div>
-      )}
+
 
       {/* Actions */}
       <div className="mt-[24px] flex items-center gap-[12px]">

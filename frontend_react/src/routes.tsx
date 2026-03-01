@@ -11,7 +11,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { AuthPromptPage } from "./pages/AuthPromptPage";
-import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage";
+import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage/PracticeContentManagementPage.tsx";
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { EvaluationTestPage } from "./pages/EvaluationTestPage";
 import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage/ListeningContentEditorPage.tsx";

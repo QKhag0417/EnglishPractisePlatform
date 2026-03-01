@@ -6,21 +6,33 @@ export async function apiPost<T>(params: {
   path: string;
   body?: unknown;
   signal?: AbortSignal;
+  isFormData?: boolean;
 }): Promise<ApiResult<T>> {
-  const { apiBase, path, body, signal } = params;
+  const { apiBase, path, body, signal, isFormData } = params;
 
   const url = new URL(path, apiBase);
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  // 🔥 CHỈ set Content-Type nếu KHÔNG phải FormData
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const res = await fetch(url.toString(), {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       ...(signal ? { signal } : {}),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+          ? (body as BodyInit)
+          : JSON.stringify(body),
     });
 
     let json: ApiResponse<T> | null = null;
@@ -49,7 +61,7 @@ export async function apiPost<T>(params: {
     const message =
       e?.name === "AbortError"
         ? "Request aborted"
-        : (e?.message ?? "Network error");
+        : e?.message ?? "Network error";
 
     const result: ApiResult<T> = {
       ok: false,
