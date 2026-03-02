@@ -4,12 +4,12 @@ import { exerciseInstructionsBySkill } from "../mock/instructions.mock.ts";
 
 interface TestInstructionScreenProps {
   skill: Skill;
-  onStartTest: () => void;
+  onGoToTest: () => void;
 }
 
 export function TestInstructionScreen({
   skill,
-  onStartTest,
+  onGoToTest,
 }: TestInstructionScreenProps) {
   const instruction = exerciseInstructionsBySkill[skill];
 
@@ -53,7 +53,7 @@ export function TestInstructionScreen({
         <div className="flex justify-center">
           <button
             type="button"
-            onClick={onStartTest}
+            onClick={onGoToTest}
             className="bg-[#dc3545] hover:bg-[#c82333] text-white px-12 py-3 rounded-lg font-semibold text-[18px] transition-colors"
           >
             Start test

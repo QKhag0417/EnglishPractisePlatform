@@ -38,7 +38,7 @@ export function TestPage() {
   // Instruction Screen
   if (flow.testState === "instruction") {
     return (
-      <TestInstructionScreen skill={skill || ""} onStartTest={flow.goToTest} />
+      <TestInstructionScreen skill={skill || ""} onGoToTest={flow.goToTest} />
     );
   }
 
