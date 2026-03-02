@@ -1,6 +1,6 @@
 import { Upload, X } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Label } from "../../../components/ui/label";
+import { Button } from "../../../components/ui/button";
 
 interface UploadAudioCardProps {
   audioPreview: string | null;
@@ -8,7 +8,7 @@ interface UploadAudioCardProps {
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onRemove: () => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function UploadAudioCard({

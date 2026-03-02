@@ -1,6 +1,6 @@
 import { Upload, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Button } from "../../../components/ui/button";
+import { Label } from "../../../components/ui/label";
 
 interface UploadThumbnailCardProps {
   thumbnailPreview: string | null;
@@ -8,7 +8,7 @@ interface UploadThumbnailCardProps {
   onRemove: () => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

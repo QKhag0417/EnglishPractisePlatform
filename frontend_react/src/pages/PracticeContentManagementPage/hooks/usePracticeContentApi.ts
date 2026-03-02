@@ -2,7 +2,7 @@ import { API_BASE } from "../../../env";
 
 import { apiGet } from "../../../utils/api/apiGet";
 import { apiDelete } from "../../../utils/api/apiDelete";
-import { ApiResult } from "../../../api/apiResult";
+import { ApiResult } from "../../../utils/api/apiResult";
 
 export interface PracticeContentMetadata {
   id: number;

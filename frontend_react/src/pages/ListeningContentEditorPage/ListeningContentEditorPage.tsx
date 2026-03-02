@@ -1,7 +1,7 @@
 import { NavBarAdmin } from "../../components/NavBarAdmin";
 import { Footer } from "../../components/Footer";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
 import { EditorHeader } from "./components/EditorHeader";
 import { QuestionsTable } from "./components/QuestionsTable";
 import { AnswerScoringPanel } from "./components/AnswerScoringPanel";
@@ -132,8 +132,6 @@ export function ListeningContentEditorPage() {
                   selectedQuestionNumber={selectedQuestion?.number}
                   questionType={questionType}
                   setQuestionType={setQuestionType}
-                  options={options}
-                  setOptions={setOptions}
                   correctAnswers={correctAnswers}
                   setCorrectAnswers={setCorrectAnswers}
                   newAnswerInput={newAnswerInput}

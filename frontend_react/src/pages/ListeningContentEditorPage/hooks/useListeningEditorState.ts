@@ -12,12 +12,10 @@ export function useListeningEditorState(
 
   const {
     fetchDetail,
-    fetchAllContents,
     uploadThumbnail,
     uploadAudio,
     createContent,
     updateContent,
-    deleteContent,
     saveContent,
     createContentQuestion,
     deleteContentQuestion,
@@ -96,8 +94,6 @@ export function useListeningEditorState(
       questionType: "short-text",
       questionText: "",
       correctAnswers: [],
-      options: [],
-      shuffleOptions: false,
       explanation: "",
     };
 
@@ -143,7 +139,7 @@ export function useListeningEditorState(
 
 
 
-        const mappedQuestions: Question[] = questionsFromApi.map(
+        const mappedQuestions: Question[] = (questionsFromApi || []).map(
           (q: any) => ({
             id: q.id,
             tempId: q.id,
@@ -198,8 +194,6 @@ export function useListeningEditorState(
       questionType: "short-text",
       questionText: "",
       correctAnswers: [],
-      options: [],
-      shuffleOptions: false,
       explanation: "",
     };
 
@@ -285,13 +279,7 @@ export function useListeningEditorState(
 
       setQuestionType(selectedQuestion.questionType);
       setCorrectAnswers(selectedQuestion.correctAnswers || []);
-      setShuffleOptions(selectedQuestion.shuffleOptions);
 
-      setOptions(
-        selectedQuestion.options && selectedQuestion.options.length > 0
-          ? selectedQuestion.options
-          : DEFAULT_OPTIONS,
-      );
 
       setCurrentExplanation(selectedQuestion.explanation || "");
       setCurrentScore(String(selectedQuestion.points || 1));
@@ -313,12 +301,8 @@ export function useListeningEditorState(
 
       setQuestionType(selectedQuestion.questionType);
       setCorrectAnswers(selectedQuestion.correctAnswers || []);
-      setOptions(
-        selectedQuestion.options && selectedQuestion.options.length > 0
-          ? selectedQuestion.options
-          : DEFAULT_OPTIONS,
-      );
-      setShuffleOptions(selectedQuestion.shuffleOptions);
+
+
       setCurrentExplanation(selectedQuestion.explanation || "");
       setCurrentScore(String(selectedQuestion.points || 1));
       setCurrentQuestionText(selectedQuestion.questionText || "");

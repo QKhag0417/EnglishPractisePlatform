@@ -1,3 +1,9 @@
+export interface Option {
+  id: string;
+  text: string;
+  feedback: string;
+  isCorrect: boolean;
+}
 
 export type QuestionType =
   | "mcq-single"
