@@ -1,4 +1,7 @@
 package com.ieltsmastermind.practice.attempt.management.domain.enums;
 
-public class Result {
+public enum  Result {
+    CORRECT,
+    WRONG,
+    SKIPPED
 }

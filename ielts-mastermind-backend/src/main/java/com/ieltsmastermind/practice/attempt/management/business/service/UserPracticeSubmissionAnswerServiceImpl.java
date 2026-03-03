@@ -7,6 +7,7 @@ import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSu
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerResponseDto;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmissionAnswer;
+import com.ieltsmastermind.practice.attempt.management.domain.enums.Result;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionAnswerRepository;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionRepository;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
@@ -128,6 +129,7 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
         if (includes.has("submissionid")) dto.setSubmissionId(answer.getSubmission().getId());
         if (includes.has("orderindex")) dto.setOrderIndex(answer.getOrderIndex());
         if (includes.has("answers")) dto.setAnswers(new ArrayList<>(answer.getAnswers()));
+        if (includes.has("result")) dto.setResult(answer.getResult());
 
     }
 
@@ -139,9 +141,23 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
         List<PracticeQuestion> questions =
                 practiceQuestionRepository.findByPracticeContent_IdOrderByOrderIndexAsc(practiceContentId);
 
+        Map<Integer, PracticeQuestion> questionByOrder = new HashMap<>();
+        for (PracticeQuestion q : questions) {
+            questionByOrder.put(q.getOrderIndex(), q);
+        }
+
         Map<Integer, List<String>> userAnswersByOrder = new HashMap<>();
         for (UserPracticeSubmissionAnswer a : savedAnswers) {
             userAnswersByOrder.put(a.getOrderIndex(), a.getAnswers());
+
+            PracticeQuestion q = questionByOrder.get(a.getOrderIndex());
+            if (isAnswerEmpty(a.getAnswers())) {
+                a.setResult(Result.SKIPPED);
+            } else if (isCorrect(a.getAnswers(), q.getCorrectAnswers())) {
+                a.setResult(Result.CORRECT);
+            } else {
+                a.setResult(Result.WRONG);
+            }
         }
 
         int correct = 0;

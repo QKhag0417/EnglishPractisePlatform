@@ -3,7 +3,12 @@ import { Footer } from "../../components/Footer";
 import { useAuth } from "../../contexts/AuthContext.tsx";
 import { useParams } from "react-router-dom";
 
-import { formatTime, isAnswerCorrect, isAnswerEmpty } from "./utils";
+import {
+  formatTime,
+  indexByOrderIndex,
+  isAnswerCorrect,
+  isAnswerEmpty,
+} from "./utils";
 import { use, useEffect } from "react";
 import {
   useGetPracticeContentAnswers,
@@ -49,10 +54,11 @@ export function TestResultPage() {
     getPracticeSubmissionAnswers.get();
   }, [submissionId, getPracticeSubmissionAnswers.get]);
 
-  const userAnswersByIndex: Record<number, string[]> = {};
-  (getPracticeSubmissionAnswers.answers ?? []).forEach((a) => {
-    userAnswersByIndex[a.orderIndex] = a.answers ?? [];
-  });
+  const submissionAnswersByIndex = indexByOrderIndex(
+    getPracticeSubmissionAnswers.answers,
+  );
+
+  console.log("submissionAnswersByIndex", submissionAnswersByIndex);
 
   // =========================
   // Get practice content answers data
@@ -187,12 +193,16 @@ export function TestResultPage() {
                 .map(Number)
                 .sort((a, b) => a - b)
                 .map((questionNumber) => {
-                  const userAnswer = userAnswersByIndex[questionNumber];
+                  const submissionAnswer =
+                    submissionAnswersByIndex[questionNumber];
+                  const userAnswer = submissionAnswer?.answers;
                   const correctAnswer = correctAnswersByIndex[questionNumber];
 
-                  const empty = isAnswerEmpty(userAnswer);
-                  const correct =
-                    !empty && isAnswerCorrect(userAnswer, correctAnswer);
+                  const result = submissionAnswer?.result ?? "SKIPPED";
+
+                  const empty = result === "SKIPPED";
+                  const correct = result === "CORRECT";
+                  const wrong = result === "WRONG";
 
                   const formatAnswer = (v?: string | string[]) =>
                     v == null ? "" : Array.isArray(v) ? v.join(", ") : v;

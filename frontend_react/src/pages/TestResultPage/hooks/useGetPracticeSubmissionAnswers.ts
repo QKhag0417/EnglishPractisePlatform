@@ -14,6 +14,7 @@ function mapPracticeSubmissionAnswerDTOsToPracticeSubmissionAnswers(
     id: dto.id ?? "",
     orderIndex: dto.orderIndex ?? 0,
     answers: dto.answers ?? [],
+    result: dto.result ?? "SKIPPED",
   }));
 }
 

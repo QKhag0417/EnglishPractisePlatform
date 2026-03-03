@@ -24,10 +24,13 @@ export const PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS = [
 export const PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS_QUERY =
   PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS.join(",");
 
+export type AnswerResult = "CORRECT" | "WRONG" | "SKIPPED";
+
 export type PracticeSubmissionAnswerDTO = {
   id: string;
   orderIndex: number;
   answers: string[];
+  result: AnswerResult | string;
 };
 
 export type PracticeSubmissionAnswer = PracticeSubmissionAnswerDTO;
@@ -35,6 +38,7 @@ export type PracticeSubmissionAnswer = PracticeSubmissionAnswerDTO;
 export const PRACTICE_SUBMISSION_ANSWER_DTO_INCLUDE_FIELDS = [
   "orderIndex",
   "answers",
+  "result",
 ] as const;
 
 export const PRACTICE_SUBMISSION_ANSWER_DTO_INCLUDE_FIELDS_QUERY =
