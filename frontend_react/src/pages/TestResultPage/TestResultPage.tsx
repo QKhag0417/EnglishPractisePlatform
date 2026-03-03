@@ -12,34 +12,6 @@ import {
 } from "./hooks";
 
 export function TestResultPage() {
-  const userAnswers: Record<number, string[]> = {
-    1: ["central station"],
-    2: ["12"],
-    3: ["B", "E"],
-    4: ["thursday"],
-    5: ["green"],
-    6: ["library"],
-    7: ["2.5 km"],
-    8: ["£15"],
-    9: ["recycling"],
-    10: ["reception"],
-  };
-
-  const exerciseAnswers: Record<string, string[]> = {
-    1: ["Central Station"],
-    2: ["twelve", "12"],
-    3: ["B", "E"],
-    4: ["Thursday"],
-    5: ["Green", "the green"],
-    6: ["library"],
-    7: ["2.5 km", "2.5km"],
-    8: ["£15", "15"],
-    9: ["recycling", "recycle"],
-    10: ["reception"],
-  };
-
-  const timeSpent = 9 * 60 + 34;
-
   // =========================
   // Auth
   // =========================
@@ -58,8 +30,11 @@ export function TestResultPage() {
   const getPracticeSubmission = useGetPracticeSubmission(submissionId || "");
 
   useEffect(() => {
+    if (!submissionId) return;
     getPracticeSubmission.get();
-  }, [getPracticeSubmission.get]);
+  }, [submissionId, getPracticeSubmission.get]);
+
+  const timeSpent = getPracticeSubmission.submission?.timeSpentSeconds ?? 0;
 
   // =========================
   // Get practice submission answers data
@@ -70,8 +45,9 @@ export function TestResultPage() {
   );
 
   useEffect(() => {
+    if (!submissionId) return;
     getPracticeSubmissionAnswers.get();
-  }, [getPracticeSubmissionAnswers.get]);
+  }, [submissionId, getPracticeSubmissionAnswers.get]);
 
   const userAnswersByIndex: Record<number, string[]> = {};
   (getPracticeSubmissionAnswers.answers ?? []).forEach((a) => {
@@ -82,13 +58,16 @@ export function TestResultPage() {
   // Get practice content answers data
   // =========================
 
+  const practiceContentId = getPracticeSubmission.submission?.practiceContentId;
+
   const getPracticeContentAnswers = useGetPracticeContentAnswers(
-    getPracticeSubmission.submission?.practiceContentId || "",
+    practiceContentId || "",
   );
 
   useEffect(() => {
+    if (!practiceContentId) return;
     getPracticeContentAnswers.get();
-  }, [getPracticeContentAnswers.get]);
+  }, [practiceContentId, getPracticeContentAnswers.get]);
 
   const correctAnswersByIndex: Record<number, string[]> = {};
   (getPracticeContentAnswers.answers ?? []).forEach((a) => {
