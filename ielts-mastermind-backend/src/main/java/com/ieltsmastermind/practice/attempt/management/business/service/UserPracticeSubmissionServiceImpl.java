@@ -31,7 +31,6 @@ public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmission
         submission.setPracticeContentId(request.getPracticeContentId());
         submission.setTimeSpentSeconds(request.getTimeSpentSeconds());
         submission.setSubmittedAt(LocalDateTime.now());
-        submission.setScore(request.getScore());
 
         UserPracticeSubmission saved = userPracticeSubmissionRepository.save(submission);
 

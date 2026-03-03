@@ -12,5 +12,4 @@ public class UserPracticeSubmissionCreateRequestDto {
     private String userId;
     private String practiceContentId;
     private Integer timeSpentSeconds;
-    private Double score;
 }

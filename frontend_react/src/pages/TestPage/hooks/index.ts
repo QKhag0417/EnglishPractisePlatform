@@ -6,5 +6,4 @@ export { useSubmitModal } from "./useSubmitModal";
 export { useUserAnswer } from "./useUserAnswer";
 export { useExitModal } from "./useExitModal";
 export { usePostUserSubmission } from "./usePostUserSubmission";
-export { usePostUserAnswer } from "./usePostUserAnswer";
 export { usePostUserAnswersBulk } from "./usePostUserAnswersBulk";

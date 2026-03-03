@@ -76,7 +76,6 @@ export type PracticeSubmissionPostBody = {
   userId: string;
   practiceContentId: string;
   timeSpentSeconds: number;
-  score: number;
 };
 
 export type UserAnswerDTO = {

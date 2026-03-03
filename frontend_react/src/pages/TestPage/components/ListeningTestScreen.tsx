@@ -14,7 +14,6 @@ import {
   useAudioPlayer,
   useExitModal,
   usePostUserSubmission,
-  usePostUserAnswer,
   usePostUserAnswersBulk,
 } from "../hooks/index.ts";
 
@@ -78,7 +77,6 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
     timeSpentSeconds:
       getListeningExercise.exercise.duration * 60 -
       countdownTimer.secondsRemaining,
-    score: 0,
   });
 
   // =========================

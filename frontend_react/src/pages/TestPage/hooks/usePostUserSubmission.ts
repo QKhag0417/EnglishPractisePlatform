@@ -11,7 +11,6 @@ const initialBody: PracticeSubmissionPostBody = {
   userId: "",
   practiceContentId: "",
   timeSpentSeconds: 0,
-  score: 0,
 };
 
 const initialSubmission: PracticeSubmission = {
