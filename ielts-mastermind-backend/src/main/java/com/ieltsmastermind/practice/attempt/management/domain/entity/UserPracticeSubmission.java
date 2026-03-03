@@ -38,8 +38,17 @@ public class UserPracticeSubmission {
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 
-    @Column(name = "score")
-    private Double score;
+    @Column(name = "score", nullable = false)
+    private Double score = 0.0;
+
+    @Column(name = "correct_answer_count", nullable = false)
+    private Integer correctAnswerCount = 0;
+
+    @Column(name = "wrong_answer_count", nullable = false)
+    private Integer wrongAnswerCount = 0;
+
+    @Column(name = "skip_answer_count", nullable = false)
+    private Integer skipAnswerCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "practice_content_id", referencedColumnName = "practice_content_id",

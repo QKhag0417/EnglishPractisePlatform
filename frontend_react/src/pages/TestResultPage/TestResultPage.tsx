@@ -1,88 +1,115 @@
-import { NavBarLearner } from "../../../components/NavBar";
-import { Footer } from "../../../components/Footer";
+import { NavBarLearner } from "../../components/NavBar";
+import { Footer } from "../../components/Footer";
+import { useAuth } from "../../contexts/AuthContext.tsx";
+import { useParams } from "react-router-dom";
 
-interface TestResultScreenProps {
-  userAnswers: Record<number, string | string[]>;
-  exerciseAnswers: Record<number, string | string[]>;
-  timeSpent: number;
-  onReturnToLibrary: () => void;
-  onTakeAnotherTest: () => void;
-  onLogout?: () => void;
-}
+import { formatTime, isAnswerCorrect, isAnswerEmpty } from "./utils";
+import { use, useEffect } from "react";
+import {
+  useGetPracticeContentAnswers,
+  useGetPracticeSubmission,
+  useGetPracticeSubmissionAnswers,
+} from "./hooks";
 
-export function TestResultScreen({
-  userAnswers,
-  exerciseAnswers,
-  timeSpent,
-  onReturnToLibrary,
-  onTakeAnotherTest,
-  onLogout,
-}: TestResultScreenProps) {
-  const normalizeOne = (v: string) =>
-    v.trim().toLowerCase().replace(/\s+/g, " ");
-
-  const normalizeValue = (v?: string | string[]) => {
-    if (v == null) return [];
-    const arr = Array.isArray(v) ? v : [v];
-    return arr.map(normalizeOne).filter(Boolean);
+export function TestResultPage() {
+  const userAnswers: Record<number, string[]> = {
+    1: ["central station"],
+    2: ["12"],
+    3: ["B", "E"],
+    4: ["thursday"],
+    5: ["green"],
+    6: ["library"],
+    7: ["2.5 km"],
+    8: ["£15"],
+    9: ["recycling"],
+    10: ["reception"],
   };
 
-  const isAnswerEmpty = (v?: string | string[]) =>
-    normalizeValue(v).length === 0;
-
-  const isCorrect = (
-    user: string | string[] | undefined,
-    correct: string | string[] | undefined,
-  ) => {
-    const u = normalizeValue(user);
-    const c = normalizeValue(correct);
-    if (u.length === 0 || c.length === 0) return false;
-
-    // If both are arrays -> treat as multi-select, require exact match (order-insensitive)
-    if (Array.isArray(user) && Array.isArray(correct)) {
-      if (u.length !== c.length) return false;
-      const us = [...u].sort();
-      const cs = [...c].sort();
-      return us.every((val, i) => val === cs[i]);
-    }
-
-    // Otherwise, accept any matching option
-    return u.some((ua) => c.includes(ua));
+  const exerciseAnswers: Record<string, string[]> = {
+    1: ["Central Station"],
+    2: ["twelve", "12"],
+    3: ["B", "E"],
+    4: ["Thursday"],
+    5: ["Green", "the green"],
+    6: ["library"],
+    7: ["2.5 km", "2.5km"],
+    8: ["£15", "15"],
+    9: ["recycling", "recycle"],
+    10: ["reception"],
   };
 
-  const correctAnswers = exerciseAnswers;
+  const timeSpent = 9 * 60 + 34;
 
-  const totalQuestions = Object.keys(correctAnswers).length;
+  // =========================
+  // Auth
+  // =========================
+  const { logout: onLogout } = useAuth();
 
-  let correctCount = 0;
-  let wrongCount = 0;
-  let skipCount = 0;
+  // =========================
+  // Submission id from URL
+  // =========================
 
-  for (const [qStr, correctVal] of Object.entries(correctAnswers)) {
-    const qNum = Number(qStr);
-    const userVal = userAnswers[qNum];
+  const { submissionId } = useParams();
 
-    if (isAnswerEmpty(userVal)) {
-      skipCount += 1;
-    } else if (isCorrect(userVal, correctVal)) {
-      correctCount += 1;
-    } else {
-      wrongCount += 1;
-    }
-  }
+  // =========================
+  // Get practice submission data
+  // =========================
+
+  const getPracticeSubmission = useGetPracticeSubmission(submissionId || "");
+
+  useEffect(() => {
+    getPracticeSubmission.get();
+  }, [getPracticeSubmission.get]);
+
+  // =========================
+  // Get practice submission answers data
+  // =========================
+
+  const getPracticeSubmissionAnswers = useGetPracticeSubmissionAnswers(
+    submissionId || "",
+  );
+
+  useEffect(() => {
+    getPracticeSubmissionAnswers.get();
+  }, [getPracticeSubmissionAnswers.get]);
+
+  const userAnswersByIndex: Record<number, string[]> = {};
+  (getPracticeSubmissionAnswers.answers ?? []).forEach((a) => {
+    userAnswersByIndex[a.orderIndex] = a.answers ?? [];
+  });
+
+  // =========================
+  // Get practice content answers data
+  // =========================
+
+  const getPracticeContentAnswers = useGetPracticeContentAnswers(
+    getPracticeSubmission.submission?.practiceContentId || "",
+  );
+
+  useEffect(() => {
+    getPracticeContentAnswers.get();
+  }, [getPracticeContentAnswers.get]);
+
+  const correctAnswersByIndex: Record<number, string[]> = {};
+  (getPracticeContentAnswers.answers ?? []).forEach((a) => {
+    correctAnswersByIndex[a.orderIndex] = a.correctAnswers ?? [];
+  });
+
+  // =========================
+  // Calculate summary data
+  // =========================
+
+  const correctCount =
+    getPracticeSubmission.submission?.correctAnswerCount ?? 0;
+  const wrongCount = getPracticeSubmission.submission?.wrongAnswerCount ?? 0;
+  const skipCount = getPracticeSubmission.submission?.skipAnswerCount ?? 0;
+
+  const totalQuestions = correctCount + wrongCount + skipCount;
 
   const percentage =
     totalQuestions === 0
       ? 0
       : Math.round((correctCount / totalQuestions) * 100);
-
-  // Format time
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -135,7 +162,7 @@ export function TestResultScreen({
               <div className="flex-1 ml-12 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="font-['Inter'] font-semibold text-[16px] text-gray-700">
-                    Testing time
+                    Time Spent
                   </span>
                   <span className="font-['Inter'] font-bold text-[16px] text-black">
                     {formatTime(timeSpent)}
@@ -177,16 +204,16 @@ export function TestResultScreen({
 
             {/* Question Grid */}
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              {Object.keys(correctAnswers)
+              {Object.keys(correctAnswersByIndex)
                 .map(Number)
                 .sort((a, b) => a - b)
                 .map((questionNumber) => {
-                  const userAnswer = userAnswers[questionNumber];
-                  const correctAnswer = correctAnswers[questionNumber];
+                  const userAnswer = userAnswersByIndex[questionNumber];
+                  const correctAnswer = correctAnswersByIndex[questionNumber];
 
                   const empty = isAnswerEmpty(userAnswer);
                   const correct =
-                    !empty && isCorrect(userAnswer, correctAnswer);
+                    !empty && isAnswerCorrect(userAnswer, correctAnswer);
 
                   const formatAnswer = (v?: string | string[]) =>
                     v == null ? "" : Array.isArray(v) ? v.join(", ") : v;
@@ -233,13 +260,13 @@ export function TestResultScreen({
           {/* Action Buttons */}
           <div className="flex gap-4 justify-center pb-8">
             <button
-              onClick={onTakeAnotherTest}
+              onClick={() => window.location.reload()}
               className="px-8 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-semibold text-[14px] transition-colors"
             >
               Take the test again
             </button>
             <button
-              onClick={onReturnToLibrary}
+              onClick={() => window.location.reload()}
               className="px-8 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg font-['Inter'] font-semibold text-[14px] transition-colors"
             >
               Return to Library

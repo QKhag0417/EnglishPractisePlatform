@@ -1,30 +1,15 @@
 import { useNavigate, useParams } from "react-router";
 
-import { useAuth } from "../../contexts/AuthContext.tsx";
-
 import {
   TestInstructionScreen,
   ListeningTestScreen,
-  TestResultScreen,
 } from "./components/index.ts";
 
 import { useTestFlow } from "./hooks";
 
 export function TestPage() {
   // =========================
-  // Auth and navigation
-  // =========================
-
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  // =========================
-  // Choosen exercise id
+  // Skill and exercise id from URL
   // =========================
 
   const { skill, exerciseId } = useParams();
@@ -45,12 +30,7 @@ export function TestPage() {
   // Test Screen
   if (flow.testState === "test") {
     if (skill === "listening") {
-      return (
-        <ListeningTestScreen
-          exerciseId={exerciseId || ""}
-          onGoToResults={flow.goToResults}
-        />
-      );
+      return <ListeningTestScreen exerciseId={exerciseId || ""} />;
     }
 
     // if (exercisePrompt.skill === "READING") {
@@ -74,18 +54,4 @@ export function TestPage() {
     //   );
     // }
   }
-
-  // // Results Screen
-  // if (flow.testState === "results") {
-  //   return (
-  //     <TestResultScreen
-  //       userAnswers={flow.answers}
-  //       exerciseAnswers={exerciseAnswers.correctAnswers}
-  //       timeSpent={flow.timeSpent}
-  //       onReturnToLibrary={() => navigate(browsePath)}
-  //       onTakeAnotherTest={resetTest}
-  //       onLogout={handleLogout}
-  //     />
-  //   );
-  // }
 }

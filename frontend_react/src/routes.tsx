@@ -20,6 +20,7 @@ import { WritingContentEditorPage } from "./pages/WritingContentEditorPage";
 import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
 import { MyProfilePage } from "./pages/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { TestResultPage } from "./pages/TestResultPage/TestResultPage";
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
   {
     path: "/:skill/test/:exerciseId",
     Component: TestPage,
+  },
+  {
+    path: "/test/result/:submissionId",
+    Component: TestResultPage,
   },
   //   // Reading routes
   //   {

@@ -78,5 +78,9 @@ public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmission
         if (includes.has("timespentseconds")) dto.setTimeSpentSeconds(submission.getTimeSpentSeconds());
         if (includes.has("submittedat")) dto.setSubmittedAt(submission.getSubmittedAt());
         if (includes.has("score")) dto.setScore(submission.getScore());
+        if (includes.has("correctanswercount")) dto.setCorrectAnswerCount(submission.getCorrectAnswerCount());
+        if (includes.has("wronganswercount")) dto.setWrongAnswerCount(submission.getWrongAnswerCount());
+        if (includes.has("skipanswercount")) dto.setSkipAnswerCount(submission.getSkipAnswerCount());
+
     }
 }

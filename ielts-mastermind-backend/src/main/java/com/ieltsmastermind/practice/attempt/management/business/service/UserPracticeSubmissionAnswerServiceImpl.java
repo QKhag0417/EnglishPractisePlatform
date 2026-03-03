@@ -78,8 +78,7 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
 
         List<UserPracticeSubmissionAnswer> saved = answerRepository.saveAll(entities);
 
-        Double band = calculateBandScore(submission, saved);
-        submission.setScore(band);
+        calculateAndSetSubmissionResult(submission, saved);
 
         List<UserPracticeSubmissionAnswerResponseDto> response = new ArrayList<>(saved.size());
         for (UserPracticeSubmissionAnswer s : saved) {
@@ -129,9 +128,10 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
         if (includes.has("submissionid")) dto.setSubmissionId(answer.getSubmission().getId());
         if (includes.has("orderindex")) dto.setOrderIndex(answer.getOrderIndex());
         if (includes.has("answers")) dto.setAnswers(new ArrayList<>(answer.getAnswers()));
+
     }
 
-    private Double calculateBandScore(UserPracticeSubmission submission,
+    private void calculateAndSetSubmissionResult(UserPracticeSubmission submission,
                                                List<UserPracticeSubmissionAnswer> savedAnswers) {
 
         String practiceContentId = submission.getPracticeContentId();
@@ -144,15 +144,36 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
             userAnswersByOrder.put(a.getOrderIndex(), a.getAnswers());
         }
 
-        int rawCorrect = 0;
+        int correct = 0;
+        int wrong = 0;
+        int skip = 0;
+
         for (PracticeQuestion q : questions) {
-            List<String> userAns = userAnswersByOrder.getOrDefault(q.getOrderIndex(), List.of());
+            List<String> userAns = userAnswersByOrder.get(q.getOrderIndex());
+
+            if (isAnswerEmpty(userAns)) {
+                skip++;
+                continue;
+            }
+
             if (isCorrect(userAns, q.getCorrectAnswers())) {
-                rawCorrect++;
+                correct++;
+            } else {
+                wrong++;
             }
         }
 
-        return bandScoreFromRaw(rawCorrect);
+        submission.setCorrectAnswerCount(correct);
+        submission.setWrongAnswerCount(wrong);
+        submission.setSkipAnswerCount(skip);
+
+        Double band = bandScoreFromRaw(correct);
+        submission.setScore(band);
+    }
+
+    private boolean isAnswerEmpty(List<String> answers) {
+        if (answers == null || answers.isEmpty()) return true;
+        return answers.stream().allMatch(a -> a == null || a.trim().isEmpty());
     }
 
     private boolean isCorrect(List<String> userAnswers, List<String> correctAnswers) {

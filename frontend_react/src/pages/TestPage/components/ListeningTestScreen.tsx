@@ -23,10 +23,9 @@ import { useAuth } from "../../../contexts/AuthContext.tsx";
 
 type Props = {
   exerciseId: string;
-  onGoToResults: () => void;
 };
 
-export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
+export function ListeningTestScreen({ exerciseId }: Props) {
   // =========================
   // Auth information
   // =========================
@@ -82,6 +81,7 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
   // =========================
   // Post User Answers Bulk
   // =========================
+
   const postUserAnswersBulk = usePostUserAnswersBulk({
     userPracticeSubmissionId:
       postUserSubmission.submission.practiceSubmissionId || "",
@@ -93,7 +93,10 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
   // =========================
 
   const submitModal = useSubmitModal({
-    onGoToResults,
+    onGoToResults: () =>
+      navigate(
+        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
+      ),
     onPostSubmission: postUserSubmission.post,
     onPostSubmissionAnswers: postUserAnswersBulk.post,
   });
