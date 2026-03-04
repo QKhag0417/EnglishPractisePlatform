@@ -212,26 +212,44 @@ function MultipleChoiceRender({
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
   const pick = node.pick ?? 1;
-  const questionNumber = node.n;
+  const startQuestionNumber = node.n;
+
+  const questionNumbers = Array.from(
+    { length: pick },
+    (_, i) => startQuestionNumber + i,
+  );
 
   const isSinglePick = pick <= 1;
 
-  const selectedAnswers = userAnswers[questionNumber] ?? [];
+  const selectedAnswers: string[] = isSinglePick
+    ? (userAnswers[startQuestionNumber] ?? [])
+    : questionNumbers
+        .map((q) => (userAnswers[q] ?? [])[0])
+        .filter((x): x is string => Boolean(x));
 
   const setSelected = (next: string[]) => {
-    onAnswerChange?.(questionNumber, next);
+    if (!onAnswerChange) return;
+
+    if (isSinglePick) {
+      onAnswerChange(startQuestionNumber, next);
+      return;
+    }
+
+    for (let i = 0; i < pick; i++) {
+      const qNo = startQuestionNumber + i;
+      const letter = next[i];
+      onAnswerChange(qNo, letter ? [letter] : []);
+    }
   };
 
   const handleSelect = (letter: string) => {
     const isChecked = selectedAnswers.includes(letter);
 
     if (isSinglePick) {
-      // radio behavior: set one answer
       setSelected([letter]);
       return;
     }
 
-    // checkbox behavior with max limit
     if (isChecked) {
       setSelected(selectedAnswers.filter((x) => x !== letter));
     } else {
@@ -258,7 +276,7 @@ function MultipleChoiceRender({
             >
               <input
                 type={isSinglePick ? "radio" : "checkbox"}
-                name={isSinglePick ? `q-${questionNumber}` : undefined}
+                name={isSinglePick ? `q-${startQuestionNumber}` : undefined}
                 checked={isChecked}
                 onChange={() => handleSelect(optionLetter)}
                 className={inputClassName}

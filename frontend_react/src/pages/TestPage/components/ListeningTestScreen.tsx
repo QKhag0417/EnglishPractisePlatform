@@ -54,6 +54,8 @@ export function ListeningTestScreen({ exerciseId }: Props) {
 
   const userAnswer = useUserAnswer({});
 
+  console.log("User answers:", userAnswer.answers); // Debug log to check user answers
+
   // =========================
   // Countdown Timer
   // =========================
