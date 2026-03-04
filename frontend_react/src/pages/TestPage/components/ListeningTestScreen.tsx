@@ -211,10 +211,6 @@ export function ListeningTestScreen({ exerciseId }: Props) {
 
         {/* Questions */}
         <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
-          <h3 className="text-[20px] font-bold text-black mb-2">
-            Part {getListeningExercise.exercise.task}
-          </h3>
-
           <InstructionRenderer
             instruction={getListeningExercise.exercise.examText}
             userAnswers={userAnswer.answers}
