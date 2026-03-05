@@ -17,8 +17,7 @@ import {
   usePostUserAnswersBulk,
 } from "../hooks/index.ts";
 
-import { formatTime } from "../utils/formatTime.ts";
-import { buildAudioUrl } from "../utils/buildAudioUrl.ts";
+import { formatTime, buildAudioUrl } from "../utils";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
 
 type Props = {
@@ -45,16 +44,15 @@ export function ListeningTestScreen({ exerciseId }: Props) {
   const getListeningExercise = useGetListeningExercise(exerciseId);
 
   useEffect(() => {
+    if (!exerciseId) return;
     void getListeningExercise.get();
-  }, [getListeningExercise.get]);
+  }, [exerciseId, getListeningExercise.get]);
 
   // =========================
   // User Answers
   // =========================
 
   const userAnswer = useUserAnswer({});
-
-  console.log("User answers:", userAnswer.answers); // Debug log to check user answers
 
   // =========================
   // Countdown Timer
@@ -267,7 +265,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
-                  onClick={() => submitModal.setShowSubmitModal(false)}
+                  onClick={() => submitModal.setShowSubmitModal(false)} // TODO: check this again
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 >
                   Continue Test

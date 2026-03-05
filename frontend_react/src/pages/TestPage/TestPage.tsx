@@ -6,6 +6,7 @@ import {
 } from "./components/index.ts";
 
 import { useTestFlow } from "./hooks";
+import { ReadingTestScreen } from "./components/ReadingTestScreen.tsx";
 
 export function TestPage() {
   // =========================
@@ -33,25 +34,8 @@ export function TestPage() {
       return <ListeningTestScreen exerciseId={exerciseId || ""} />;
     }
 
-    // if (exercisePrompt.skill === "READING") {
-    //   return (
-    //     <ReadingTestScreen
-    //       exercisePrompt={exercisePrompt}
-    //       timeRemaining={timer.secondsRemaining}
-    //       formatTime={formatTime}
-    //       answers={flow.answers}
-    //       currentQuestionIndex={flow.currentQuestionIndex}
-    //       onAnswerChange={flow.onAnswerChange}
-    //       onExitTest={flow.openExitModal}
-    //       onSubmit={flow.openSubmitModal}
-    //       showSubmitModal={flow.showSubmitModal}
-    //       setShowSubmitModal={flow.setShowSubmitModal}
-    //       showExitModal={flow.showExitModal}
-    //       setShowExitModal={flow.setShowExitModal}
-    //       onConfirmSubmit={flow.confirmSubmit}
-    //       onConfirmExit={flow.confirmExit}
-    //     />
-    //   );
-    // }
+    if (skill === "reading") {
+      return <ReadingTestScreen exerciseId={exerciseId || ""} />;
+    }
   }
 }

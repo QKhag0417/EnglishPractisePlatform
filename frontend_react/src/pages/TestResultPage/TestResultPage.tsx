@@ -58,8 +58,6 @@ export function TestResultPage() {
     getPracticeSubmissionAnswers.answers,
   );
 
-  console.log("submissionAnswersByIndex", submissionAnswersByIndex);
-
   // =========================
   // Get practice content answers data
   // =========================

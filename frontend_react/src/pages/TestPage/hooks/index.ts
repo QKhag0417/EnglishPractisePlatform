@@ -7,3 +7,4 @@ export { useUserAnswer } from "./useUserAnswer";
 export { useExitModal } from "./useExitModal";
 export { usePostUserSubmission } from "./usePostUserSubmission";
 export { usePostUserAnswersBulk } from "./usePostUserAnswersBulk";
+export { useGetReadingExercise } from "./useGetReadingExercise";
