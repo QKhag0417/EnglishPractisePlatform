@@ -1,6 +1,7 @@
 package com.ieltsmastermind.practice.content.management.domain.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeContentProgress;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentSkill;
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
@@ -81,6 +82,9 @@ public class PracticeContent {
 
     @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<UserPracticeSubmission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserPracticeContentProgress> practiceContentProgresses = new ArrayList<>();
 
     protected PracticeContent(PracticeContentSkill skill) {
         this.skill = skill;
