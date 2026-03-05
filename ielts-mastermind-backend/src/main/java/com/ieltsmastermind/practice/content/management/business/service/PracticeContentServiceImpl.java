@@ -188,7 +188,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             }
         }
 
-        // override thumbnailfile
+        // override thumbnail file
         String oldUrl = content.getThumbnailUrl();
         String newUrl = request.getThumbnailUrl();
         if (oldUrl != null && (!oldUrl.equals(newUrl))) {
