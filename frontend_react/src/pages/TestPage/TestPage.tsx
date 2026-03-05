@@ -1,12 +1,6 @@
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 
-import {
-  TestInstructionScreen,
-  ListeningTestScreen,
-} from "./components/index.ts";
-
-import { useTestFlow } from "./hooks";
-import { ReadingTestScreen } from "./components/ReadingTestScreen.tsx";
+import { ListeningTestScreen, ReadingTestScreen } from "./components/index.ts";
 
 export function TestPage() {
   // =========================
@@ -15,27 +9,12 @@ export function TestPage() {
 
   const { skill, exerciseId } = useParams();
 
-  // =========================
-  // Test flow management
-  // =========================
-
-  const flow = useTestFlow({});
-
-  // Instruction Screen
-  if (flow.testState === "instruction") {
-    return (
-      <TestInstructionScreen skill={skill || ""} onGoToTest={flow.goToTest} />
-    );
+  // Test Screen
+  if (skill === "listening") {
+    return <ListeningTestScreen exerciseId={exerciseId || ""} />;
   }
 
-  // Test Screen
-  if (flow.testState === "test") {
-    if (skill === "listening") {
-      return <ListeningTestScreen exerciseId={exerciseId || ""} />;
-    }
-
-    if (skill === "reading") {
-      return <ReadingTestScreen exerciseId={exerciseId || ""} />;
-    }
+  if (skill === "reading") {
+    return <ReadingTestScreen exerciseId={exerciseId || ""} />;
   }
 }

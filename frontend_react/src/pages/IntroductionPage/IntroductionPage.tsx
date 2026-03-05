@@ -1,17 +1,31 @@
-// InstructionScreen.tsx
-import type { Skill } from "../types.ts";
-import { exerciseInstructionsBySkill } from "../mock/instructions.mock.ts";
+import type { Skill } from "./types.ts";
+import { exerciseIntroductionBySkill } from "./mock/introductions.mock.ts";
+import { useNavigate, useParams } from "react-router-dom";
 
-interface TestInstructionScreenProps {
-  skill: Skill;
-  onGoToTest: () => void;
-}
+export function IntroductionPage() {
+  // =========================
+  // Navigation
+  // =========================
 
-export function TestInstructionScreen({
-  skill,
-  onGoToTest,
-}: TestInstructionScreenProps) {
-  const instruction = exerciseInstructionsBySkill[skill];
+  const navigate = useNavigate();
+
+  // =========================
+  // Skill and exercise id from URL
+  // =========================
+
+  const { skill, exerciseId } = useParams();
+
+  // =========================
+  // Get instruction based on skill
+  // =========================
+
+  const instruction = exerciseIntroductionBySkill[skill || ""];
+
+  // =========================
+  // Build test path
+  // =========================
+
+  const testPath = `/${skill}/test/${exerciseId}`;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -53,7 +67,7 @@ export function TestInstructionScreen({
         <div className="flex justify-center">
           <button
             type="button"
-            onClick={onGoToTest}
+            onClick={() => navigate(testPath)}
             className="bg-[#dc3545] hover:bg-[#c82333] text-white px-12 py-3 rounded-lg font-semibold text-[18px] transition-colors"
           >
             Start test

@@ -244,7 +244,7 @@ export function TestResultPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons
           <div className="flex gap-4 justify-center pb-8">
             <button
               onClick={() => window.location.reload()}
@@ -258,7 +258,7 @@ export function TestResultPage() {
             >
               Return to Library
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 

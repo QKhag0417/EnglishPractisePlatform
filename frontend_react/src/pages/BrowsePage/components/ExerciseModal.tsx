@@ -84,7 +84,7 @@ export function ExerciseModal({
     } else {
       onClose();
       if (pageType === "listening" || pageType === "reading") {
-        navigate(`/${pageType}/test/${exerciseMetadata.id}`);
+        navigate(`/${pageType}/introduction/${exerciseMetadata.id}`);
       } else if (pageType === "writing" || pageType === "speaking") {
         navigate(`/`);
       } else {
