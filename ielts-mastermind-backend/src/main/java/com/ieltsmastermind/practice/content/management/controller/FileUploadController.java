@@ -121,6 +121,52 @@ public class FileUploadController {
         }
     }
 
+    @PreAuthorize("hasRole('Administrator')")
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> uploadImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            String url = fileUploadService.uploadImage(file);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Image uploaded successfully", url));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PreAuthorize("hasRole('Administrator')")
+    @DeleteMapping("/images")
+    public ResponseEntity<ApiResponse<Void>> deleteImage(
+            @Valid @RequestBody FileDeleteRequestDto request
+    ) {
+        try {
+            fileUploadService.deleteImageByUrl(request);
+
+            return ResponseEntity.ok(
+                    ApiResponse.success("Image deleted successfully", null)
+            );
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
     @DeleteMapping("/avatars")
     public ResponseEntity<ApiResponse<Void>> deleteAvatar(
             @Valid @RequestBody FileDeleteRequestDto request

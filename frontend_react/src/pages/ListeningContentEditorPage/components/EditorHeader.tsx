@@ -6,6 +6,7 @@ interface EditorHeaderProps {
   onStatusChange: (value: "Draft" | "Published") => void;
   onCancel: () => void;
   onSaveExit: () => void;
+  disableCancel?: boolean;
 }
 
 export function EditorHeader({
@@ -14,6 +15,7 @@ export function EditorHeader({
   onStatusChange,
   onCancel,
   onSaveExit,
+  disableCancel
 }: EditorHeaderProps) {
   return (
     <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
@@ -53,6 +55,7 @@ export function EditorHeader({
 
             <Button
               onClick={onCancel}
+              disabled={disableCancel}
               variant="outline"
               className="font-['Inter'] text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             >

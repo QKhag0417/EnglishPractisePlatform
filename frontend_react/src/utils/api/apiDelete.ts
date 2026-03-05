@@ -30,7 +30,8 @@ export async function apiDelete<T>(params: {
       json = null;
     }
 
-    const apiSuccess = (json?.status ?? "").toLowerCase() === "success";
+    const rawStatus = json?.status;
+    const apiSuccess = typeof rawStatus === "string" ? rawStatus.toLowerCase() === "success" : false;
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {

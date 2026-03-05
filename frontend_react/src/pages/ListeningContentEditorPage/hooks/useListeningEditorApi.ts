@@ -12,7 +12,7 @@ export function useListeningEditorApi() {
   const fetchDetail = async (id: string) => {
     const result = await apiGet<any>({
       apiBase: API_BASE,
-      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,audioUrl,passage,passageParsed,durationMinutes,questionCount,createdOn,updatedOn,status`,
+      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,audioUrl,passage,passageParsed,durationMinutes,questionCount,createdOn,updatedOn,status,imageurls`,
     });
 
     if (!result.ok) {
@@ -23,7 +23,28 @@ export function useListeningEditorApi() {
   };
 
   // ================================
-  // 2Upload thumbnail
+  // Upload image
+  // ================================
+  const uploadImages = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const result = await apiPost<string>({
+      apiBase: API_BASE,
+      path: "/api/files/images",
+      body: formData,
+      isFormData: true,
+    });
+
+    if (!result.ok) {
+      throw new Error(result.message);
+    }
+
+    return result.data; // imageUrl
+  };
+
+  // ================================
+  // Upload thumbnail
   // ================================
   const uploadThumbnail = async (file: File) => {
     const formData = new FormData();
@@ -62,6 +83,63 @@ export function useListeningEditorApi() {
     }
 
     return result.data; // audioUrl
+  };
+
+  // ================================
+  // Delete Image
+  // ================================
+  const deleteImages = async (url: string) => {
+    const result = await apiDelete<void>({
+      apiBase: API_BASE,
+      path: "/api/files/images",
+      body: {
+        fileUrl: url,
+      },
+    });
+
+    if (!result.ok) {
+      throw new Error(result.message);
+    }
+
+    return true;
+  };
+
+  // ================================
+  // Delete thumbnail
+  // ================================
+  const deleteThumbnail = async (url: string) => {
+    const result = await apiDelete<void>({
+      apiBase: API_BASE,
+      path: "/api/files/thumbnails",
+      body: {
+        fileUrl: url, //
+      },
+    });
+
+    if (!result.ok) {
+      throw new Error(result.message);
+    }
+
+    return true;
+  };
+
+  // ================================
+  // Delete audio
+  // ================================
+  const deleteAudio = async (url: string) => {
+    const result = await apiDelete<void>({
+      apiBase: API_BASE,
+      path: "/api/files/audio",
+      body: {
+        fileUrl: url, //
+      },
+    });
+
+    if (!result.ok) {
+      throw new Error(result.message);
+    }
+
+    return true;
   };
 
   // ================================
@@ -194,11 +272,17 @@ export function useListeningEditorApi() {
   return {
     fetchDetail,
 
+    uploadImages,
+    deleteImages,
     uploadThumbnail,
+    deleteThumbnail,
     uploadAudio,
+    deleteAudio,
+
     createContent,
     updateContent,
     saveContent,
+
     createContentQuestion,
     deleteContentQuestion,
     updateContentQuestion,

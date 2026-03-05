@@ -61,6 +61,14 @@ public class PracticeContent {
     @Column(name = "tag")
     private Set<String> topicTags = new HashSet<>();
 
+    @ElementCollection
+    @CollectionTable(
+            name = "practice_content_images",
+            joinColumns = @JoinColumn(name = "practice_content_id")
+    )
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
+
     private String thumbnailUrl;
 
     private Integer durationMinutes;

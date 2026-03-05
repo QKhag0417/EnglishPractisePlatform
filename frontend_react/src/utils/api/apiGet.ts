@@ -27,7 +27,8 @@ export async function apiGet<T>(params: {
       body = null;
     }
 
-    const apiSuccess = (body?.status ?? "").toLowerCase() === "success";
+    const rawStatus = body?.status;
+    const apiSuccess = typeof rawStatus === "string" ? rawStatus.toLowerCase() === "success" : false;
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {

@@ -22,6 +22,35 @@ public class FileUploadServiceImpl implements FileUploadService {
     private static final long MAX_FILE_SIZE_BYTES = 25L * 1024 * 1024;
 
     @Override
+    public String uploadImage(MultipartFile file) {
+        validateImage(file);
+        return storeFile(file, IMAGE_UPLOAD_DIR, IMAGE_PUBLIC_BASE_PATH);
+    }
+
+    @Override
+    public void deleteImageByUrl(FileDeleteRequestDto request) {
+        String imageUrl = request.getFileUrl();
+
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            throw new RuntimeException("imageUrl is required");
+        }
+
+        String filename = extractFilenameFromPublicUrl(imageUrl, IMAGE_PUBLIC_BASE_PATH);
+
+        Path uploadPath = Paths.get(IMAGE_UPLOAD_DIR).toAbsolutePath().normalize();
+        Path target = uploadPath.resolve(filename).normalize();
+
+        try {
+            boolean deleted = Files.deleteIfExists(target);
+            if (!deleted) {
+                throw new RuntimeException("Image file not found");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete image", e);
+        }
+    }
+
+    @Override
     public String uploadThumbnail(MultipartFile file) {
         validateThumbnail(file);
 
@@ -125,6 +154,15 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
         if (file.getContentType() == null || file.getContentType().trim().isEmpty()) {
             throw new RuntimeException("Missing content type");
+        }
+    }
+
+    private void validateImage(MultipartFile file) {
+        validateFileBase(file);
+
+        String contentType = file.getContentType();
+        if (!Set.of("image/png", "image/jpeg", "image/webp").contains(contentType)) {
+            throw new RuntimeException("Invalid image type");
         }
     }
 

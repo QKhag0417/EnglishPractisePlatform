@@ -4,16 +4,24 @@ import { DEFAULT_OPTIONS } from "../types";
 import { useListeningEditorApi } from "./useListeningEditorApi";
 import { useNavigate, useParams } from "react-router";
 import { API_BASE } from "../../../env";
+import { useSupportingImagesState } from "./useSupportingImagesState";
+
 export function useListeningEditorState(
   isEditMode: boolean,
   id?: string
 ) {
   const navigate = useNavigate();
 
+  const [hasImageChanges, setHasImageChanges] = useState(false);
+  const markImageChanged = () => {
+    setHasImageChanges(true);
+  };
   const {
     fetchDetail,
     uploadThumbnail,
     uploadAudio,
+    deleteThumbnail,
+    deleteAudio,
     createContent,
     updateContent,
     saveContent,
@@ -23,6 +31,17 @@ export function useListeningEditorState(
     fetchContentQuestions,
   } = useListeningEditorApi();
 
+  const {
+    multiImageInputRef,
+    uploadedImages,
+    handleMultiImageChange,
+    handleSaveImage,
+    handleRemoveImage,
+    handleCopyUrl,
+    getSavedImageUrls,
+    loadExistingImages
+  } = useSupportingImagesState(id, markImageChanged);
+
   // ================= META =================
   const [title, setTitle] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -30,6 +49,7 @@ export function useListeningEditorState(
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [status, setStatus] = useState<"Draft" | "Published">("Draft");
   const [newAnswerInput, setNewAnswerInput] = useState("");
+
   // ================= QUESTIONS =================
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionTempId, setSelectedQuestionTempId] = useState("");
@@ -48,15 +68,22 @@ export function useListeningEditorState(
   const [currentExplanation, setCurrentExplanation] = useState("");
   const [currentScore, setCurrentScore] = useState("1");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">("saved");
   const [shuffleOptions, setShuffleOptions] = useState(false);
 
   // ================= THUMBNAIL&AUDIO =================
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(null);
-  const [audioFile, setAudioFile] = useState<File | string | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [thumbnailSaved, setThumbnailSaved] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
   const [audioPreview, setAudioPreview] = useState<string | null>(null);
+  const [audioFile, setAudioFile] = useState<File | string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioSaved, setAudioSaved] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const safeRevokeObjectUrl = (url: string | null) => {
       if (!url) return;
@@ -70,7 +97,6 @@ export function useListeningEditorState(
     };
   }, []);
 
-  const audioInputRef = useRef<HTMLInputElement>(null);
   const [updatedOn, setUpdatedOn] = useState<string>("");
 
   const markAsUnsaved = () => {
@@ -108,12 +134,11 @@ export function useListeningEditorState(
     const loadData = async () => {
       try {
 
-
-        // 1️⃣ Fetch content
         const content = await fetchDetail(id);
 
-
-
+        if (content.imageUrls && content.imageUrls.length > 0) {
+          loadExistingImages(content.imageUrls);
+        }
         // ===== SET META =====
         setTitle(content.title || "");
         setInstructions(content.instructions || "");
@@ -126,18 +151,18 @@ export function useListeningEditorState(
 
         if (content.thumbnailUrl) {
           setThumbnailPreview(`${API_BASE}${content.thumbnailUrl}`);
-          setThumbnailFile(content.thumbnailUrl);
+          setThumbnailUrl(content.thumbnailUrl);
+          setThumbnailSaved(true);
         }
 
         if (content.audioUrl) {
           setAudioPreview(`${API_BASE}${content.audioUrl}`);
-          setAudioFile(content.audioUrl);
+          setAudioUrl(content.audioUrl);
+          setAudioSaved(true);
         }
 
-        // 2️⃣ Fetch questions
+        // Fetch questions
         const questionsFromApi = await fetchContentQuestions(id);
-
-
 
         const mappedQuestions: Question[] = (questionsFromApi || []).map(
           (q: any) => ({
@@ -163,22 +188,17 @@ export function useListeningEditorState(
           })
         );
 
-
-
         setQuestions(mappedQuestions);
 
         if (mappedQuestions.length > 0) {
           setSelectedQuestionTempId(mappedQuestions[0].tempId);
         }
 
-
-
       } catch (err) {
-        console.error("❌ Failed to load content", err);
+        console.error("Failed to load content", err);
         alert("Cannot load content for editing");
       }
     };
-
     loadData();
   }, [isEditMode, id]);
 
@@ -287,7 +307,6 @@ export function useListeningEditorState(
 
       setSaveState("saved");
       setHasUnsavedChanges(false);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedQuestionTempId]);
 
   const handleSaveQuestion = () => {
@@ -330,35 +349,100 @@ export function useListeningEditorState(
     };
   };
 
+  const handleSaveThumbnail = async () => {
+    if (!thumbnailFile) return;
+
+    try {
+      const url = await uploadThumbnail(thumbnailFile);
+      setThumbnailUrl(url);
+      setThumbnailSaved(true);
+      setHasImageChanges(true);
+    } catch (err) {
+      alert("Thumbnail upload failed");
+    }
+  };
+
+  const handleRemoveThumbnail = async () => {
+    if (!thumbnailPreview) return;
+
+    try {
+      // Nếu chưa save → chỉ xóa local
+      if (!thumbnailSaved) {
+        safeRevokeObjectUrl(thumbnailPreview);
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        setThumbnailUrl(null);
+        setThumbnailSaved(false);
+        setHasImageChanges(true);
+
+        return;
+      }
+
+      if (!thumbnailUrl) return;
+
+      await deleteThumbnail(thumbnailUrl);
+
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      setThumbnailUrl(null);
+      setThumbnailSaved(false);
+      setHasImageChanges(true);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleSaveAudio = async () => {
+    if (!audioFile) return;
+
+    try {
+      const url = await uploadAudio(audioFile);
+      setAudioUrl(url);
+      setAudioSaved(true);
+      setHasImageChanges(true);
+    } catch (err) {
+      alert("Audio upload failed");
+    }
+  };
+
+  const handleRemoveAudio = async () => {
+    if (!audioPreview) return;
+
+    try {
+      if (!audioSaved) {
+        safeRevokeObjectUrl(audioPreview);
+        setAudioFile(null);
+        setAudioPreview(null);
+        setAudioUrl("");
+
+        setHasImageChanges(true);
+        return;
+      }
+
+      if (!audioUrl) return;
+
+      await deleteAudio(audioUrl);
+
+      setAudioFile(null);
+      setAudioPreview(null);
+      setAudioUrl(null);
+      setAudioSaved(false);
+      setHasImageChanges(true);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+
   const handleSaveExit = async () => {
     try {
       ensureCurrentQuestionIsPersisted();
-
-      let thumbnailUrl: string | null = null;
-      let audioUrl: string | null = null;
-
-      // ================= THUMBNAIL =================
-      if (thumbnailFile instanceof File) {
-        thumbnailUrl = await uploadThumbnail(thumbnailFile);
-      } else if (typeof thumbnailFile === "string") {
-        thumbnailUrl = thumbnailFile; // giữ file cũ
-      }
-
-      // ================= AUDIO =================
-      if (audioFile instanceof File) {
-        audioUrl = await uploadAudio(audioFile);
-      } else if (typeof audioFile === "string") {
-        audioUrl = audioFile; // giữ file cũ
-      }
 
       if (!audioUrl || audioUrl.trim() === "") {
         alert("Audio file is required for Listening content");
         return;
       }
 
-      // ========================
-      // SAVE CONTENT FIRST
-      // ========================
       const contentPayload = {
         skill: "LISTENING",
         title,
@@ -371,6 +455,7 @@ export function useListeningEditorState(
         status: status === "Draft" ? "DRAFT" : "PUBLISHED",
         thumbnailUrl,
         audioUrl,
+        imageUrls: getSavedImageUrls()
       };
 
       const contentResponse = await saveContent(
@@ -385,9 +470,7 @@ export function useListeningEditorState(
 
       const contentId = contentResponse.id;
 
-      // ========================
       //  SAVE QUESTIONS
-      // ========================
       // STEP 1: Move existing questions to temp order
       const normalizedQuestions = [...questions]
         .sort((a, b) => a.number - b.number)
@@ -445,7 +528,7 @@ export function useListeningEditorState(
       }
 
       setQuestions(updatedQuestions);
-
+      setHasImageChanges(false);
       navigate("/admin/content-management");
 
     } catch (err: any) {
@@ -472,6 +555,9 @@ export function useListeningEditorState(
 
     setThumbnailFile(file);
     setThumbnailPreview(url);
+    setThumbnailUrl(null);
+    setThumbnailSaved(false);
+
   };
 
   const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -493,6 +579,8 @@ export function useListeningEditorState(
 
     setAudioFile(file);
     setAudioPreview(url);
+    setAudioUrl(null);
+    setAudioSaved(false);
   };
 
   const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -515,6 +603,9 @@ export function useListeningEditorState(
 
     setThumbnailFile(file);
     setThumbnailPreview(url);
+    setThumbnailUrl(null);
+    setThumbnailSaved(false);
+
   };
 
   const handleAudioDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -537,6 +628,8 @@ export function useListeningEditorState(
 
     setAudioFile(file);
     setAudioPreview(url);
+    setAudioUrl(null);
+    setAudioSaved(false);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -614,8 +707,23 @@ export function useListeningEditorState(
     audioFile,
     setAudioFile,
     safeRevokeObjectUrl,
+    handleSaveThumbnail,
+    handleSaveAudio,
+    thumbnailSaved,
+    audioSaved,
+    handleRemoveThumbnail,
+    handleRemoveAudio,
 
+    // supporting images
+    multiImageInputRef,
+    uploadedImages,
+    handleMultiImageChange,
+    handleSaveImage,
+    handleRemoveImage,
+    handleCopyUrl,
 
+    hasImageChanges,
+    setHasImageChanges,
     handleSaveExit,
   };
 }

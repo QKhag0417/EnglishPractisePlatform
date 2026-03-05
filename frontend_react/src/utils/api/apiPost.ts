@@ -41,7 +41,7 @@ export async function apiPost<T>(params: {
       json = null;
     }
 
-    const apiSuccess = (json?.status ?? "").toLowerCase() === "success";
+    const apiSuccess = String(json?.status ?? "").toLowerCase() === "success";
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {

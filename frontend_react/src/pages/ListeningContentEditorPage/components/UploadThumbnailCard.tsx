@@ -1,21 +1,28 @@
-import { Upload, X } from "lucide-react";
+import { Upload, X, Check } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Label } from "../../../components/ui/label";
 
 interface UploadThumbnailCardProps {
   thumbnailPreview: string | null;
+  thumbnailSaved: boolean;
+
   onBrowseClick: () => void;
   onRemove: () => void;
+  onSave: () => void;
+
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
+
   inputRef: React.RefObject<HTMLInputElement | null>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function UploadThumbnailCard({
   thumbnailPreview,
+  thumbnailSaved,
   onBrowseClick,
   onRemove,
+  onSave,
   onDrop,
   onDragOver,
   inputRef,
@@ -61,19 +68,35 @@ export function UploadThumbnailCard({
           </Button>
         </div>
       ) : (
-        <div className="relative">
-          <img
-            src={thumbnailPreview}
-            alt="Thumbnail preview"
-            className="w-full h-[180px] object-cover rounded-[8px]"
-          />
+        <div>
+          <div className="relative mb-[12px]">
+            <img
+              src={thumbnailPreview}
+              alt="Thumbnail preview"
+              className="w-full h-[180px] object-cover rounded-[8px]"
+            />
+          </div>
 
-          <button
-            onClick={onRemove}
-            className="absolute top-[8px] right-[8px] bg-white rounded-full p-[6px] shadow-md hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-[16px] h-[16px] text-gray-700" />
-          </button>
+          {!thumbnailSaved ? (
+            <Button
+              onClick={onSave}
+              className="w-full bg-[#1977f3] hover:bg-[#1567d3] font-['Inter'] text-[14px]"
+              size="sm"
+            >
+              <Check className="w-[14px] h-[14px] mr-[6px]" />
+              Save
+            </Button>
+          ) : (
+            <Button
+              onClick={onRemove}
+              variant="outline"
+              className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400 font-['Inter'] text-[14px]"
+              size="sm"
+            >
+              <X className="w-[14px] h-[14px] mr-[6px]" />
+              Remove
+            </Button>
+          )}
         </div>
       )}
     </div>

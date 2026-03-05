@@ -85,6 +85,11 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         );
 
         content.setThumbnailUrl(request.getThumbnailUrl());
+
+        if (request.getImageUrls() != null) {
+            content.setImageUrls(new ArrayList<>(request.getImageUrls()));
+        }
+
         content.setDurationMinutes(request.getDurationMinutes());
         content.setQuestionCount(request.getQuestionCount());
 
@@ -157,7 +162,10 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         if (request.getTopicTags() != null) {
             content.setTopicTags(new HashSet<>(request.getTopicTags()));
         }
+        if (request.getImageUrls() != null) {
 
+            content.setImageUrls(new ArrayList<>(request.getImageUrls()));
+        }
 
         if (request.getDurationMinutes() != null) content.setDurationMinutes(request.getDurationMinutes());
         if (request.getQuestionCount() != null) content.setQuestionCount(request.getQuestionCount());
@@ -166,19 +174,9 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         content.setUpdatedOn(LocalDateTime.now());
 
         if (content instanceof ListeningPracticeContent listening) {
-
-            String oldUrl = listening.getAudioUrl();
-            String newUrl = request.getAudioUrl();
-
-            if (newUrl != null && !newUrl.equals(oldUrl)) {
-                if (oldUrl != null) {
-                    FileDeleteRequestDto dto = new FileDeleteRequestDto();
-                    dto.setFileUrl(oldUrl);
-                    fileUploadService.deleteAudioByUrl(dto);
-                }
-                listening.setAudioUrl(newUrl);
+            if (request.getAudioUrl() != null) {
+                listening.setAudioUrl(request.getAudioUrl());
             }
-
         } else if (content instanceof ReadingPracticeContent reading) {
             if (request.getPassage() != null) {
                 reading.setPassage(request.getPassage());
@@ -188,15 +186,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             }
         }
 
-        // override thumbnailfile
-        String oldUrl = content.getThumbnailUrl();
-        String newUrl = request.getThumbnailUrl();
-        if (oldUrl != null && (!oldUrl.equals(newUrl))) {
-            FileDeleteRequestDto deleteThumbnailDto = new FileDeleteRequestDto();
-            deleteThumbnailDto.setFileUrl(oldUrl);
-            fileUploadService.deleteThumbnailByUrl(deleteThumbnailDto);
-        }
-        content.setThumbnailUrl(newUrl);
+        content.setThumbnailUrl(request.getThumbnailUrl());
+
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
@@ -228,7 +219,14 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             dto.setFileUrl(content.getThumbnailUrl());
             fileUploadService.deleteThumbnailByUrl(dto);
         }
-
+        // Delete supporting images
+        if (content.getImageUrls() != null) {
+            for (String url : content.getImageUrls()) {
+                FileDeleteRequestDto dto = new FileDeleteRequestDto();
+                dto.setFileUrl(url);
+                fileUploadService.deleteImageByUrl(dto);
+            }
+        }
         //  Let JPA cascade handle everything else
         practiceContentRepository.delete(content);
     }
@@ -247,6 +245,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
         if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
         if (includes.has("status")) dto.setStatus(content.getStatus());
+        if (includes.has("imageurls")) dto.setImageUrls(content.getImageUrls());
 
         if (content instanceof ListeningPracticeContent listening) {
             if (includes.has("audiourl")) dto.setAudioUrl(listening.getAudioUrl());

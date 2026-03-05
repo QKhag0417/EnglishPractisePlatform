@@ -2,15 +2,19 @@ import { NavBarAdmin } from "../../components/NavBarAdmin";
 import { Footer } from "../../components/Footer";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
+import { Button } from '../../components/ui/button';
+import { Plus } from 'lucide-react';
 import { EditorHeader } from "./components/EditorHeader";
 import { QuestionsTable } from "./components/QuestionsTable";
 import { AnswerScoringPanel } from "./components/AnswerScoringPanel";
 import { UploadThumbnailCard } from "./components/UploadThumbnailCard";
 import { UploadAudioCard } from "./components/UploadAudioCard";
 import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
+import { useSupportingImagesState } from "./hooks/useSupportingImagesState";
 import { useAuth } from "../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router";
 import { useListeningEditorState } from "./hooks/useListeningEditorState";
+import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
 
 
 export function ListeningContentEditorPage() {
@@ -29,6 +33,7 @@ export function ListeningContentEditorPage() {
     };
     const { exerciseId } = useParams();
     const isEditMode = !!exerciseId;
+
 
     const {
       title,
@@ -74,6 +79,12 @@ export function ListeningContentEditorPage() {
       handleAudioChange,
       audioInputRef,
       audioFile,
+      handleSaveThumbnail,
+      handleSaveAudio,
+      thumbnailSaved,
+      audioSaved,
+      handleRemoveThumbnail,
+      handleRemoveAudio,
       safeRevokeObjectUrl,
       setAudioFile,
       handleThumbnailDrop,
@@ -84,6 +95,16 @@ export function ListeningContentEditorPage() {
       displayUpdatedOn,
       updatedOn,
       setUpdatedOn,
+
+      multiImageInputRef,
+      uploadedImages,
+      handleMultiImageChange,
+      handleSaveImage,
+      handleRemoveImage,
+      handleCopyUrl,
+
+      hasImageChanges,
+      setHasImageChanges,
     } = useListeningEditorState(isEditMode, exerciseId);
 
 
@@ -97,6 +118,7 @@ export function ListeningContentEditorPage() {
           onStatusChange={setStatus}
           onCancel={handleCancel}
           onSaveExit={handleSaveExit}
+          disableCancel={hasImageChanges}
         />
 
         <div className="pt-[40px] pb-[60px] px-[60px]">
@@ -127,7 +149,14 @@ export function ListeningContentEditorPage() {
                   onDelete={deleteQuestion}
                   onAdd={addNewQuestion}
                 />
-
+                <SupportingImagesBlock
+                  multiImageInputRef={multiImageInputRef}
+                  uploadedImages={uploadedImages}
+                  handleMultiImageChange={handleMultiImageChange}
+                  handleSaveImage={handleSaveImage}
+                  handleRemoveImage={handleRemoveImage}
+                  handleCopyUrl={handleCopyUrl}
+                />
                 <AnswerScoringPanel
                   selectedQuestionNumber={selectedQuestion?.number}
                   questionType={questionType}
@@ -148,29 +177,27 @@ export function ListeningContentEditorPage() {
 
                 <UploadThumbnailCard
                   thumbnailPreview={thumbnailPreview}
+                  thumbnailSaved={thumbnailSaved}
                   inputRef={thumbnailInputRef}
                   onFileChange={handleThumbnailChange}
                   onDrop={handleThumbnailDrop}
                   onDragOver={handleDragOver}
                   onBrowseClick={() => thumbnailInputRef.current?.click()}
-                  onRemove={() => {
-                    safeRevokeObjectUrl(thumbnailPreview);
-                    setThumbnailFile(null);
-                    setThumbnailPreview(null);
-                  }}
+                  onSave={handleSaveThumbnail}
+                  saved={thumbnailSaved}
+                  onRemove={handleRemoveThumbnail}
                 />
 
                 <UploadAudioCard
                   audioPreview={audioPreview}
+                  audioSaved={audioSaved}
                   inputRef={audioInputRef}
                   onFileChange={handleAudioChange}
                   onDrop={handleAudioDrop}
                   onDragOver={handleDragOver}
-                  onRemove={() => {
-                    safeRevokeObjectUrl(audioPreview);
-                    setAudioFile(null);
-                    setAudioPreview(null);
-                  }}
+                  onSave={handleSaveAudio}
+                  saved={audioSaved}
+                  onRemove={handleRemoveAudio}
                 />
 
                 <ExerciseInfoCard
