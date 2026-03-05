@@ -5,7 +5,6 @@ import {
   PracticeContentDTO,
   PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
 } from "../types";
-import { mockExercises } from "../mocks/exercises.mock";
 
 function mapTime(arr?: number[]): string {
   if (!arr || arr.length < 3) return "";
@@ -43,6 +42,8 @@ function mapPracticeContentDTOToExerciseMetadata(
   };
 }
 
+const initialExercises: ExerciseMetadata[] = [];
+
 function mapPracticeContentDTOListToExerciseMetadataList(
   dtos: PracticeContentDTO[] | null,
 ): ExerciseMetadata[] {
@@ -62,7 +63,7 @@ export function useGetPracticeContent() {
       path: "/api/practice-content",
       include: PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY,
     },
-    initialItem: mockExercises,
+    initialItem: initialExercises,
     mapItem: mapPracticeContentDTOListToExerciseMetadataList,
   });
 
