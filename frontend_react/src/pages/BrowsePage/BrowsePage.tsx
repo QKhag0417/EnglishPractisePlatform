@@ -14,6 +14,7 @@ import {
   useFilterExercisesByTask,
   useFilterExercisesByQuestionType,
   useFilterExercisesByTopic,
+  useFilterExercisesByStatus,
 } from "./hooks";
 import { ExerciseMetadata } from "./types";
 
@@ -62,11 +63,18 @@ export function BrowsePage() {
     useFilterExercisesBySkill(exercises, skill);
 
   // =========================
+  // Filter exercises by status
+  // =========================
+
+  const { filteredExercises: filteredExercisesByStatus } =
+    useFilterExercisesByStatus(filteredExercisesBySkill);
+
+  // =========================
   // Filter exercises by search
   // =========================
 
   const search = useFilterExercisesBySearch({
-    exercises: filteredExercisesBySkill,
+    exercises: filteredExercisesByStatus,
   });
 
   const searchQuery = search.state.searchQuery;

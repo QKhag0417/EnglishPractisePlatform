@@ -33,4 +33,5 @@ public class PracticeContentResponseDto {
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;
     private PracticeContentStatus status;
+    private Long attemptCount;
 }

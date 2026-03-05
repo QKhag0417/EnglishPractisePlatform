@@ -73,6 +73,9 @@ public class PracticeContent {
     @Column(nullable = false)
     private PracticeContentStatus status;
 
+    @Column(name = "attempt_count", nullable = false)
+    private Long attemptCount = 0L;
+
     @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PracticeQuestion> questions = new ArrayList<>();
 

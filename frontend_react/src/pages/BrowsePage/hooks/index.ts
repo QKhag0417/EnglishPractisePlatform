@@ -6,3 +6,4 @@ export { useFilterExercisesBySearch } from "./useFilterExercisesBySearch";
 export { useFilterExercisesByTask } from "./useFilterExercisesByTask";
 export { useFilterExercisesByQuestionType } from "./useFilterExercisesByQuestionType";
 export { useFilterExercisesByTopic } from "./useFilterExercisesByTopic";
+export { useFilterExercisesByStatus } from "./useFilterExercisesByStatus";

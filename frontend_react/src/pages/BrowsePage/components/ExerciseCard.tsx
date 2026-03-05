@@ -53,8 +53,9 @@ export function ExerciseCard({ exercise, onSelect }: ExerciseCardProps) {
       <h3 className="font-['Inter'] font-semibold text-[14px] mb-[4px]">
         {exercise.title}
       </h3>
-      <p className="font-['Inter'] text-[12px] text-[rgba(0,0,0,0.47)]">
-        {exercise.attempts}
+      <p className="font-['Inter'] text-[12px] text-[rgba(0,0,0,0.47)] flex items-center gap-1">
+        <span aria-hidden>↻</span>
+        {Number(exercise.attempts || 0).toLocaleString()} attempts
       </p>
     </div>
   );

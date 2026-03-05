@@ -6,6 +6,7 @@ import {
   CheckCircle,
   Circle,
   PlayCircle,
+  RotateCcw,
 } from "lucide-react";
 import { TagChips } from "./TagChips";
 import { useNavigate } from "react-router";
@@ -228,6 +229,7 @@ export function ExerciseModal({
                   Attempts
                 </p>
                 <div className="flex items-center gap-[8px] text-gray-700">
+                  <RotateCcw className="w-[20px] h-[20px]" />
                   <span className="font-['Inter'] text-[14px]">
                     {exerciseMetadata.attempts}
                   </span>

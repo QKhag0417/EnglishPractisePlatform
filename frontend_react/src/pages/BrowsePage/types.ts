@@ -7,7 +7,7 @@ export interface ExerciseMetadata {
   id: string;
   skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   title: string;
-  attempts: string;
+  attempts: number;
   image: string;
   task: number;
   questionTypes: string[];
@@ -30,6 +30,7 @@ export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
   "updatedOn",
   "questionCount",
   "durationMinutes",
+  "attemptCount",
 ] as const;
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
@@ -47,4 +48,5 @@ export interface PracticeContentDTO {
   updatedOn: number[];
   questionCount: number;
   durationMinutes: number;
+  attemptCount: number;
 }

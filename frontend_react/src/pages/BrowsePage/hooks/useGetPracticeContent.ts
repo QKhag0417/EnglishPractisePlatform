@@ -30,7 +30,7 @@ function mapPracticeContentDTOToExerciseMetadata(
     id: dto.id ?? "",
     skill: dto.skill ?? "",
     title: dto.title ?? "",
-    attempts: "0",
+    attempts: dto.attemptCount ?? 0,
     image: dto.thumbnailUrl ?? "",
     task: mapTask(dto.task),
     questionTypes: dto.questionTypeTags ?? [],

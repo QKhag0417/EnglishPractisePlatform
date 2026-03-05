@@ -247,6 +247,7 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         if (includes.has("createdon")) dto.setCreatedOn(content.getCreatedOn());
         if (includes.has("updatedon")) dto.setUpdatedOn(content.getUpdatedOn());
         if (includes.has("status")) dto.setStatus(content.getStatus());
+        if (includes.has("attemptcount")) dto.setAttemptCount(content.getAttemptCount());
 
         if (content instanceof ListeningPracticeContent listening) {
             if (includes.has("audiourl")) dto.setAudioUrl(listening.getAudioUrl());

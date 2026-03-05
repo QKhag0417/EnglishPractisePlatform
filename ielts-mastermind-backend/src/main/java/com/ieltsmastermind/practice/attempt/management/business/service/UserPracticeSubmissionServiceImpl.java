@@ -6,6 +6,8 @@ import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSu
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionResponseDto;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionRepository;
+import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
+import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +19,12 @@ import java.util.List;
 public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmissionService {
 
     private final UserPracticeSubmissionRepository userPracticeSubmissionRepository;
+    private final PracticeContentRepository practiceContentRepository;
 
-    public UserPracticeSubmissionServiceImpl(UserPracticeSubmissionRepository userPracticeSubmissionRepository) {
+    public UserPracticeSubmissionServiceImpl(UserPracticeSubmissionRepository userPracticeSubmissionRepository,
+                                             PracticeContentRepository practiceContentRepository) {
         this.userPracticeSubmissionRepository = userPracticeSubmissionRepository;
+        this.practiceContentRepository = practiceContentRepository;
     }
 
     @Override
@@ -33,6 +38,12 @@ public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmission
         submission.setSubmittedAt(LocalDateTime.now());
 
         UserPracticeSubmission saved = userPracticeSubmissionRepository.save(submission);
+
+        // increment total attempts for every submission
+        int updated = practiceContentRepository.incrementAttemptCount(request.getPracticeContentId());
+        if (updated == 0) {
+            throw new IllegalArgumentException("PracticeContent not found: " + request.getPracticeContentId());
+        }
 
         UserPracticeSubmissionResponseDto responseDto = new UserPracticeSubmissionResponseDto();
         responseDto.setId(saved.getId());
