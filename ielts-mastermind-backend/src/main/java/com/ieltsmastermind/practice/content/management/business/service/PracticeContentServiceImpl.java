@@ -60,7 +60,9 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             reading.setPassageParsed(passageParsedJson);
 
             content = reading;
-
+        } else if (request.getSkill() == PracticeContentSkill.WRITING || request.getSkill() == PracticeContentSkill.SPEAKING){
+            content = new PracticeContent();
+            content.setSkill(request.getSkill());
         } else {
             throw new IllegalArgumentException("Unsupported skill: " + request.getSkill());
         }

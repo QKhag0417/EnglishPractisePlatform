@@ -13,11 +13,11 @@ import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
 import { useSupportingImagesState } from "./hooks/useSupportingImagesState";
 import { useAuth } from "../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router";
-import { useListeningEditorState } from "./hooks/useListeningEditorState";
+import { useWritingEditorState } from "./hooks/useWritingEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
 
 
-export function ListeningContentEditorPage() {
+export function WritingContentEditorPage() {
 
     // ===== HANDLERS =====
     const { isLoggedIn, logout } = useAuth();
@@ -46,51 +46,20 @@ export function ListeningContentEditorPage() {
       setDurationMinutes,
       status,
       setStatus,
-      questions,
-      selectedQuestionTempId,
-      setSelectedQuestionTempId,
-      selectedQuestion,
-      addNewQuestion,
-      deleteQuestion,
-      questionType,
-      setQuestionType,
       topicTags,
       setTopicTags,
-      correctAnswers,
-      setCorrectAnswers,
-      questionTypeTags,
-      setQuestionTypeTags,
-      options,
-      setOptions,
-      newAnswerInput,
-      setNewAnswerInput,
-      saveState,
-      setSaveState,
-      markAsUnsaved,
       handleSaveExit,
-      handleSaveQuestion,
-      handleCancelQuestion,
       thumbnailPreview,
       setThumbnailPreview,
       thumbnailFile,
       setThumbnailFile,
       thumbnailInputRef,
       handleThumbnailChange,
-      handleAudioChange,
-      audioInputRef,
-      audioFile,
       handleSaveThumbnail,
-      handleSaveAudio,
       thumbnailSaved,
-      audioSaved,
       handleRemoveThumbnail,
-      handleRemoveAudio,
       safeRevokeObjectUrl,
-      setAudioFile,
       handleThumbnailDrop,
-      audioPreview,
-      setAudioPreview,
-      handleAudioDrop,
       handleDragOver,
       displayUpdatedOn,
       updatedOn,
@@ -105,7 +74,7 @@ export function ListeningContentEditorPage() {
 
       hasImageChanges,
       setHasImageChanges,
-    } = useListeningEditorState(isEditMode, exerciseId);
+    } = useWritingEditorState(isEditMode, exerciseId);
 
 
     return (
@@ -142,35 +111,15 @@ export function ListeningContentEditorPage() {
                   />
                 </div>
 
-                <QuestionsTable
-                  questions={questions}
-                  selectedQuestionTempId={selectedQuestionTempId}
-                  onSelect={setSelectedQuestionTempId}
-                  onDelete={deleteQuestion}
-                  onAdd={addNewQuestion}
-                />
 
-                <AnswerScoringPanel
-                  selectedQuestionNumber={selectedQuestion?.number}
-                  questionType={questionType}
-                  setQuestionType={setQuestionType}
-                  correctAnswers={correctAnswers}
-                  setCorrectAnswers={setCorrectAnswers}
-                  newAnswerInput={newAnswerInput}
-                  setNewAnswerInput={setNewAnswerInput}
-                  saveState={saveState}
-                  markAsUnsaved={markAsUnsaved}
-                  handleSaveQuestion={handleSaveQuestion}
-                  handleCancelQuestion={handleCancelQuestion}
-                />
                 <SupportingImagesBlock
-                    multiImageInputRef={multiImageInputRef}
-                    uploadedImages={uploadedImages}
-                    handleMultiImageChange={handleMultiImageChange}
-                    handleSaveImage={handleSaveImage}
-                    handleRemoveImage={handleRemoveImage}
-                    handleCopyUrl={handleCopyUrl}
-                    />
+                  multiImageInputRef={multiImageInputRef}
+                  uploadedImages={uploadedImages}
+                  handleMultiImageChange={handleMultiImageChange}
+                  handleSaveImage={handleSaveImage}
+                  handleRemoveImage={handleRemoveImage}
+                  handleCopyUrl={handleCopyUrl}
+                />
               </div>
 
               {/* RIGHT */}
@@ -189,29 +138,16 @@ export function ListeningContentEditorPage() {
                   onRemove={handleRemoveThumbnail}
                 />
 
-                <UploadAudioCard
-                  audioPreview={audioPreview}
-                  audioSaved={audioSaved}
-                  inputRef={audioInputRef}
-                  onFileChange={handleAudioChange}
-                  onDrop={handleAudioDrop}
-                  onDragOver={handleDragOver}
-                  onSave={handleSaveAudio}
-                  saved={audioSaved}
-                  onRemove={handleRemoveAudio}
-                />
+
 
                 <ExerciseInfoCard
                   title={title}
                   onTitleChange={setTitle}
                   task={task}
                   onTaskChange={setTask}
-                  questionTypeTags={questionTypeTags}
-                  onQuestionTypeTagsChange={setQuestionTypeTags}
                   topicTags={topicTags}
                   onTopicTagsChange={setTopicTags}
                   updatedOn={displayUpdatedOn}
-                  questionsCount={questions.length}
                   durationMinutes={durationMinutes}
                   onDurationChange={setDurationMinutes}
                 />

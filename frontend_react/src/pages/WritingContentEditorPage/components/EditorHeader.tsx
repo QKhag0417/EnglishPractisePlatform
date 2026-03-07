@@ -23,8 +23,8 @@ export function EditorHeader({
         <div className="flex items-center justify-between">
           <h1 className="font-['Inter'] text-[32px] text-gray-900">
             {isEditMode
-              ? "Edit Listening Exercise"
-              : "Add Listening Exercise"}
+              ? "Edit Writing Exercise"
+              : "Add Writing Exercise"}
           </h1>
 
           <div className="flex items-center gap-[12px]">

@@ -4,7 +4,7 @@ import { apiDelete } from "../../../utils/api/apiDelete";
 import { apiPost } from "../../../utils/api/apiPost";
 import { apiPut } from "../../../utils/api/apiPut";
 
-export function useListeningEditorApi() {
+export function useReadingEditorApi() {
 
   // ================================
   // Get detail (edit mode)
@@ -12,7 +12,7 @@ export function useListeningEditorApi() {
   const fetchDetail = async (id: string) => {
     const result = await apiGet<any>({
       apiBase: API_BASE,
-      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,audioUrl,durationMinutes,questionCount,createdOn,updatedOn,status,imageurls`,
+      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,passage,passageParsed,durationMinutes,questionCount,createdOn,updatedOn,status,imageurls`,
     });
 
     if (!result.ok) {
@@ -64,26 +64,6 @@ export function useListeningEditorApi() {
     return result.data; // thumbnailUrl
   };
 
-  // ================================
-  //  Upload audio
-  // ================================
-  const uploadAudio = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const result = await apiPost<string>({
-      apiBase: API_BASE,
-      path: "/api/files/audio",
-      body: formData,
-      isFormData: true,
-    });
-
-    if (!result.ok) {
-      throw new Error(result.message);
-    }
-
-    return result.data; // audioUrl
-  };
 
   // ================================
   // Delete Image
@@ -123,24 +103,6 @@ export function useListeningEditorApi() {
     return true;
   };
 
-  // ================================
-  // Delete audio
-  // ================================
-  const deleteAudio = async (url: string) => {
-    const result = await apiDelete<void>({
-      apiBase: API_BASE,
-      path: "/api/files/audio",
-      body: {
-        fileUrl: url, //
-      },
-    });
-
-    if (!result.ok) {
-      throw new Error(result.message);
-    }
-
-    return true;
-  };
 
   // ================================
   // Create content
@@ -276,8 +238,7 @@ export function useListeningEditorApi() {
     deleteImages,
     uploadThumbnail,
     deleteThumbnail,
-    uploadAudio,
-    deleteAudio,
+
 
     createContent,
     updateContent,
