@@ -46,11 +46,18 @@ export async function apiPut<T>(params: {
     (ok ? console.info : console.error)("[apiPut]", result);
     return result;
   } catch (e: any) {
-    const message =
-      e?.name === "AbortError"
-        ? "Request aborted"
-        : (e?.message ?? "Network error");
+    if (e?.name === "AbortError") {
+      const result: ApiResult<T> = {
+        ok: false,
+        data: null,
+        message: "Request aborted",
+        url: url.toString(),
+      };
+      console.info("[apiPut]", result);
+      return result;
+    }
 
+    const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,
       data: null,

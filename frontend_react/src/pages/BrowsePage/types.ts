@@ -50,3 +50,35 @@ export interface PracticeContentDTO {
   durationMinutes: number;
   attemptCount: number;
 }
+
+export type UserPracticeContentProgressPutBody = {
+  isBookmarked: boolean;
+};
+
+export type UserPracticeContentProgressPutDTO = {
+  id?: string;
+};
+
+export type UserPracticeContentProgressPut = {
+  userPracticeContentProgressId: string;
+};
+
+export type UserPracticeContentProgressGetDTO = {
+  id?: string;
+  practiceContentId?: string;
+  isBookmarked?: boolean;
+};
+
+export type UserPracticeContentProgressGet = {
+  id: string;
+  practiceContentId: string;
+  isBookmarked: boolean;
+};
+
+export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS = [
+  "practiceContentId",
+  "isBookmarked",
+] as const;
+
+export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS_QUERY =
+  USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS.join(",");

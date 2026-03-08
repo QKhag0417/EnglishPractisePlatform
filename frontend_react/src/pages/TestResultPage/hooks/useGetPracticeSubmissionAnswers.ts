@@ -18,7 +18,7 @@ function mapPracticeSubmissionAnswerDTOsToPracticeSubmissionAnswers(
   }));
 }
 
-const initialPracticeSubmissionAnswers: PracticeSubmissionAnswerDTO[] = [];
+const initialPracticeSubmissionAnswers: PracticeSubmissionAnswer[] = [];
 
 export function useGetPracticeSubmissionAnswers(submissionId: string) {
   const {
