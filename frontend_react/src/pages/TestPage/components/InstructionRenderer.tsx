@@ -1,6 +1,7 @@
 // InstructionRenderer.tsx
 import React, { useMemo } from "react";
 import { UserAnswers } from "../types";
+import { buildImageUrl } from "../utils";
 
 type FontWeight = React.CSSProperties["fontWeight"];
 type FontStyle = React.CSSProperties["fontStyle"];
@@ -132,10 +133,11 @@ function ImageRenderer({
 }: {
   node: Extract<DocNode, { type: "image" }>;
 }) {
+  const imageUrl = buildImageUrl(node.src);
   return (
     <figure className="my-3">
       <img
-        src={node.src}
+        src={imageUrl}
         alt={node.alt ?? ""}
         style={node.width ? { width: node.width } : undefined}
         className="rounded-lg border border-gray-200"
