@@ -15,6 +15,7 @@ import {
   useGetPracticeSubmission,
   useGetPracticeSubmissionAnswers,
 } from "./hooks";
+import { CheckCircle, Clock, Key, Target, TrendingUp } from "lucide-react";
 
 export function TestResultPage() {
   // =========================
@@ -104,9 +105,12 @@ export function TestResultPage() {
         <div className="max-w-[1000px] mx-auto p-8 space-y-6 w-full">
           {/* Summary Card */}
           <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
-            <h2 className="font-['Inter'] font-bold text-[28px] text-[#dc3545] mb-6">
-              Result
-            </h2>
+            <div className="flex items-center gap-[10px] mb-[24px]">
+              <TrendingUp className="w-[20px] h-[20px] text-[#f97316]" />
+              <h2 className="font-['Inter'] font-semibold text-[20px] text-gray-900">
+                Result
+              </h2>
+            </div>
 
             <div className="flex items-center justify-between">
               {/* Circular Progress */}
@@ -144,33 +148,55 @@ export function TestResultPage() {
               {/* Stats */}
               <div className="flex-1 ml-12 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-semibold text-[16px] text-gray-700">
-                    Time Spent
-                  </span>
+                  <div className="flex items-center gap-[8px]">
+                    {" "}
+                    <Clock className="w-[16px] h-[16px] text-gray-600" />
+                    <span className="font-['Inter'] font-semibold text-[16px] text-gray-700">
+                      Time Spent
+                    </span>
+                  </div>
+
                   <span className="font-['Inter'] font-bold text-[16px] text-black">
                     {formatTime(timeSpent)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-semibold text-[16px] text-[#28a745]">
-                    Correct
-                  </span>
+                  <div className="flex items-center gap-[8px]">
+                    {" "}
+                    <CheckCircle className="w-[16px] h-[16px] text-[#28a745]" />
+                    <span className="font-['Inter'] font-semibold text-[16px] text-[#28a745]">
+                      Correct
+                    </span>
+                  </div>
+
                   <span className="font-['Inter'] text-[16px] text-gray-700">
                     {correctCount} sections
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-semibold text-[16px] text-[#dc3545]">
-                    Wrong
-                  </span>
+                  <div className="flex items-center gap-[8px]">
+                    {" "}
+                    <Target className="w-[16px] h-[16px] text-[#dc3545]" />
+                    <span className="font-['Inter'] font-semibold text-[16px] text-[#dc3545]">
+                      Wrong
+                    </span>
+                  </div>
+
                   <span className="font-['Inter'] text-[16px] text-gray-700">
                     {wrongCount} sections
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-semibold text-[16px] text-gray-500">
-                    Skip
-                  </span>
+                  <div className="flex items-center gap-[8px]">
+                    {" "}
+                    <span className="w-[16px] h-[16px] flex items-center justify-center text-gray-500 font-bold">
+                      ⊝
+                    </span>
+                    <span className="font-['Inter'] font-semibold text-[16px] text-gray-500">
+                      Skip
+                    </span>
+                  </div>
+
                   <span className="font-['Inter'] text-[16px] text-gray-700">
                     {skipCount} sections
                   </span>
@@ -181,9 +207,13 @@ export function TestResultPage() {
 
           {/* Detailed Results Card */}
           <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
-            <h2 className="font-['Inter'] font-bold text-[28px] text-[#dc3545] mb-6">
-              Result
-            </h2>
+            <div className="flex items-center gap-[10px] mb-[24px]">
+              {" "}
+              <Key className="w-[20px] h-[20px] text-[#f59e0b]" />
+              <h2 className="font-['Inter'] font-semibold text-[20px] text-gray-900">
+                Answer Keys
+              </h2>
+            </div>
 
             {/* Question Grid */}
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
