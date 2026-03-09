@@ -15,7 +15,15 @@ import {
   useGetPracticeSubmission,
   useGetPracticeSubmissionAnswers,
 } from "./hooks";
-import { CheckCircle, Clock, Key, Target, TrendingUp } from "lucide-react";
+import {
+  Badge,
+  CheckCircle,
+  Clock,
+  Key,
+  Target,
+  TrendingUp,
+  User,
+} from "lucide-react";
 
 export function TestResultPage() {
   // =========================
@@ -100,9 +108,38 @@ export function TestResultPage() {
       {/* Header - Using NavBarLearner */}
       <NavBarLearner onLogout={onLogout} />
 
+      {/* Header Section */}
+      <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex items-center justify-between">
+            {/* Left */}
+            <div>
+              <div className="flex items-center gap-[12px] mb-[4px]">
+                <h1 className="font-['Inter'] text-[28px] text-gray-900">
+                  {"Listening"} Test Result
+                </h1>
+              </div>
+              <p className="font-['Inter'] text-[14px] text-gray-600">
+                {"Test A"} • {"Listening"} • {"March 15, 2024 at 2:30 PM"}
+              </p>
+            </div>
+
+            {/* Right */}
+            <div className="text-right">
+              <p className="font-['Inter'] text-[28px] text-gray-900 mb-[4px]">
+                {"John Doe"}
+              </p>
+              <p className="font-['Inter'] text-[14px] text-gray-600 leading-none">
+                {"john.doe@example.com"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content - Add top padding to account for fixed navbar */}
-      <div className="flex-1 pt-[66px]">
-        <div className="max-w-[1000px] mx-auto p-8 space-y-6 w-full">
+      <div className="flex-1 pt-[24px] pb-[48px]">
+        <div className="max-w-[1000px] mx-auto px-8 space-y-[24px] w-full">
           {/* Summary Card */}
           <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
             <div className="flex items-center gap-[10px] mb-[24px]">
