@@ -15,8 +15,8 @@ import { PracticeContentManagementPage } from "./pages/PracticeContentManagement
 import { UserManagementPage } from "./pages/UserManagementPage";
 import { EvaluationTestPage } from "./pages/EvaluationTestPage";
 import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage/ListeningContentEditorPage.tsx";
-import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage";
-import { WritingContentEditorPage } from "./pages/WritingContentEditorPage";
+import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage/ReadingContentEditorPage.tsx";
+import { WritingContentEditorPage } from "./pages/WritingContentEditorPage/WritingContentEditorPage.tsx";
 import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
 import { MyProfilePage } from "./pages/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -132,38 +132,38 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  //   {
-  //     path: "/admin/content/reading/add",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <ReadingContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
-  //   {
-  //     path: "/admin/content/reading/edit/:exerciseId",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <ReadingContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
-  //   {
-  //     path: "/admin/content/writing/add",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <WritingContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
-  //   {
-  //     path: "/admin/content/writing/edit/:exerciseId",
-  //     element: (
-  //       <ProtectedRoute allowedRoles={["administrator"]}>
-  //         <WritingContentEditorPage />
-  //       </ProtectedRoute>
-  //     ),
-  //   },
+    {
+      path: "/admin/content/reading/add",
+      element: (
+        <ProtectedRoute allowedRoles={["administrator"]}>
+          <ReadingContentEditorPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/admin/content/reading/edit/:exerciseId",
+      element: (
+        <ProtectedRoute allowedRoles={["administrator"]}>
+          <ReadingContentEditorPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/admin/content/writing/add",
+      element: (
+        <ProtectedRoute allowedRoles={["administrator"]}>
+          <WritingContentEditorPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/admin/content/writing/edit/:exerciseId",
+      element: (
+        <ProtectedRoute allowedRoles={["administrator"]}>
+          <WritingContentEditorPage />
+        </ProtectedRoute>
+      ),
+    },
   //   {
   //     path: "/admin/content/speaking/add",
   //     element: (

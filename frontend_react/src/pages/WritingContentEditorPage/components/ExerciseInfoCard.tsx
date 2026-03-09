@@ -14,12 +14,9 @@ interface ExerciseInfoCardProps {
   onTitleChange: (value: string) => void;
   task: string;
   onTaskChange: (value: string) => void;
-  questionTypeTags: string[];
-  onQuestionTypeTagsChange: (tags: string[]) => void;
   topicTags: string[];
   onTopicTagsChange: (tags: string[]) => void;
   updatedOn: string;
-  questionsCount: number;
   durationMinutes: number;
   onDurationChange: (value: number) => void;
 }
@@ -29,12 +26,9 @@ export function ExerciseInfoCard({
   onTitleChange,
   task,
   onTaskChange,
-  questionTypeTags,
-  onQuestionTypeTagsChange,
   topicTags,
   onTopicTagsChange,
   updatedOn,
-  questionsCount,
   durationMinutes,
   onDurationChange,
 }: ExerciseInfoCardProps) {
@@ -70,25 +64,8 @@ export function ExerciseInfoCard({
             <SelectContent>
               <SelectItem value="TASK_1">Task 1</SelectItem>
               <SelectItem value="TASK_2">Task 2</SelectItem>
-              <SelectItem value="TASK_3">Task 3</SelectItem>
-              <SelectItem value="TASK_4">Task 4</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Question Type Tags */}
-        <div>
-          <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-            Question Type
-          </Label>
-          <div className="pointer-events-none">
-            <ChipInput
-              value={questionTypeTags}
-              onChange={() => {}}
-              placeholder="Add tag..."
-              maxTags={4}
-            />
-          </div>
         </div>
 
         {/* Topic Tags */}
@@ -123,7 +100,7 @@ export function ExerciseInfoCard({
             Questions
           </Label>
           <div className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
-            {questionsCount}
+            {1}
           </div>
         </div>
 

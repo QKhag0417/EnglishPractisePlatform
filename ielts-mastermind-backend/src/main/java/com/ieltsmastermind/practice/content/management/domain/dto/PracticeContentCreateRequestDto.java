@@ -22,6 +22,7 @@ public class PracticeContentCreateRequestDto {
     private Set<String> topicTags;
     private String thumbnailUrl;
     private String audioUrl;
+    private List<String> imageUrls;
     private String passage;
     private Integer durationMinutes;
     private Integer questionCount;

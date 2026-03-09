@@ -71,7 +71,6 @@ export function ExerciseInfoCard({
               <SelectItem value="TASK_1">Task 1</SelectItem>
               <SelectItem value="TASK_2">Task 2</SelectItem>
               <SelectItem value="TASK_3">Task 3</SelectItem>
-              <SelectItem value="TASK_4">Task 4</SelectItem>
             </SelectContent>
           </Select>
         </div>

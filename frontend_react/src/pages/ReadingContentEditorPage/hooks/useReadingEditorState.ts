@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Question, QuestionType, Option } from "../types";
 import { DEFAULT_OPTIONS } from "../types";
-import { useListeningEditorApi } from "./useListeningEditorApi";
+import { useReadingEditorApi } from "./useReadingEditorApi";
 import { useNavigate, useParams } from "react-router";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 
-export function useListeningEditorState(
+export function useReadingEditorState(
   isEditMode: boolean,
   id?: string
 ) {
@@ -19,9 +19,7 @@ export function useListeningEditorState(
   const {
     fetchDetail,
     uploadThumbnail,
-    uploadAudio,
     deleteThumbnail,
-    deleteAudio,
     createContent,
     updateContent,
     saveContent,
@@ -29,7 +27,7 @@ export function useListeningEditorState(
     deleteContentQuestion,
     updateContentQuestion,
     fetchContentQuestions,
-  } = useListeningEditorApi();
+  } = useReadingEditorApi();
 
   const {
     multiImageInputRef,
@@ -49,6 +47,9 @@ export function useListeningEditorState(
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [status, setStatus] = useState<"Draft" | "Published">("Draft");
   const [newAnswerInput, setNewAnswerInput] = useState("");
+
+  // ================= PASSAGE ===============
+  const [passageText, setPassageText] = useState("");
 
   // ================= QUESTIONS =================
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -72,18 +73,13 @@ export function useListeningEditorState(
   const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">("saved");
   const [shuffleOptions, setShuffleOptions] = useState(false);
 
-  // ================= THUMBNAIL&AUDIO =================
+  // ================= THUMBNAIL =================
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [thumbnailSaved, setThumbnailSaved] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-  const [audioPreview, setAudioPreview] = useState<string | null>(null);
-  const [audioFile, setAudioFile] = useState<File | string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [audioSaved, setAudioSaved] = useState(false);
-  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const safeRevokeObjectUrl = (url: string | null) => {
       if (!url) return;
@@ -93,7 +89,6 @@ export function useListeningEditorState(
   useEffect(() => {
     return () => {
       safeRevokeObjectUrl(thumbnailPreview);
-      safeRevokeObjectUrl(audioPreview);
     };
   }, []);
 
@@ -144,6 +139,7 @@ export function useListeningEditorState(
         setInstructions(content.instructions || "");
         setTask(content.task || "");
         setDurationMinutes(content.durationMinutes || 15);
+        setPassageText(content.passage || "");
         setStatus(content.status === "PUBLISHED" ? "Published" : "Draft");
         setQuestionTypeTags(content.questionTypeTags || []);
         setTopicTags(content.topicTags || []);
@@ -155,11 +151,6 @@ export function useListeningEditorState(
           setThumbnailSaved(true);
         }
 
-        if (content.audioUrl) {
-          setAudioPreview(`${API_BASE}${content.audioUrl}`);
-          setAudioUrl(content.audioUrl);
-          setAudioSaved(true);
-        }
 
         // Fetch questions
         const questionsFromApi = await fetchContentQuestions(id);
@@ -309,6 +300,7 @@ export function useListeningEditorState(
       setHasUnsavedChanges(false);
   }, [selectedQuestionTempId]);
 
+
   useEffect(() => {
     const tags = Array.from(
       new Set(
@@ -407,61 +399,18 @@ export function useListeningEditorState(
     }
   };
 
-  const handleSaveAudio = async () => {
-    if (!audioFile) return;
-
-    try {
-      const url = await uploadAudio(audioFile);
-      setAudioUrl(url);
-      setAudioSaved(true);
-      setHasImageChanges(true);
-    } catch (err) {
-      alert("Audio upload failed");
-    }
-  };
-
-  const handleRemoveAudio = async () => {
-    if (!audioPreview) return;
-
-    try {
-      if (!audioSaved) {
-        safeRevokeObjectUrl(audioPreview);
-        setAudioFile(null);
-        setAudioPreview(null);
-        setAudioUrl("");
-
-        setHasImageChanges(true);
-        return;
-      }
-
-      if (!audioUrl) return;
-
-      await deleteAudio(audioUrl);
-
-      setAudioFile(null);
-      setAudioPreview(null);
-      setAudioUrl(null);
-      setAudioSaved(false);
-      setHasImageChanges(true);
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
 
 
   const handleSaveExit = async () => {
     try {
       ensureCurrentQuestionIsPersisted();
 
-      if (!audioUrl || audioUrl.trim() === "") {
-        alert("Audio file is required for Listening content");
-        return;
-      }
 
       const contentPayload = {
-        skill: "LISTENING",
+        skill: "READING",
         title,
         instructions,
+        passage: passageText,
         task,
         questionTypeTags,
         topicTags,
@@ -469,7 +418,6 @@ export function useListeningEditorState(
         questionCount: questions.length,
         status: status === "Draft" ? "DRAFT" : "PUBLISHED",
         thumbnailUrl,
-        audioUrl,
         imageUrls: getSavedImageUrls()
       };
 
@@ -575,28 +523,6 @@ export function useListeningEditorState(
 
   };
 
-  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
-    if (!validTypes.includes(file.type)) {
-      alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
-
-    safeRevokeObjectUrl(audioPreview);
-    const url = URL.createObjectURL(file);
-
-    setAudioFile(file);
-    setAudioPreview(url);
-    setAudioUrl(null);
-    setAudioSaved(false);
-  };
 
   const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -623,29 +549,6 @@ export function useListeningEditorState(
 
   };
 
-  const handleAudioDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-
-    const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
-    if (!validTypes.includes(file.type)) {
-      alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
-
-    safeRevokeObjectUrl(audioPreview);
-    const url = URL.createObjectURL(file);
-
-    setAudioFile(file);
-    setAudioPreview(url);
-    setAudioUrl(null);
-    setAudioSaved(false);
-  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -665,6 +568,10 @@ export function useListeningEditorState(
     setDurationMinutes,
     status,
     setStatus,
+
+    // passages
+    passageText,
+    setPassageText,
 
     // questions
     questions,
@@ -702,32 +609,22 @@ export function useListeningEditorState(
     setSaveState,
     markAsUnsaved,
 
-    //thumbnail && audio
+    //thumbnail
     thumbnailFile,
     setThumbnailFile,
     thumbnailPreview,
     setThumbnailPreview,
     thumbnailInputRef,
-    audioInputRef,
     handleThumbnailChange,
-    handleAudioChange,
     handleThumbnailDrop,
-    handleAudioDrop,
     handleDragOver,
     displayUpdatedOn,
-    audioPreview,
-    setAudioPreview,
     updatedOn,
     setUpdatedOn,
-    audioFile,
-    setAudioFile,
     safeRevokeObjectUrl,
     handleSaveThumbnail,
-    handleSaveAudio,
     thumbnailSaved,
-    audioSaved,
     handleRemoveThumbnail,
-    handleRemoveAudio,
 
     // supporting images
     multiImageInputRef,

@@ -2,21 +2,22 @@ import { NavBarAdmin } from "../../components/NavBarAdmin";
 import { Footer } from "../../components/Footer";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
+import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Plus } from "lucide-react";
 import { EditorHeader } from "./components/EditorHeader";
 import { QuestionsTable } from "./components/QuestionsTable";
 import { AnswerScoringPanel } from "./components/AnswerScoringPanel";
 import { UploadThumbnailCard } from "./components/UploadThumbnailCard";
-import { UploadAudioCard } from "./components/UploadAudioCard";
 import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
 import { useSupportingImagesState } from "./hooks/useSupportingImagesState";
 import { useAuth } from "../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router";
-import { useListeningEditorState } from "./hooks/useListeningEditorState";
+import { useReadingEditorState } from "./hooks/useReadingEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
+import { PassageEditorBlock } from "./components/PassageEditorBlock";
 
-export function ListeningContentEditorPage() {
+export function ReadingContentEditorPage() {
   // ===== HANDLERS =====
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -42,6 +43,8 @@ export function ListeningContentEditorPage() {
     setDurationMinutes,
     status,
     setStatus,
+    passageText,
+    setPassageText,
     questions,
     selectedQuestionTempId,
     setSelectedQuestionTempId,
@@ -72,21 +75,11 @@ export function ListeningContentEditorPage() {
     setThumbnailFile,
     thumbnailInputRef,
     handleThumbnailChange,
-    handleAudioChange,
-    audioInputRef,
-    audioFile,
     handleSaveThumbnail,
-    handleSaveAudio,
     thumbnailSaved,
-    audioSaved,
     handleRemoveThumbnail,
-    handleRemoveAudio,
     safeRevokeObjectUrl,
-    setAudioFile,
     handleThumbnailDrop,
-    audioPreview,
-    setAudioPreview,
-    handleAudioDrop,
     handleDragOver,
     displayUpdatedOn,
     updatedOn,
@@ -101,7 +94,7 @@ export function ListeningContentEditorPage() {
 
     hasImageChanges,
     setHasImageChanges,
-  } = useListeningEditorState(isEditMode, exerciseId);
+  } = useReadingEditorState(isEditMode, exerciseId);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -134,6 +127,11 @@ export function ListeningContentEditorPage() {
                  focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
+              {/* Passage Block */}
+              <PassageEditorBlock
+                passageText={passageText}
+                setPassageText={setPassageText}
+              />
 
               <QuestionsTable
                 questions={questions}
@@ -180,17 +178,6 @@ export function ListeningContentEditorPage() {
                 onBrowseClick={() => thumbnailInputRef.current?.click()}
                 onSave={handleSaveThumbnail}
                 onRemove={handleRemoveThumbnail}
-              />
-
-              <UploadAudioCard
-                audioPreview={audioPreview}
-                audioSaved={audioSaved}
-                inputRef={audioInputRef}
-                onFileChange={handleAudioChange}
-                onDrop={handleAudioDrop}
-                onDragOver={handleDragOver}
-                onSave={handleSaveAudio}
-                onRemove={handleRemoveAudio}
               />
 
               <ExerciseInfoCard

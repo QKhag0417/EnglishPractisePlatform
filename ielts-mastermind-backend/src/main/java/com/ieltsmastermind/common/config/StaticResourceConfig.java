@@ -13,6 +13,9 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 //    <audio controls src={practiceContent.audioUrl} />
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler(IMAGE_PUBLIC_BASE_PATH + "**")
+                .addResourceLocations("file:" + IMAGE_UPLOAD_DIR + "/");
+
         registry.addResourceHandler(THUMBNAIL_PUBLIC_BASE_PATH + "**")
                 .addResourceLocations("file:" + THUMBNAIL_UPLOAD_DIR + "/");
 
