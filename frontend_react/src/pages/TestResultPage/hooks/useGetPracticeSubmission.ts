@@ -4,6 +4,7 @@ import {
   PracticeSubmission,
   PracticeSubmissionDTO,
   PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS_QUERY,
+  LocalDateTimeArray,
 } from "../types";
 
 function mapPracticeSubmissionDTOToPracticeSubmission(
@@ -18,6 +19,7 @@ function mapPracticeSubmissionDTOToPracticeSubmission(
     correctAnswerCount: dto.correctAnswerCount ?? 0,
     wrongAnswerCount: dto.wrongAnswerCount ?? 0,
     skipAnswerCount: dto.skipAnswerCount ?? 0,
+    submittedAt: dto.submittedAt ?? [0, 0, 0, 0, 0, 0, 0],
   };
 }
 
@@ -30,6 +32,7 @@ const initialPracticeSubmission: PracticeSubmission = {
   correctAnswerCount: 0,
   wrongAnswerCount: 0,
   skipAnswerCount: 0,
+  submittedAt: [0, 0, 0, 0, 0, 0, 0],
 };
 
 export function useGetPracticeSubmission(submissionId: string) {

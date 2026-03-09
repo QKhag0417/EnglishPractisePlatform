@@ -1,3 +1,13 @@
+export type LocalDateTimeArray = [
+  number, // year
+  number, // month
+  number, // day
+  number, // hour
+  number, // minute
+  number, // second
+  number, // nanosecond
+];
+
 export type PracticeSubmissionDTO = {
   id: string;
   userId: string;
@@ -7,6 +17,7 @@ export type PracticeSubmissionDTO = {
   correctAnswerCount: number;
   wrongAnswerCount: number;
   skipAnswerCount: number;
+  submittedAt: LocalDateTimeArray;
 };
 
 export type PracticeSubmission = PracticeSubmissionDTO;
@@ -19,6 +30,7 @@ export const PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS = [
   "correctAnswerCount",
   "wrongAnswerCount",
   "skipAnswerCount",
+  "submittedAt",
 ] as const;
 
 export const PRACTICE_SUBMISSION_DTO_INCLUDE_FIELDS_QUERY =
@@ -59,3 +71,39 @@ export const PRACTICE_CONTENT_ANSWER_DTO_INCLUDE_FIELDS = [
 
 export const PRACTICE_CONTENT_ANSWER_DTO_INCLUDE_FIELDS_QUERY =
   PRACTICE_CONTENT_ANSWER_DTO_INCLUDE_FIELDS.join(",");
+
+export type PracticeContentDTO = {
+  id: string;
+  title: string;
+  skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
+};
+
+export type PracticeContent = PracticeContentDTO;
+
+export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
+  "id",
+  "title",
+  "skill",
+] as const;
+
+export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
+  PRACTICE_CONTENT_DTO_INCLUDE_FIELDS.join(",");
+
+export type UserDataDTO = {
+  userId: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+};
+
+export type UserData = UserDataDTO;
+
+export const USER_DATA_DTO_INCLUDE_FIELDS = [
+  "userId",
+  "email",
+  "firstname",
+  "lastname",
+] as const;
+
+export const USER_DATA_DTO_INCLUDE_FIELDS_QUERY =
+  USER_DATA_DTO_INCLUDE_FIELDS.join(",");

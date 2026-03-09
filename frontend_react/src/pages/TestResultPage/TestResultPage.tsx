@@ -6,24 +6,18 @@ import { useParams } from "react-router-dom";
 import {
   formatTime,
   indexByOrderIndex,
-  isAnswerCorrect,
-  isAnswerEmpty,
+  mapPracticeSkill,
+  formatLocalDateTime,
 } from "./utils";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import {
   useGetPracticeContentAnswers,
   useGetPracticeSubmission,
   useGetPracticeSubmissionAnswers,
+  useGetPracticeContent,
+  useGetUserData,
 } from "./hooks";
-import {
-  Badge,
-  CheckCircle,
-  Clock,
-  Key,
-  Target,
-  TrendingUp,
-  User,
-} from "lucide-react";
+import { CheckCircle, Clock, Key, Target, TrendingUp } from "lucide-react";
 
 export function TestResultPage() {
   // =========================
@@ -103,6 +97,30 @@ export function TestResultPage() {
       ? 0
       : Math.round((correctCount / totalQuestions) * 100);
 
+  // =========================
+  // Get exercise data
+  // =========================
+
+  const getPracticeContent = useGetPracticeContent(practiceContentId || "");
+
+  useEffect(() => {
+    if (!practiceContentId) return;
+    getPracticeContent.get();
+  }, [practiceContentId, getPracticeContent.get]);
+
+  // =========================
+  // Get user data
+  // =========================
+
+  const userId = getPracticeSubmission.submission?.userId;
+
+  const getUserData = useGetUserData(userId || "");
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserData.get();
+  }, [userId, getUserData.get]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header - Using NavBarLearner */}
@@ -116,21 +134,25 @@ export function TestResultPage() {
             <div>
               <div className="flex items-center gap-[12px] mb-[4px]">
                 <h1 className="font-['Inter'] text-[28px] text-gray-900">
-                  {"Listening"} Test Result
+                  {getPracticeContent.practiceContent?.title}
                 </h1>
               </div>
               <p className="font-['Inter'] text-[14px] text-gray-600">
-                {"Test A"} • {"Listening"} • {"March 15, 2024 at 2:30 PM"}
+                {mapPracticeSkill(getPracticeContent.practiceContent?.skill)} •{" "}
+                {formatLocalDateTime(
+                  getPracticeSubmission.submission?.submittedAt,
+                )}
               </p>
             </div>
 
             {/* Right */}
             <div className="text-right">
               <p className="font-['Inter'] text-[28px] text-gray-900 mb-[4px]">
-                {"John Doe"}
+                {getUserData.userData?.firstname}{" "}
+                {getUserData.userData?.lastname}
               </p>
               <p className="font-['Inter'] text-[14px] text-gray-600 leading-none">
-                {"john.doe@example.com"}
+                {getUserData.userData?.email}
               </p>
             </div>
           </div>
