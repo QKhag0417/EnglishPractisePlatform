@@ -40,16 +40,16 @@ export function ReadingTestScreen({ exerciseId }: Props) {
 
   const getReadingExercise = useGetReadingExercise(exerciseId);
 
+  useEffect(() => {
+    if (!exerciseId) return;
+    void getReadingExercise.get();
+  }, [exerciseId, getReadingExercise.get]);
+
   // =========================
   // User Answers
   // =========================
 
   const userAnswer = useUserAnswer({});
-
-  useEffect(() => {
-    if (!exerciseId) return;
-    void getReadingExercise.get();
-  }, [exerciseId, getReadingExercise.get]);
 
   // =========================
   // Countdown Timer
