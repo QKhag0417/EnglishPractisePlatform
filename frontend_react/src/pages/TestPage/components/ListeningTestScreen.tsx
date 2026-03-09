@@ -111,7 +111,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
 
   const audioPlayer = useAudioPlayer({
     audioUrl: getListeningExercise.exercise.audioUrl || "",
-  }); // TODO: handle missing audioUrl case better
+  });
 
   // =========================
   // Exit Modal

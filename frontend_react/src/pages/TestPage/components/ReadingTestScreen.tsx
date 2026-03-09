@@ -147,8 +147,6 @@ export function ReadingTestScreen({ exerciseId }: Props) {
           <div className="text-[16px] leading-7 text-gray-800 whitespace-pre-line">
             <InstructionRenderer
               instruction={getReadingExercise.exercise.passageParsed}
-              userAnswers={userAnswer.answers}
-              onAnswerChange={userAnswer.onAnswerChange}
             />
           </div>
         </div>

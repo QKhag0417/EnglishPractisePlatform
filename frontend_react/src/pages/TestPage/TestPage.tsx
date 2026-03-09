@@ -1,6 +1,10 @@
 import { useParams } from "react-router";
 
-import { ListeningTestScreen, ReadingTestScreen } from "./components/index.ts";
+import {
+  ListeningTestScreen,
+  ReadingTestScreen,
+  WritingTestScreen,
+} from "./components/index.ts";
 
 export function TestPage() {
   // =========================
@@ -16,5 +20,9 @@ export function TestPage() {
 
   if (skill === "reading") {
     return <ReadingTestScreen exerciseId={exerciseId || ""} />;
+  }
+
+  if (skill === "writing") {
+    return <WritingTestScreen exerciseId={exerciseId || ""} />;
   }
 }

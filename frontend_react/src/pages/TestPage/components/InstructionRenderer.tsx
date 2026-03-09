@@ -317,11 +317,11 @@ const toDocNodes = (v: unknown): DocNode[] => {
 
 export function InstructionRenderer({
   instruction,
-  userAnswers,
+  userAnswers = {},
   onAnswerChange,
 }: {
   instruction: string | DocNode[];
-  userAnswers: UserAnswers;
+  userAnswers?: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
 }) {
   const doc = useMemo(() => toDocNodes(instruction), [instruction]);

@@ -31,6 +31,10 @@ export type ReadingExercise = ExerciseBase & {
   passageParsed: string;
 };
 
+export type WritingExercise = ExerciseBase & {
+  skill: "writing";
+};
+
 export type PracticeContentDTO = {
   id: string;
   task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
@@ -70,6 +74,18 @@ export const PRACTICE_READING_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
 export type PracticeReadingContentDTO = PracticeContentDTO & {
   passageParsed: string;
 };
+
+export const PRACTICE_WRITING_CONTENT_DTO_INCLUDE_FIELDS = [
+  "id",
+  "task",
+  "durationMinutes",
+  "instructionsParsed",
+] as const;
+
+export const PRACTICE_WRITING_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
+  PRACTICE_WRITING_CONTENT_DTO_INCLUDE_FIELDS.join(",");
+
+export type PracticeWritingContentDTO = PracticeContentDTO;
 
 export type ExerciseAnswer = {
   id: string;
