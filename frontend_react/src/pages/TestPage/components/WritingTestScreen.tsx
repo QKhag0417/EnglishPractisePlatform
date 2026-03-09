@@ -10,6 +10,7 @@ import {
   useExitModal,
   useGetWritingExercise,
   useCountdownTimer,
+  useUserAnswer,
 } from "../hooks";
 
 import { useAuth } from "../../../contexts/AuthContext.tsx";
@@ -43,6 +44,14 @@ export function WritingTestScreen({ exerciseId }: Props) {
   }, [exerciseId, getWritingExercise.get]);
 
   // =========================
+  // User Answers
+  // =========================
+
+  const userAnswer = useUserAnswer({});
+
+  const writingText = userAnswer.answers[1]?.[0] ?? "";
+
+  // =========================
   // Countdown Timer
   // =========================
 
@@ -65,8 +74,6 @@ export function WritingTestScreen({ exerciseId }: Props) {
   // =========================
   // Writing text
   // =========================
-
-  const [writingText, setWritingText] = useState("");
 
   const countWords = (text: string) => {
     return text
@@ -124,8 +131,9 @@ export function WritingTestScreen({ exerciseId }: Props) {
         <div className="w-1/2 overflow-y-auto p-8 bg-gray-50">
           <textarea
             value={writingText}
-            onChange={(e) => setWritingText(e.target.value)}
+            onChange={(e) => userAnswer.onAnswerChange(1, [e.target.value])}
             placeholder="Type your essay here..."
+            spellCheck={false}
             className="w-full h-[calc(100vh-340px)] p-4 border border-gray-300 rounded-lg font-['Inter'] text-[16px] resize-none focus:outline-none focus:ring-2 focus:ring-[#1977f3] focus:border-transparent"
           />
 
