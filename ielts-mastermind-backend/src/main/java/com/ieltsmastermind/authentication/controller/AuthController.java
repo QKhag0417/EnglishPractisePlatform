@@ -103,16 +103,27 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<String>> forgotPassword(
             @Valid @RequestBody UserForgotPasswordRequestDto request) {
+
         try {
+            System.out.println("Forgot password request email: " + request.getEmail());
+
             passwordResetService.sendResetCode(request.getEmail());
 
             return ResponseEntity.ok(
-                    ApiResponse.success("If the email exists, a verification code has been sent.", null)
+                    ApiResponse.success(
+                            "If the email exists, a verification code has been sent.",
+                            null
+                    )
             );
 
         } catch (Exception e) {
+
+            // In lỗi ra console backend
+            System.out.println("ERROR in forgot-password API:");
+            e.printStackTrace();
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Internal server error"));
+                    .body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }
     }
 

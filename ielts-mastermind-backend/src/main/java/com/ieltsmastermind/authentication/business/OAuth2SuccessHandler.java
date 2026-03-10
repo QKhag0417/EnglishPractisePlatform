@@ -98,6 +98,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addCookie(cookie);
 
         // ===== REDIRECT VỀ FRONTEND =====
-        response.sendRedirect("http://localhost:3000/login-success");
+        response.sendRedirect("http://localhost:3000");
     }
 }

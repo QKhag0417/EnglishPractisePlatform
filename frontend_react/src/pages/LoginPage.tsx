@@ -1,60 +1,51 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ prefer react-router-dom
-import { NavBarGuest } from "../components/NavBar";
-import { Footer } from "../components/Footer";
-import { Eye, EyeOff } from "lucide-react";
+import { useState } from 'react';
+import { NavBarGuest } from '../components/NavBar';
+import { Footer } from '../components/Footer';
+import { Page } from '../App';
+import { Eye, EyeOff } from 'lucide-react';
 import imgGoogle from "figma:asset/0fc5f61d030fba7f22a0e8832857641f73b1429d.png";
 import imgFacebook from "figma:asset/87f8e5f96448d8585bf2ee689bd3cf9d28c432bb.png";
-import { useAuth } from "../contexts/AuthContext";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useAuth } from '../contexts/AuthContext';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
-export function LoginPage() {
+interface LoginPageProps {
+  setCurrentPage: (page: Page) => void;
+}
+
+export function LoginPage({ setCurrentPage }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { login} = useAuth();
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogin = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleLogin = async () => {
     setError("");
 
-    if (!email || !password) {
-      setError("Please enter email and password.");
-      return;
-    }
-
     try {
-      setLoading(true);
-
       const loggedInUser = await login(email, password);
 
-      const role = String(loggedInUser.role).toLowerCase();
-      if (
-        role === "administrator" ||
-        role === "admin" ||
-        role === "administrator"
-      ) {
-        navigate("/admin/content-management");
+      if (loggedInUser.role === "Administrator") {
+        setCurrentPage("content-management");
       } else {
-        navigate("/");
+        setCurrentPage("home");
       }
-    } catch (err: any) {
-      // If backend returns a message, show it; otherwise fallback
-      const msg =
-        typeof err === "string" ? err : err?.message ? String(err.message) : "";
-      setError(msg || "Invalid email or password!!");
-    } finally {
-      setLoading(false);
+
+    } catch (err) {
+      setError("Invalid email or password!!");
     }
   };
+    const handleGoogleLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    };
+
+    const handleFacebookLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
+    };
 
   return (
-    <div className="min-h-screen relative flex flex-col">
+    <div className="min-h-screen relative">
       {/* Background with gradient overlay */}
       <div className="absolute inset-0 z-0">
         <ImageWithFallback
@@ -62,22 +53,22 @@ export function LoginPage() {
           alt="Background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#e8f4f8]/95 via-[#f0f9ff]/90 to-[#dbeafe]/95"></div>
-        <div
-          className="absolute inset-0 opacity-10"
+
+        <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
+
+        <div className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage:
-              "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "30px 30px",
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '30px 30px'
           }}
         ></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col">
-        <NavBarGuest />
+      <div className="relative z-10">
+        <NavBarGuest setCurrentPage={setCurrentPage} />
 
-        <div className="flex-1 flex items-center justify-center px-8 py-[80px]">
+        <div className="pt-[100px] pb-[60px] flex items-center justify-center min-h-[calc(100vh-66px-400px)]">
           <div className="bg-white rounded-[12px] border-4 border-[#4880ff] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-[60px] w-[738px]">
             <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[40px]">
               Login
@@ -98,13 +89,13 @@ export function LoginPage() {
             </div>
 
             {/* Password */}
-            <div className="mb-[15px]">
+            <div className="mb-[20px]">
               <label className="font-['Inter'] font-semibold text-[24px] text-black block mb-[10px]">
                 Password
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -124,71 +115,62 @@ export function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
             <div className="mb-[20px] text-right">
               <button
-                onClick={() => navigate("/forgot-password")}
-                className="font-['Inter'] font-semibold text-[20px] text-[#dc3545] hover:underline"
+                onClick={() => setCurrentPage('forgot-password')}
+                className="font-['Inter'] font-semibold text-[20px] text-red-500 hover:underline"
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Error message (from OLD logic) */}
+            {/* Error message */}
             {error && (
               <p className="text-red-500 text-center text-[20px] mb-[20px]">
                 {error}
               </p>
             )}
 
+
             {/* Login Button */}
             <button
-              onClick={() => handleLogin()}
-              disabled={loading}
-              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px] disabled:opacity-70 disabled:cursor-not-allowed"
+              onClick={handleLogin}
+              className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px]"
             >
-              {loading ? "Logging in..." : "Login"}
+              Login
             </button>
 
             {/* Divider */}
             <div className="flex items-center gap-[20px] mb-[30px]">
               <div className="flex-1 h-[1px] bg-black" />
-              <span className="font-['Inter'] text-[22px] text-black">
-                or login with
-              </span>
+              <span className="font-['Inter'] text-[22px] text-black">or login with</span>
               <div className="flex-1 h-[1px] bg-black" />
             </div>
 
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
-                <img
-                  src={imgGoogle}
-                  alt="Google"
-                  className="w-[43px] h-[43px]"
-                />
-                <span className="font-['Inter'] font-semibold text-[24px] text-black">
-                  Google
-                </span>
+              <button
+                onClick={handleGoogleLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
+                <img src={imgGoogle} alt="Google" className="w-[43px] h-[43px]" />
+                <span className="font-['Inter'] font-semibold text-[24px] text-black">Google</span>
               </button>
 
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
-                <img
-                  src={imgFacebook}
-                  alt="Facebook"
-                  className="w-[43px] h-[43px]"
-                />
-                <span className="font-['Inter'] font-semibold text-[24px] text-black">
-                  Facebook
-                </span>
+              <button
+                onClick={handleFacebookLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
+                <img src={imgFacebook} alt="Facebook" className="w-[43px] h-[43px]" />
+                <span className="font-['Inter'] font-semibold text-[24px] text-black">Facebook</span>
               </button>
             </div>
 
             {/* Register Link */}
             <p className="font-['Inter'] text-[22px] text-black text-center">
-              Don&apos;t have an account?{" "}
+              Don't have an account?{' '}
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => setCurrentPage('register')}
                 className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
               >
                 Register

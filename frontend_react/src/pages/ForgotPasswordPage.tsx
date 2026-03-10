@@ -4,14 +4,13 @@ import { Footer } from '../components/Footer';
 import { Page } from '../App';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useNavigate } from "react-router";
 
-interface ForgotPasswordPageProps {
-  setCurrentPage: (page: Page) => void;
-}
 
 type Step = 'email' | 'code' | 'new-password' | 'success';
 
-export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) {
+export function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState(['', '', '', '']);
@@ -166,7 +165,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
 
 
   const handleContinue = () => {
-    setCurrentPage('login');
+    navigate('/login');
   };
 
   return (
@@ -189,7 +188,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col">
-        <NavBarGuest setCurrentPage={setCurrentPage} />
+        <NavBarGuest />
 
         <div className="flex-1 flex items-center justify-center px-8 py-[80px]">
           <div className="bg-white rounded-[12px] border-4 border-[#4880ff] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-[60px] w-[738px]">
@@ -237,7 +236,7 @@ export function ForgotPasswordPage({ setCurrentPage }: ForgotPasswordPageProps) 
                 <p className="font-['Inter'] text-[22px] text-black text-center">
                   Remember your password?{' '}
                   <button
-                    onClick={() => setCurrentPage('login')}
+                    onClick={() => navigate('/login')}
                     className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
                   >
                     Back to Login

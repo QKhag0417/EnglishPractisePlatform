@@ -92,6 +92,14 @@ export function RegisterPage() {
     }
   };
 
+  const handleGoogleRegister = () => {
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+  };
+
+  const handleFacebookRegister = () => {
+    window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
+  };
+
   return (
     <div className="min-h-screen relative flex flex-col">
       {/* Background with gradient overlay */}
@@ -246,7 +254,10 @@ export function RegisterPage() {
 
             {/* Social Register */}
             <div className="flex gap-[20px] mb-[30px]">
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleGoogleRegister}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img
                   src={imgGoogle}
                   alt="Google"
@@ -256,7 +267,10 @@ export function RegisterPage() {
                   Google
                 </span>
               </button>
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleFacebookRegister}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img
                   src={imgFacebook}
                   alt="Facebook"
