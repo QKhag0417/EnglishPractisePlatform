@@ -6,6 +6,8 @@ import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSu
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionResponseDto;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionRepository;
+import com.ieltsmastermind.practice.content.management.domain.entity.PracticeContent;
+import com.ieltsmastermind.practice.content.management.persistence.PracticeContentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +19,12 @@ import java.util.List;
 public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmissionService {
 
     private final UserPracticeSubmissionRepository userPracticeSubmissionRepository;
+    private final PracticeContentRepository practiceContentRepository;
 
-    public UserPracticeSubmissionServiceImpl(UserPracticeSubmissionRepository userPracticeSubmissionRepository) {
+    public UserPracticeSubmissionServiceImpl(UserPracticeSubmissionRepository userPracticeSubmissionRepository,
+                                             PracticeContentRepository practiceContentRepository) {
         this.userPracticeSubmissionRepository = userPracticeSubmissionRepository;
+        this.practiceContentRepository = practiceContentRepository;
     }
 
     @Override
@@ -31,9 +36,14 @@ public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmission
         submission.setPracticeContentId(request.getPracticeContentId());
         submission.setTimeSpentSeconds(request.getTimeSpentSeconds());
         submission.setSubmittedAt(LocalDateTime.now());
-        submission.setScore(request.getScore());
 
         UserPracticeSubmission saved = userPracticeSubmissionRepository.save(submission);
+
+        // increment total attempts for every submission
+        int updated = practiceContentRepository.incrementAttemptCount(request.getPracticeContentId());
+        if (updated == 0) {
+            throw new IllegalArgumentException("PracticeContent not found: " + request.getPracticeContentId());
+        }
 
         UserPracticeSubmissionResponseDto responseDto = new UserPracticeSubmissionResponseDto();
         responseDto.setId(saved.getId());
@@ -79,5 +89,9 @@ public class UserPracticeSubmissionServiceImpl implements UserPracticeSubmission
         if (includes.has("timespentseconds")) dto.setTimeSpentSeconds(submission.getTimeSpentSeconds());
         if (includes.has("submittedat")) dto.setSubmittedAt(submission.getSubmittedAt());
         if (includes.has("score")) dto.setScore(submission.getScore());
+        if (includes.has("correctanswercount")) dto.setCorrectAnswerCount(submission.getCorrectAnswerCount());
+        if (includes.has("wronganswercount")) dto.setWrongAnswerCount(submission.getWrongAnswerCount());
+        if (includes.has("skipanswercount")) dto.setSkipAnswerCount(submission.getSkipAnswerCount());
+
     }
 }

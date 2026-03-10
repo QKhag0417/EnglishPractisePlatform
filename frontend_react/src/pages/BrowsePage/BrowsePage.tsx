@@ -14,8 +14,11 @@ import {
   useFilterExercisesByTask,
   useFilterExercisesByQuestionType,
   useFilterExercisesByTopic,
+  useFilterExercisesByStatus,
+  useGetUserPracticeContentProgresses,
 } from "./hooks";
 import { ExerciseMetadata } from "./types";
+import { mapUserPracticeContentProgressesByPracticeContentId } from "./utils";
 
 const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
@@ -23,9 +26,14 @@ const SKILL_ALLOWED = new Set(["listening", "reading", "writing", "speaking"]);
 
 export function BrowsePage() {
   // =========================
-  // Auth and navigation
+  // Auth
   // =========================
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, user } = useAuth();
+
+  // =========================
+  // Navigation
+  // =========================
+
   const navigate = useNavigate();
 
   // TODO: Why do BrowsePage care about handleLogout? We should change Navbar to support logout directly without passing down the handler from BrowsePage
@@ -62,11 +70,18 @@ export function BrowsePage() {
     useFilterExercisesBySkill(exercises, skill);
 
   // =========================
+  // Filter exercises by status
+  // =========================
+
+  const { filteredExercises: filteredExercisesByStatus } =
+    useFilterExercisesByStatus(filteredExercisesBySkill);
+
+  // =========================
   // Filter exercises by search
   // =========================
 
   const search = useFilterExercisesBySearch({
-    exercises: filteredExercisesBySkill,
+    exercises: filteredExercisesByStatus,
   });
 
   const searchQuery = search.state.searchQuery;
@@ -145,8 +160,28 @@ export function BrowsePage() {
   // =========================
   // Selected exercise for modal
   // =========================
+
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseMetadata | null>(null);
+
+  // =========================
+  // Get user practice content progresses to determine exercise status for each exercise card
+  // =========================
+
+  const userId = user?.id ?? "";
+
+  const getUserPracticeContentProgresses =
+    useGetUserPracticeContentProgresses(userId);
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserPracticeContentProgresses.get();
+  }, [userId, getUserPracticeContentProgresses.get]);
+
+  const bookmarkedByPracticeContentId =
+    mapUserPracticeContentProgressesByPracticeContentId(
+      getUserPracticeContentProgresses.progresses,
+    );
 
   return (
     <div className="bg-white min-h-screen">
@@ -426,6 +461,9 @@ export function BrowsePage() {
                 <ExerciseCard
                   key={exercise.id}
                   exercise={exercise}
+                  isBookmarked={
+                    bookmarkedByPracticeContentId[exercise.id] ?? false
+                  }
                   onSelect={() => setSelectedExercise(exercise)}
                 />
               ))}

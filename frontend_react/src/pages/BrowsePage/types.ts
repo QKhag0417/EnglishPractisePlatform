@@ -7,7 +7,7 @@ export interface ExerciseMetadata {
   id: string;
   skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   title: string;
-  attempts: string;
+  attempts: number;
   image: string;
   task: number;
   questionTypes: string[];
@@ -30,6 +30,7 @@ export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
   "updatedOn",
   "questionCount",
   "durationMinutes",
+  "attemptCount",
 ] as const;
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
@@ -47,4 +48,37 @@ export interface PracticeContentDTO {
   updatedOn: number[];
   questionCount: number;
   durationMinutes: number;
+  attemptCount: number;
 }
+
+export type UserPracticeContentProgressPutBody = {
+  isBookmarked: boolean;
+};
+
+export type UserPracticeContentProgressPutDTO = {
+  id?: string;
+};
+
+export type UserPracticeContentProgressPut = {
+  userPracticeContentProgressId: string;
+};
+
+export type UserPracticeContentProgressGetDTO = {
+  id?: string;
+  practiceContentId?: string;
+  isBookmarked?: boolean;
+};
+
+export type UserPracticeContentProgressGet = {
+  id: string;
+  practiceContentId: string;
+  isBookmarked: boolean;
+};
+
+export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS = [
+  "practiceContentId",
+  "isBookmarked",
+] as const;
+
+export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS_QUERY =
+  USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS.join(",");

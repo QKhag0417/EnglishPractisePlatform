@@ -15,4 +15,7 @@ public class UserPracticeSubmissionResponseDto {
     private Integer timeSpentSeconds;
     private LocalDateTime submittedAt;
     private Double score;
+    private Integer correctAnswerCount;
+    private Integer wrongAnswerCount;
+    private Integer skipAnswerCount;
 }

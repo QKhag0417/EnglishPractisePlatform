@@ -20,6 +20,8 @@ import { WritingContentEditorPage } from "./pages/WritingContentEditorPage/Writi
 import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
 import { MyProfilePage } from "./pages/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { TestResultPage } from "./pages/TestResultPage/TestResultPage";
+import { IntroductionPage } from "./pages/IntroductionPage/IntroductionPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -53,8 +55,16 @@ export const router = createBrowserRouter([
     Component: ListeningOverviewPage,
   },
   {
+    path: "/:skill/introduction/:exerciseId",
+    Component: IntroductionPage,
+  },
+  {
     path: "/:skill/test/:exerciseId",
     Component: TestPage,
+  },
+  {
+    path: "/test/result/:submissionId",
+    Component: TestResultPage,
   },
   //   // Reading routes
   //   {

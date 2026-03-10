@@ -14,20 +14,17 @@ import {
   useAudioPlayer,
   useExitModal,
   usePostUserSubmission,
-  usePostUserAnswer,
   usePostUserAnswersBulk,
 } from "../hooks/index.ts";
 
-import { formatTime } from "../utils/formatTime.ts";
-import { buildAudioUrl } from "../utils/buildAudioUrl.ts";
+import { formatTime, buildAudioUrl } from "../utils";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
 
 type Props = {
   exerciseId: string;
-  onGoToResults: () => void;
 };
 
-export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
+export function ListeningTestScreen({ exerciseId }: Props) {
   // =========================
   // Auth information
   // =========================
@@ -47,8 +44,9 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
   const getListeningExercise = useGetListeningExercise(exerciseId);
 
   useEffect(() => {
+    if (!exerciseId) return;
     void getListeningExercise.get();
-  }, [getListeningExercise.get]);
+  }, [exerciseId, getListeningExercise.get]);
 
   // =========================
   // User Answers
@@ -78,12 +76,12 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
     timeSpentSeconds:
       getListeningExercise.exercise.duration * 60 -
       countdownTimer.secondsRemaining,
-    score: 0,
   });
 
   // =========================
   // Post User Answers Bulk
   // =========================
+
   const postUserAnswersBulk = usePostUserAnswersBulk({
     userPracticeSubmissionId:
       postUserSubmission.submission.practiceSubmissionId || "",
@@ -95,7 +93,10 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
   // =========================
 
   const submitModal = useSubmitModal({
-    onGoToResults,
+    onGoToResults: () =>
+      navigate(
+        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
+      ),
     onPostSubmission: postUserSubmission.post,
     onPostSubmissionAnswers: postUserAnswersBulk.post,
   });
@@ -208,10 +209,6 @@ export function ListeningTestScreen({ exerciseId, onGoToResults }: Props) {
 
         {/* Questions */}
         <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
-          <h3 className="text-[20px] font-bold text-black mb-2">
-            Part {getListeningExercise.exercise.task}
-          </h3>
-
           <InstructionRenderer
             instruction={getListeningExercise.exercise.examText}
             userAnswers={userAnswer.answers}
@@ -268,7 +265,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
-                  onClick={() => submitModal.setShowSubmitModal(false)}
+                  onClick={() => submitModal.setShowSubmitModal(false)} // TODO: check this again
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 >
                   Continue Test

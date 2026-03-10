@@ -1,5 +1,6 @@
 package com.ieltsmastermind.practice.attempt.management.domain.entity;
 
+import com.ieltsmastermind.practice.attempt.management.domain.enums.Result;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,10 @@ public class UserPracticeSubmissionAnswer {
     @Column(name = "answer_value", nullable = false)
     @OrderColumn(name = "answer_index")
     private List<String> answers = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result", nullable = false)
+    private Result result = Result.SKIPPED;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_practice_submission_id", nullable = false)

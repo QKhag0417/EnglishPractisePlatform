@@ -1,5 +1,6 @@
 package com.ieltsmastermind.user.management.domain.entity;
 
+import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeContentProgress;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -71,4 +72,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<UserPracticeSubmission> practiceSubmissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserPracticeContentProgress> practiceContentProgresses = new ArrayList<>();
 }

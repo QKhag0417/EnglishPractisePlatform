@@ -28,7 +28,15 @@ export type ListeningExercise = ExerciseBase & {
 
 export type ReadingExercise = ExerciseBase & {
   skill: "reading";
-  passageText: string;
+  passageParsed: string;
+};
+
+export type PracticeContentDTO = {
+  id: string;
+  task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
+  durationMinutes: number;
+  instructionsParsed: string;
+  questionCount: number;
 };
 
 export const PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS = [
@@ -43,20 +51,24 @@ export const PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS = [
 export const PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
   PRACTICE_LISTENING_CONTENT_DTO_INCLUDE_FIELDS.join(",");
 
-export type PracticeContentDTO = {
-  id: string;
-  task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
-  durationMinutes: number;
-  instructionsParsed: string;
-  questionCount: number;
-};
-
 export type PracticeListeningContentDTO = PracticeContentDTO & {
   audioUrl: string;
 };
 
+export const PRACTICE_READING_CONTENT_DTO_INCLUDE_FIELDS = [
+  "id",
+  "task",
+  "durationMinutes",
+  "instructionsParsed",
+  "questionCount",
+  "passageParsed",
+] as const;
+
+export const PRACTICE_READING_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
+  PRACTICE_READING_CONTENT_DTO_INCLUDE_FIELDS.join(",");
+
 export type PracticeReadingContentDTO = PracticeContentDTO & {
-  passageText: string;
+  passageParsed: string;
 };
 
 export type ExerciseAnswer = {
@@ -76,7 +88,6 @@ export type PracticeSubmissionPostBody = {
   userId: string;
   practiceContentId: string;
   timeSpentSeconds: number;
-  score: number;
 };
 
 export type UserAnswerDTO = {

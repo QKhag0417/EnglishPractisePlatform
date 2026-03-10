@@ -14,12 +14,9 @@ interface ExerciseInfoCardProps {
   onTitleChange: (value: string) => void;
   task: string;
   onTaskChange: (value: string) => void;
-  questionTypeTags: string[];
-  onQuestionTypeTagsChange: (tags: string[]) => void;
   topicTags: string[];
   onTopicTagsChange: (tags: string[]) => void;
   updatedOn: string;
-  questionsCount: number;
   durationMinutes: number;
   onDurationChange: (value: number) => void;
 }
@@ -29,8 +26,6 @@ export function ExerciseInfoCard({
   onTitleChange,
   task,
   onTaskChange,
-  questionTypeTags,
-  onQuestionTypeTagsChange,
   topicTags,
   onTopicTagsChange,
   updatedOn,
@@ -72,7 +67,6 @@ export function ExerciseInfoCard({
             </SelectContent>
           </Select>
         </div>
-
 
         {/* Topic Tags */}
         <div>
