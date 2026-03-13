@@ -10,3 +10,4 @@ export { usePostUserAnswersBulk } from "./usePostUserAnswersBulk";
 export { useGetReadingExercise } from "./useGetReadingExercise";
 export { useGetWritingExercise } from "./useGetWritingExercise";
 export { usePostUserPracticeWritingAnswer } from "./usePostUserPracticeWritingAnswer";
+export { usePostUserPracticeContentProgressAttemptIncrement } from "./usePostUserPracticeContentProgressAttemptIncrement";

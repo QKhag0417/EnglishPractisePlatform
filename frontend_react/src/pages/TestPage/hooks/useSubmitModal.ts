@@ -4,43 +4,103 @@ type Args = {
   onGoToResults: () => void;
   onPostSubmission: () => Promise<unknown>;
   onPostSubmissionAnswers: () => Promise<unknown>;
+  onPostAttemptIncrement: () => Promise<unknown>;
 };
+
+type ConfirmSubmitStep =
+  | "idle"
+  | "postingSubmission"
+  | "postingSubmissionAnswers"
+  | "postingAttemptIncrement"
+  | "done"
+  | "error";
 
 export function useSubmitModal({
   onGoToResults,
   onPostSubmission,
   onPostSubmissionAnswers,
+  onPostAttemptIncrement,
 }: Args) {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-  const [pendingAnswersPost, setPendingAnswersPost] = useState(false);
   const runningRef = useRef(false);
+  const [confirmSubmitStep, setConfirmSubmitStep] =
+    useState<ConfirmSubmitStep>("idle");
+
+  const isSubmitting =
+    confirmSubmitStep === "postingSubmission" ||
+    confirmSubmitStep === "postingSubmissionAnswers" ||
+    confirmSubmitStep === "postingAttemptIncrement";
 
   const openSubmitModal = useCallback(() => setShowSubmitModal(true), []);
   const cancelSubmitModal = useCallback(() => setShowSubmitModal(false), []);
 
   const confirmSubmit = useCallback(async () => {
-    runningRef.current = false;
-    await onPostSubmission();
-    setPendingAnswersPost(true);
-  }, [onPostSubmission]);
+    if (isSubmitting) return;
+
+    setConfirmSubmitStep("postingSubmission");
+  }, [isSubmitting]);
 
   useEffect(() => {
-    if (!pendingAnswersPost) return;
+    if (confirmSubmitStep !== "postingSubmission") return;
     if (runningRef.current) return;
+
+    runningRef.current = true;
+
+    (async () => {
+      try {
+        await onPostSubmission();
+        setConfirmSubmitStep("postingSubmissionAnswers");
+      } catch {
+        setConfirmSubmitStep("error");
+      } finally {
+        runningRef.current = false;
+      }
+    })();
+  }, [confirmSubmitStep, onPostSubmission]);
+
+  useEffect(() => {
+    if (confirmSubmitStep !== "postingSubmissionAnswers") return;
+    if (runningRef.current) return;
+
     runningRef.current = true;
 
     (async () => {
       try {
         await onPostSubmissionAnswers();
-        setShowSubmitModal(false);
-        onGoToResults();
+        setConfirmSubmitStep("postingAttemptIncrement");
+      } catch {
+        setConfirmSubmitStep("error");
       } finally {
-        setPendingAnswersPost(false);
         runningRef.current = false;
       }
     })();
-  }, [pendingAnswersPost, onPostSubmissionAnswers, onGoToResults]);
+  }, [confirmSubmitStep, onPostSubmissionAnswers]);
+
+  useEffect(() => {
+    if (confirmSubmitStep !== "postingAttemptIncrement") return;
+    if (runningRef.current) return;
+
+    runningRef.current = true;
+
+    (async () => {
+      try {
+        await onPostAttemptIncrement();
+        setConfirmSubmitStep("done");
+      } catch {
+        setConfirmSubmitStep("error");
+      } finally {
+        runningRef.current = false;
+      }
+    })();
+  }, [confirmSubmitStep, onPostAttemptIncrement]);
+
+  useEffect(() => {
+    if (confirmSubmitStep !== "done") return;
+
+    setShowSubmitModal(false);
+    onGoToResults();
+  }, [confirmSubmitStep, onGoToResults]);
 
   return {
     showSubmitModal,

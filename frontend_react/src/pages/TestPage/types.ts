@@ -153,3 +153,11 @@ export type UserPracticeWritingAnswerPostBody = {
   orderIndex: string;
   essayText: string;
 };
+
+export type UserPracticeContentProgressAttemptIncrementDTO = {
+  id: string;
+};
+
+export type UserPracticeContentProgressAttemptIncrement = {
+  userPracticeContentProgressId: string;
+};

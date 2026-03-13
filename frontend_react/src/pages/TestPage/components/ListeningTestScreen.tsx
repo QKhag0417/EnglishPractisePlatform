@@ -15,6 +15,7 @@ import {
   useExitModal,
   usePostUserSubmission,
   usePostUserAnswersBulk,
+  usePostUserPracticeContentProgressAttemptIncrement,
 } from "../hooks/index.ts";
 
 import { formatTime, buildAudioUrl } from "../utils";
@@ -89,6 +90,16 @@ export function ListeningTestScreen({ exerciseId }: Props) {
   });
 
   // =========================
+  // Post User Attempt Increment
+  // =========================
+
+  const postAttemptIncrement =
+    usePostUserPracticeContentProgressAttemptIncrement(
+      user?.id || "",
+      exerciseId,
+    );
+
+  // =========================
   // Submit Modal
   // =========================
 
@@ -99,6 +110,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
       ),
     onPostSubmission: postUserSubmission.post,
     onPostSubmissionAnswers: postUserAnswersBulk.post,
+    onPostAttemptIncrement: postAttemptIncrement.post,
   });
 
   useEffect(() => {

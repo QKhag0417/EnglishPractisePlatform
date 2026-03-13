@@ -14,6 +14,7 @@ import {
   usePostUserSubmission,
   useSubmitModal,
   usePostUserPracticeWritingAnswer,
+  usePostUserPracticeContentProgressAttemptIncrement,
 } from "../hooks";
 
 import { useAuth } from "../../../contexts/AuthContext.tsx";
@@ -79,7 +80,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
   });
 
   // =========================
-  // Post
+  // Post User Practice Writing Answer
   // =========================
 
   const postUserPracticeWritingAnswer = usePostUserPracticeWritingAnswer({
@@ -88,6 +89,16 @@ export function WritingTestScreen({ exerciseId }: Props) {
     orderIndex: "1",
     essayText: writingText,
   });
+
+  // =========================
+  // Post User Attempt Increment
+  // =========================
+
+  const postAttemptIncrement =
+    usePostUserPracticeContentProgressAttemptIncrement(
+      user?.id || "",
+      exerciseId,
+    );
 
   // =========================
   // Submit Modal
@@ -100,6 +111,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       ),
     onPostSubmission: postUserSubmission.post,
     onPostSubmissionAnswers: postUserPracticeWritingAnswer.post,
+    onPostAttemptIncrement: postAttemptIncrement.post,
   });
 
   useEffect(() => {
