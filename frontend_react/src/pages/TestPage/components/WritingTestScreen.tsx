@@ -2,15 +2,18 @@ import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "./InstructionRenderer.tsx";
 import { useNavigate } from "react-router";
 
-import { formatTime } from "../utils";
+import { formatTime, countWords } from "../utils";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useEffect, useRef, use } from "react";
 
 import {
   useExitModal,
   useGetWritingExercise,
   useCountdownTimer,
   useUserAnswer,
+  usePostUserSubmission,
+  useSubmitModal,
+  usePostUserPracticeWritingAnswer,
 } from "../hooks";
 
 import { useAuth } from "../../../contexts/AuthContext.tsx";
@@ -64,23 +67,52 @@ export function WritingTestScreen({ exerciseId }: Props) {
   });
 
   // =========================
+  // Post User Submission
+  // =========================
+
+  const postUserSubmission = usePostUserSubmission({
+    userId: user?.id || "",
+    practiceContentId: exerciseId,
+    timeSpentSeconds:
+      getWritingExercise.exercise.duration * 60 -
+      countdownTimer.secondsRemaining,
+  });
+
+  // =========================
+  // Post
+  // =========================
+
+  const postUserPracticeWritingAnswer = usePostUserPracticeWritingAnswer({
+    userPracticeSubmissionId:
+      postUserSubmission.submission.practiceSubmissionId || "",
+    orderIndex: "1",
+    essayText: writingText,
+  });
+
+  // =========================
+  // Submit Modal
+  // =========================
+
+  const submitModal = useSubmitModal({
+    onGoToResults: () =>
+      navigate(
+        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
+      ),
+    onPostSubmission: postUserSubmission.post,
+    onPostSubmissionAnswers: postUserPracticeWritingAnswer.post,
+  });
+
+  useEffect(() => {
+    onExpireRef.current = submitModal.openSubmitModal;
+  }, [submitModal.openSubmitModal]);
+
+  // =========================
   // Exit Modal
   // =========================
 
   const exitPath = `/writing/browse`;
 
   const exitModal = useExitModal({ onExit: () => navigate(exitPath) });
-
-  // =========================
-  // Writing text
-  // =========================
-
-  const countWords = (text: string) => {
-    return text
-      .trim()
-      .split(/\s+/)
-      .filter((word) => word.length > 0).length;
-  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -110,13 +142,6 @@ export function WritingTestScreen({ exerciseId }: Props) {
           </button>
         </div>
       </div>
-
-      {/* Warning Banner */}
-      {/* {showWarning && (
-        <div className="bg-red-500 text-white px-6 py-3 text-center font-['Inter'] font-semibold">
-          5 minutes remaining
-        </div>
-      )} */}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative pb-[72px]">
@@ -153,7 +178,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       <div className="border-t-2 border-gray-300 bg-white px-6 py-4 fixed bottom-0 left-0 right-0">
         <div className="flex items-center justify-end">
           <button
-            // onClick={handleSubmit}
+            onClick={submitModal.openSubmitModal}
             className="px-8 py-3 bg-[#fcbf65] hover:bg-[#e5ab52] text-black rounded font-['Inter'] font-bold text-[16px] transition-colors"
           >
             Submit
@@ -191,8 +216,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       )}
 
       {/* Submit Modal */}
-      {/* {showSubmitModal */}
-      {false && (
+      {submitModal.showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
@@ -204,13 +228,13 @@ export function WritingTestScreen({ exerciseId }: Props) {
             </p>
             <div className="flex gap-4">
               <button
-                // onClick={() => setShowSubmitModal(false)}
+                onClick={() => submitModal.setShowSubmitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
               >
                 Continue Test
               </button>
               <button
-                // onClick={handleConfirmSubmit}
+                onClick={submitModal.confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
                 Submit

@@ -139,3 +139,17 @@ export type BulkSubmissionAnswerResponseDTO = BulkSubmissionAnswerRowDTO[];
 export type BulkSubmissionAnswerResponse = {
   ids: string[];
 };
+
+export type UserPracticeWritingAnswerDTO = {
+  id: string;
+};
+
+export type UserPracticeWritingAnswer = {
+  userPracticeWritingAnswerId: string;
+};
+
+export type UserPracticeWritingAnswerPostBody = {
+  userPracticeSubmissionId: string;
+  orderIndex: string;
+  essayText: string;
+};
