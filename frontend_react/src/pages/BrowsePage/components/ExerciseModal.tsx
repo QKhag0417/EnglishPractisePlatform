@@ -5,7 +5,6 @@ import {
   Calendar,
   CheckCircle,
   Circle,
-  PlayCircle,
   RotateCcw,
 } from "lucide-react";
 import { TagChips } from "./TagChips";
@@ -14,24 +13,23 @@ import { ExerciseMetadata } from "../types";
 import { buildImageUrl } from "../utils/buildImageUrl";
 import { useAuth } from "../../../contexts/AuthContext";
 
-type LearnerExerciseStatus = "not-started" | "in-progress" | "completed";
-
-const MOCK_LEARNER_EXERCISE_STATUS: LearnerExerciseStatus = "not-started";
-
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
   pageType?: "listening" | "reading" | "writing" | "speaking" | string;
+  attempCount?: number;
   onClose: () => void;
 }
 
 export function ExerciseModal({
   exerciseMetadata,
   pageType,
+  attempCount,
   onClose,
 }: ExerciseModalProps) {
   // =========================
   // Auth
   // =========================
+
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
@@ -39,14 +37,12 @@ export function ExerciseModal({
   // Learner exercise status
   // =========================
 
-  const learnerExerciseStatus = MOCK_LEARNER_EXERCISE_STATUS;
+  const learnerExerciseStatus = attempCount === 0 ? "not-started" : "completed";
 
   const getStatusColor = () => {
     switch (learnerExerciseStatus) {
       case "completed":
         return "text-green-600";
-      case "in-progress":
-        return "text-orange-600";
       default:
         return "text-gray-600";
     }
@@ -56,8 +52,6 @@ export function ExerciseModal({
     switch (learnerExerciseStatus) {
       case "completed":
         return <CheckCircle className="w-[20px] h-[20px]" />;
-      case "in-progress":
-        return <PlayCircle className="w-[20px] h-[20px]" />;
       default:
         return <Circle className="w-[20px] h-[20px]" />;
     }
@@ -67,8 +61,6 @@ export function ExerciseModal({
     switch (learnerExerciseStatus) {
       case "completed":
         return "Completed";
-      case "in-progress":
-        return "In Progress";
       default:
         return "Not Started";
     }
@@ -248,9 +240,7 @@ export function ExerciseModal({
             >
               {learnerExerciseStatus === "completed"
                 ? "Practice Again"
-                : learnerExerciseStatus === "in-progress"
-                  ? "Continue"
-                  : "Start Practice"}
+                : "Start Practice"}
             </button>
           </div>
         </div>

@@ -50,6 +50,36 @@ public class UserPracticeContentProgressServiceImpl implements UserPracticeConte
     }
 
     @Override
+    @Transactional
+    public UserPracticeContentProgressResponseDto incrementAttemptCount(
+            String userId,
+            String practiceContentId
+    ) {
+        int updatedRows = userPracticeContentProgressRepository
+                .incrementAttemptCount(userId, practiceContentId);
+
+        UserPracticeContentProgress progress;
+
+        if (updatedRows == 0) {
+            UserPracticeContentProgress newProgress = new UserPracticeContentProgress();
+            newProgress.setUserId(userId);
+            newProgress.setPracticeContentId(practiceContentId);
+            newProgress.setAttemptCount(1);
+
+            progress = userPracticeContentProgressRepository.save(newProgress);
+        } else {
+            progress = userPracticeContentProgressRepository
+                    .findByUserIdAndPracticeContentId(userId, practiceContentId)
+                    .orElseThrow(() -> new RuntimeException("User practice content progress not found"));
+        }
+
+        UserPracticeContentProgressResponseDto dto = new UserPracticeContentProgressResponseDto();
+        dto.setId(progress.getId());
+
+        return dto;
+    }
+
+    @Override
     public List<UserPracticeContentProgressResponseDto> getAllByUserId(String userId, IncludeSpec includes) {
         List<UserPracticeContentProgress> rows = userPracticeContentProgressRepository.findAllByUserId(userId);
         List<UserPracticeContentProgressResponseDto> result = new ArrayList<>();

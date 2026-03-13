@@ -1,10 +1,23 @@
 import { UserPracticeContentProgressGet } from "../types";
 
+export type UserPracticeContentProgressByPracticeContentId = Record<
+  string,
+  {
+    isBookmarked: boolean;
+    attemptCount: number;
+  }
+>;
+
 export function mapUserPracticeContentProgressesByPracticeContentId(
   progresses: UserPracticeContentProgressGet[],
-): Record<string, boolean> {
-  return (progresses ?? []).reduce<Record<string, boolean>>((acc, progress) => {
-    acc[progress.practiceContentId] = progress.isBookmarked;
+): UserPracticeContentProgressByPracticeContentId {
+  return (
+    progresses ?? []
+  ).reduce<UserPracticeContentProgressByPracticeContentId>((acc, progress) => {
+    acc[progress.practiceContentId] = {
+      isBookmarked: progress.isBookmarked,
+      attemptCount: progress.attemptCount,
+    };
     return acc;
   }, {});
 }

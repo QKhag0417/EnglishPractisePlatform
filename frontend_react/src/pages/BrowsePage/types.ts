@@ -67,17 +67,20 @@ export type UserPracticeContentProgressGetDTO = {
   id?: string;
   practiceContentId?: string;
   isBookmarked?: boolean;
+  attemptCount?: number;
 };
 
 export type UserPracticeContentProgressGet = {
   id: string;
   practiceContentId: string;
   isBookmarked: boolean;
+  attemptCount: number;
 };
 
 export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS = [
   "practiceContentId",
   "isBookmarked",
+  "attemptCount",
 ] as const;
 
 export const USER_PRACTICE_CONTENT_PROGRESS_GET_DTO_INCLUDE_FIELDS_QUERY =

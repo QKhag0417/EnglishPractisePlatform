@@ -13,6 +13,7 @@ function mapUserPracticeContentProgressDTOsToUserPracticeContentProgresses(
     id: dto.id ?? "",
     practiceContentId: dto.practiceContentId ?? "",
     isBookmarked: dto.isBookmarked ?? false,
+    attemptCount: dto.attemptCount ?? 0,
   }));
 }
 

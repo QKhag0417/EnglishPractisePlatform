@@ -12,6 +12,6 @@ public interface UserPracticeContentProgressService {
             String practiceContentId,
             UserPracticeContentProgressUpsertRequestDto request
     );
-
     List<UserPracticeContentProgressResponseDto> getAllByUserId(String userId, IncludeSpec includes);
+    UserPracticeContentProgressResponseDto incrementAttemptCount(String userId, String practiceContentId);
 }

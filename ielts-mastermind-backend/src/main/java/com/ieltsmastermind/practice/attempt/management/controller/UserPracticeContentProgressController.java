@@ -45,6 +45,29 @@ public class UserPracticeContentProgressController {
         }
     }
 
+    @PostMapping("/user/{userId}/practice-content/{practiceContentId}/attempt-count/increment")
+    public ResponseEntity<ApiResponse<UserPracticeContentProgressResponseDto>> incrementAttemptCount(
+            @PathVariable String userId,
+            @PathVariable String practiceContentId
+    ) {
+        try {
+            UserPracticeContentProgressResponseDto updated =
+                    userPracticeContentProgressService.incrementAttemptCount(userId, practiceContentId);
+
+            return ResponseEntity.ok(
+                    ApiResponse.success("User attempt count incremented successfully", updated)
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<List<UserPracticeContentProgressResponseDto>>> getAllByUserId(
             @PathVariable String userId,

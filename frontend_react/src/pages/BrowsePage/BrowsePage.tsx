@@ -178,7 +178,7 @@ export function BrowsePage() {
     getUserPracticeContentProgresses.get();
   }, [userId, getUserPracticeContentProgresses.get]);
 
-  const bookmarkedByPracticeContentId =
+  const userPracticeContentProgresses =
     mapUserPracticeContentProgressesByPracticeContentId(
       getUserPracticeContentProgresses.progresses,
     );
@@ -462,7 +462,8 @@ export function BrowsePage() {
                   key={exercise.id}
                   exercise={exercise}
                   isBookmarked={
-                    bookmarkedByPracticeContentId[exercise.id] ?? false
+                    userPracticeContentProgresses[exercise.id]?.isBookmarked ??
+                    false
                   }
                   onSelect={() => setSelectedExercise(exercise)}
                 />
@@ -527,6 +528,10 @@ export function BrowsePage() {
         <ExerciseModal
           exerciseMetadata={selectedExercise}
           pageType={skill}
+          attempCount={
+            userPracticeContentProgresses[selectedExercise.id]?.attemptCount ??
+            0
+          }
           onClose={() => setSelectedExercise(null)}
         />
       )}
