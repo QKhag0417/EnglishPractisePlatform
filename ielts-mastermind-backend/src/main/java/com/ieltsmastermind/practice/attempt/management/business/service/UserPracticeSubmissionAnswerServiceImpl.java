@@ -129,7 +129,6 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
         if (includes.has("orderindex")) dto.setOrderIndex(answer.getOrderIndex());
         if (includes.has("answers")) dto.setAnswers(new ArrayList<>(answer.getAnswers()));
         if (includes.has("result")) dto.setResult(answer.getResult());
-
     }
 
     private void calculateAndSetSubmissionResult(UserPracticeSubmission submission,

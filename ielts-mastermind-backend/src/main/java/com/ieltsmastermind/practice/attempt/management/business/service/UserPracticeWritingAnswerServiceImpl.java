@@ -1,5 +1,6 @@
 package com.ieltsmastermind.practice.attempt.management.business.service;
 
+import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.practice.attempt.management.business.interfaces.UserPracticeWritingAnswerService;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeWritingAnswerCreateRequestDto;
 import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeWritingAnswerResponseDto;
@@ -10,6 +11,9 @@ import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeW
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +42,52 @@ public class UserPracticeWritingAnswerServiceImpl implements UserPracticeWriting
         UserPracticeWritingAnswerResponseDto responseDto =
                 new UserPracticeWritingAnswerResponseDto();
         responseDto.setId(saved.getId());
-        responseDto.setSubmissionId(submission.getId());
-        responseDto.setOrderIndex(saved.getOrderIndex());
-        responseDto.setEssayText(saved.getEssayText());
 
         return responseDto;
+    }
+
+    @Override
+    public List<UserPracticeWritingAnswerResponseDto> getAllBySubmissionId(
+            String submissionId,
+            IncludeSpec includes
+    ) {
+        List<UserPracticeWritingAnswer> answerRows =
+                writingAnswerRepository.findAllBySubmission_IdOrderByOrderIndexAsc(submissionId);
+
+        List<UserPracticeWritingAnswerResponseDto> result = new ArrayList<>();
+
+        for (UserPracticeWritingAnswer row : answerRows) {
+            UserPracticeWritingAnswerResponseDto dto = new UserPracticeWritingAnswerResponseDto();
+            dto.setId(row.getId());
+            applyIncludes(row, dto, includes);
+
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    public UserPracticeWritingAnswerResponseDto getById(String id, IncludeSpec includes) {
+
+        UserPracticeWritingAnswer answer = writingAnswerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Writing answer not found"));
+
+        UserPracticeWritingAnswerResponseDto dto = new UserPracticeWritingAnswerResponseDto();
+        dto.setId(answer.getId());
+        applyIncludes(answer, dto, includes);
+
+        return dto;
+    }
+
+    private void applyIncludes(UserPracticeWritingAnswer answer,
+                               UserPracticeWritingAnswerResponseDto dto,
+                               IncludeSpec includes) {
+
+        if (includes.has("submissionid")) dto.setSubmissionId(answer.getSubmission().getId());
+        if (includes.has("orderindex")) dto.setOrderIndex(answer.getOrderIndex());
+        if (includes.has("essaytext")) dto.setEssayText(answer.getEssayText());
+        if (includes.has("wordcount")) dto.setWordCount(answer.getWordCount());
     }
 
     private int countWords(String essayText) {

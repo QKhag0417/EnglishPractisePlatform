@@ -14,4 +14,5 @@ public class UserPracticeWritingAnswerResponseDto {
     private String submissionId;
     private Integer orderIndex;
     private String essayText;
+    private Integer wordCount;
 }
