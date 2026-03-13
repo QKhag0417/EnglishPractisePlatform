@@ -162,8 +162,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       </div>
 
       {/* Exit Modal */}
-      {/* {showExitModal  */}
-      {false && (
+      {exitModal.showExitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
@@ -175,13 +174,13 @@ export function WritingTestScreen({ exerciseId }: Props) {
             </p>
             <div className="flex gap-4">
               <button
-                // onClick={() => setShowExitModal(false)}
+                onClick={() => exitModal.setShowExitModal(false)}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
-                // onClick={handleConfirmExit}
+                onClick={exitModal.confirmExit}
                 className="flex-1 px-6 py-3 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
                 Exit

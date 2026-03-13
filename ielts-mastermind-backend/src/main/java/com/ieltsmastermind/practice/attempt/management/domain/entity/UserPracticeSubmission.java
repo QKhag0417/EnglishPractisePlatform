@@ -63,4 +63,8 @@ public class UserPracticeSubmission {
     @OneToMany(mappedBy = "submission", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<UserPracticeSubmissionAnswer> answerRows = new ArrayList<>();
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    private List<UserPracticeWritingAnswer> writingAnswers = new ArrayList<>();
 }

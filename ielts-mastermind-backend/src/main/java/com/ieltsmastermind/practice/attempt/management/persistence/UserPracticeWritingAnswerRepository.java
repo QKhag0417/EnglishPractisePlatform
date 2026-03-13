@@ -1,4 +1,8 @@
 package com.ieltsmastermind.practice.attempt.management.persistence;
 
-public class UserPracticeWritingAnswerRepository {
+import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeWritingAnswer;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserPracticeWritingAnswerRepository
+        extends JpaRepository<UserPracticeWritingAnswer, String> {
 }

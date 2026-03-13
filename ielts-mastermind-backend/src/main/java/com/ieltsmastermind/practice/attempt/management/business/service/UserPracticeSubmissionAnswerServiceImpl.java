@@ -2,14 +2,14 @@ package com.ieltsmastermind.practice.attempt.management.business.service;
 
 import com.ieltsmastermind.common.query.IncludeSpec;
 import com.ieltsmastermind.practice.attempt.management.business.interfaces.UserPracticeSubmissionAnswerService;
-import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerBulkCreateRequestDto;
-import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerCreateRequestDto;
-import com.ieltsmastermind.practice.attempt.management.domain.dto.UserPracticeSubmissionAnswerResponseDto;
+import com.ieltsmastermind.practice.attempt.management.domain.dto.*;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmissionAnswer;
+import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeWritingAnswer;
 import com.ieltsmastermind.practice.attempt.management.domain.enums.Result;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionAnswerRepository;
 import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeSubmissionRepository;
+import com.ieltsmastermind.practice.attempt.management.persistence.UserPracticeWritingAnswerRepository;
 import com.ieltsmastermind.practice.content.management.domain.entity.PracticeQuestion;
 import com.ieltsmastermind.practice.content.management.persistence.PracticeQuestionRepository;
 import jakarta.transaction.Transactional;
@@ -25,7 +25,6 @@ public class UserPracticeSubmissionAnswerServiceImpl implements UserPracticeSubm
     private final UserPracticeSubmissionAnswerRepository answerRepository;
     private final UserPracticeSubmissionRepository submissionRepository;
     private final PracticeQuestionRepository practiceQuestionRepository;
-
 
     public UserPracticeSubmissionAnswerServiceImpl(
             UserPracticeSubmissionAnswerRepository answerRepository,
