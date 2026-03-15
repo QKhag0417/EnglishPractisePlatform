@@ -45,23 +45,6 @@ export function TestResultPage() {
   const timeSpent = getPracticeSubmission.submission?.timeSpentSeconds ?? 0;
 
   // =========================
-  // Get practice submission answers data
-  // =========================
-
-  const getPracticeSubmissionAnswers = useGetPracticeSubmissionAnswers(
-    submissionId || "",
-  );
-
-  useEffect(() => {
-    if (!submissionId) return;
-    getPracticeSubmissionAnswers.get();
-  }, [submissionId, getPracticeSubmissionAnswers.get]);
-
-  const submissionAnswersByIndex = indexByOrderIndex(
-    getPracticeSubmissionAnswers.answers,
-  );
-
-  // =========================
   // Get practice content answers data
   // =========================
 
@@ -80,6 +63,23 @@ export function TestResultPage() {
   (getPracticeContentAnswers.answers ?? []).forEach((a) => {
     correctAnswersByIndex[a.orderIndex] = a.correctAnswers ?? [];
   });
+
+  // =========================
+  // Get practice submission answers data
+  // =========================
+
+  const getPracticeSubmissionAnswers = useGetPracticeSubmissionAnswers(
+    submissionId || "",
+  );
+
+  useEffect(() => {
+    if (!submissionId) return;
+    getPracticeSubmissionAnswers.get();
+  }, [submissionId, getPracticeSubmissionAnswers.get]);
+
+  const submissionAnswersByIndex = indexByOrderIndex(
+    getPracticeSubmissionAnswers.answers,
+  );
 
   // =========================
   // Calculate summary data
