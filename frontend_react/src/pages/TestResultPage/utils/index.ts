@@ -4,3 +4,6 @@ export { isAnswerCorrect } from "./isAnswerCorrect";
 export { indexByOrderIndex } from "./indexByOrderIndex";
 export { mapPracticeSkill } from "./mapPracticeSkill";
 export { formatLocalDateTime } from "./formatLocalDateTime";
+export { formatTimeVerbose } from "./formatTimeVerbose";
+export { buildImageUrl } from "./buildImageUrl";
+export { formatTaskLabel } from "./formatTaskLabel";

@@ -76,6 +76,8 @@ export type PracticeContentDTO = {
   id: string;
   title: string;
   skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
+  instructionsParsed: string;
+  task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
 };
 
 export type PracticeContent = PracticeContentDTO;
@@ -84,6 +86,8 @@ export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS = [
   "id",
   "title",
   "skill",
+  "instructionsParsed",
+  "task",
 ] as const;
 
 export const PRACTICE_CONTENT_DTO_INCLUDE_FIELDS_QUERY =
@@ -107,3 +111,21 @@ export const USER_DATA_DTO_INCLUDE_FIELDS = [
 
 export const USER_DATA_DTO_INCLUDE_FIELDS_QUERY =
   USER_DATA_DTO_INCLUDE_FIELDS.join(",");
+
+export type UserPracticeWritingAnswerDTO = {
+  id: string;
+  orderIndex: number;
+  essayText: string;
+  wordCount: number;
+};
+
+export type UserPracticeWritingAnswer = UserPracticeWritingAnswerDTO;
+
+export const USER_PRACTICE_WRITING_ANSWER_DTO_INCLUDE_FIELDS = [
+  "orderIndex",
+  "essayText",
+  "wordCount",
+] as const;
+
+export const USER_PRACTICE_WRITING_ANSWER_DTO_INCLUDE_FIELDS_QUERY =
+  USER_PRACTICE_WRITING_ANSWER_DTO_INCLUDE_FIELDS.join(",");

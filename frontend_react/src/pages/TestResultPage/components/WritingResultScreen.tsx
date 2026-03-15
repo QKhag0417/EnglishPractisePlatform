@@ -6,16 +6,22 @@ import {
   useGetPracticeContent,
   useGetPracticeSubmission,
   useGetUserData,
+  useGetWritingAnswer,
 } from "../hooks/index.ts";
-import { formatLocalDateTime, mapPracticeSkill } from "../utils/index.ts";
+import {
+  formatLocalDateTime,
+  formatTaskLabel,
+  formatTimeVerbose,
+  mapPracticeSkill,
+} from "../utils/index.ts";
 import {
   BookOpen,
   CheckCircle,
   Clock,
   FileText,
-  MessageSquare,
   PenSquare,
 } from "lucide-react";
+import { InstructionRendererSimplified } from "./InstructionRendererSimplified.tsx";
 
 type Props = {
   submissionId: string;
@@ -53,6 +59,19 @@ export function WritingResultScreen({ submissionId }: Props) {
     if (!practiceContentId) return;
     getPracticeContent.get();
   }, [practiceContentId, getPracticeContent.get]);
+
+  // =========================
+  // Get practice submission answers data
+  // =========================
+
+  const getWritingAnswer = useGetWritingAnswer(submissionId || "");
+
+  useEffect(() => {
+    if (!submissionId) return;
+    getWritingAnswer.get();
+  }, [submissionId, getWritingAnswer.get]);
+
+  const writingAnswer = getWritingAnswer.writingAnswers?.[0];
 
   // =========================
   // Get user data
@@ -121,8 +140,7 @@ export function WritingResultScreen({ submissionId }: Props) {
                     Time Taken
                   </p>
                   <p className="font-['Inter'] text-[20px] font-semibold text-gray-900">
-                    {/* TODO: mockdata */}
-                    {"0 minutes 0 seconds"}
+                    {formatTimeVerbose(timeSpent)}
                   </p>
                 </div>
               </div>
@@ -139,8 +157,7 @@ export function WritingResultScreen({ submissionId }: Props) {
                     Word Count
                   </p>
                   <p className="font-['Inter'] text-[20px] font-semibold text-gray-900">
-                    {/* TODO: mockdata */}
-                    {"0"} words
+                    {writingAnswer?.wordCount} words
                   </p>
                 </div>
               </div>
@@ -157,8 +174,7 @@ export function WritingResultScreen({ submissionId }: Props) {
                     Task Type
                   </p>
                   <p className="font-['Inter'] text-[20px] font-semibold text-gray-900">
-                    {/* TODO: mockdata */}
-                    {"Writing - Academic"}
+                    {formatTaskLabel(getPracticeContent.practiceContent?.task)}
                   </p>
                 </div>
               </div>
@@ -175,16 +191,11 @@ export function WritingResultScreen({ submissionId }: Props) {
                 </h2>
               </div>
               <div className="bg-gray-50 rounded-[8px] p-[20px] border border-gray-200">
-                <h3 className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[12px]">
-                  {/* TODO: mockdata */}
-                  {"Advantages and Disadvantages of Remote Work"}
-                </h3>
-                <p className="font-['Inter'] text-[14px] text-gray-700 leading-relaxed">
-                  {/* TODO: mockdata */}
-                  {
-                    "Discuss the advantages and disadvantages of remote work for both employees and employers. Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words."
+                <InstructionRendererSimplified
+                  instruction={
+                    getPracticeContent.practiceContent?.instructionsParsed
                   }
-                </p>
+                />
               </div>
             </div>
 
@@ -197,20 +208,16 @@ export function WritingResultScreen({ submissionId }: Props) {
                 </h2>
               </div>
               <div className="bg-gray-50 rounded-[8px] p-[20px] border border-gray-200 max-h-[400px] overflow-y-auto">
-                {/* {testData.userAnswer &&
-                testData.userAnswer.trim().length > 0 ? (
+                {writingAnswer?.essayText &&
+                writingAnswer?.essayText.trim().length > 0 ? (
                   <p className="font-['Inter'] text-[14px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {testData.userAnswer}
+                    {writingAnswer?.essayText}
                   </p>
                 ) : (
                   <p className="font-['Inter'] text-[14px] text-gray-400 italic">
                     No answer provided
                   </p>
-                )} */}
-                <p className="font-['Inter'] text-[14px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {/* TODO: mockdata */}
-                  {"Testing"}
-                </p>
+                )}
               </div>
             </div>
           </div>

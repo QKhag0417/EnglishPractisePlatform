@@ -13,6 +13,8 @@ function mapPracticeContentDTOToPracticeContent(
     id: dto.id ?? "",
     title: dto.title ?? "",
     skill: dto.skill ?? "",
+    instructionsParsed: dto.instructionsParsed ?? "",
+    task: dto.task ?? "",
   };
 }
 
@@ -20,6 +22,8 @@ const initialPracticeContent: PracticeContent = {
   id: "",
   title: "",
   skill: "",
+  instructionsParsed: "",
+  task: "",
 };
 
 export function useGetPracticeContent(practiceContentId: string) {
