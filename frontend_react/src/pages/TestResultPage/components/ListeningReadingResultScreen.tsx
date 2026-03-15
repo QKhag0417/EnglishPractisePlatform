@@ -1,7 +1,6 @@
 import { NavBarLearner } from "../../../components/NavBar";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
-import { useParams } from "react-router-dom";
 
 import {
   formatTime,
@@ -55,8 +54,6 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
     if (!practiceContentId) return;
     getPracticeContent.get();
   }, [practiceContentId, getPracticeContent.get]);
-
-  const skill = getPracticeContent.practiceContent?.skill;
 
   // =========================
   // Get practice content answers data
@@ -333,22 +330,6 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
                 })}
             </div>
           </div>
-
-          {/* Action Buttons
-          <div className="flex gap-4 justify-center pb-8">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-semibold text-[14px] transition-colors"
-            >
-              Take the test again
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 border-2 border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg font-['Inter'] font-semibold text-[14px] transition-colors"
-            >
-              Return to Library
-            </button>
-          </div> */}
         </div>
       </div>
 

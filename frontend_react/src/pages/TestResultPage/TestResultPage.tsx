@@ -19,6 +19,7 @@ import {
 } from "./hooks";
 import { CheckCircle, Clock, Key, Target, TrendingUp } from "lucide-react";
 import { ListeningReadingResultScreen } from "./components/ListeningReadingResultScreen.tsx";
+import { WritingResultScreen } from "./components/WritingResultScreen.tsx";
 
 export function TestResultPage() {
   // =========================
@@ -60,8 +61,7 @@ export function TestResultPage() {
   if (skill === "LISTENING" || skill === "READING") {
     return <ListeningReadingResultScreen submissionId={submissionId!} />;
   } else if (skill === "WRITING") {
-    // return <WritingResultScreen submissionId={submissionId!} />;
-    return <div>Writing</div>;
+    return <WritingResultScreen submissionId={submissionId!} />;
   } else if (skill === "SPEAKING") {
     // return <SpeakingResultScreen submissionId={submissionId!} />;
   }
