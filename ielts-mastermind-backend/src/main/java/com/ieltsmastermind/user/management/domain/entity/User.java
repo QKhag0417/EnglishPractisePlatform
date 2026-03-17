@@ -34,7 +34,6 @@ public class User {
     @Column(name = "provider_id", length = 100)
     private String providerId;
 
-
     @Column(unique = true)
     private String phoneNumber;
 
