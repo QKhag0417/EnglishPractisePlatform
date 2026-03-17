@@ -22,6 +22,7 @@ import { MyProfilePage } from "./pages/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { TestResultPage } from "./pages/TestResultPage/TestResultPage";
 import { IntroductionPage } from "./pages/IntroductionPage/IntroductionPage.tsx";
+import { TutorDashboardPage } from "./pages/TutorDashboardPage/TutorDashboardPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -132,38 +133,38 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-    {
-      path: "/admin/content/reading/add",
-      element: (
-        <ProtectedRoute allowedRoles={["administrator"]}>
-          <ReadingContentEditorPage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/admin/content/reading/edit/:exerciseId",
-      element: (
-        <ProtectedRoute allowedRoles={["administrator"]}>
-          <ReadingContentEditorPage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/admin/content/writing/add",
-      element: (
-        <ProtectedRoute allowedRoles={["administrator"]}>
-          <WritingContentEditorPage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/admin/content/writing/edit/:exerciseId",
-      element: (
-        <ProtectedRoute allowedRoles={["administrator"]}>
-          <WritingContentEditorPage />
-        </ProtectedRoute>
-      ),
-    },
+  {
+    path: "/admin/content/reading/add",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <ReadingContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/content/reading/edit/:exerciseId",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <ReadingContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/content/writing/add",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <WritingContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/content/writing/edit/:exerciseId",
+    element: (
+      <ProtectedRoute allowedRoles={["administrator"]}>
+        <WritingContentEditorPage />
+      </ProtectedRoute>
+    ),
+  },
   //   {
   //     path: "/admin/content/speaking/add",
   //     element: (
@@ -188,13 +189,17 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  //   // Catch-all route - redirect to home
-  //   {
-  //     path: "*",
-  //     element: <Navigate to="/" replace />,
-  //   },
+  // Catch-all route - redirect to home
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
   {
     path: "/my-profile",
     Component: MyProfilePage,
+  },
+  {
+    path: "/tutor/dashboard",
+    Component: TutorDashboardPage,
   },
 ]);
