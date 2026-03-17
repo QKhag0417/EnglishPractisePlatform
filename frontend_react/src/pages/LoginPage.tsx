@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ prefer react-router-dom
+import { useNavigate } from "react-router-dom";
 import { NavBarGuest } from "../components/NavBar";
 import { Footer } from "../components/Footer";
 import { Eye, EyeOff } from "lucide-react";
@@ -7,6 +7,7 @@ import imgGoogle from "figma:asset/0fc5f61d030fba7f22a0e8832857641f73b1429d.png"
 import imgFacebook from "figma:asset/87f8e5f96448d8585bf2ee689bd3cf9d28c432bb.png";
 import { useAuth } from "../contexts/AuthContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { API_BASE } from "../env";
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +45,6 @@ export function LoginPage() {
         navigate("/");
       }
     } catch (err: any) {
-      // If backend returns a message, show it; otherwise fallback
       const msg =
         typeof err === "string" ? err : err?.message ? String(err.message) : "";
       setError(msg || "Invalid email or password!!");
@@ -52,13 +52,14 @@ export function LoginPage() {
       setLoading(false);
     }
   };
-    const handleGoogleLogin = () => {
-      window.location.href = "http://localhost:8080/oauth2/authorization/google";
-    };
 
-    const handleFacebookLogin = () => {
-      window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
-    };
+  const handleGoogleLogin = () => {
+    window.location.href = API_BASE + "/oauth2/authorization/google";
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = API_BASE + "/oauth2/authorization/facebook";
+  };
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -168,7 +169,10 @@ export function LoginPage() {
 
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
-              <button onClick={handleGoogleLogin} className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleGoogleLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img
                   src={imgGoogle}
                   alt="Google"
@@ -179,7 +183,10 @@ export function LoginPage() {
                 </span>
               </button>
 
-              <button onClick={handleFacebookLogin} className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={handleFacebookLogin}
+                className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors"
+              >
                 <img
                   src={imgFacebook}
                   alt="Facebook"
