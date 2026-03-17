@@ -1,12 +1,15 @@
 package com.ieltsmastermind.authentication.business;
 
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
+import com.ieltsmastermind.user.management.domain.enums.AuthProvider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
 import com.ieltsmastermind.user.management.domain.entity.User;
 import com.ieltsmastermind.user.management.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Random;
 
 @Service
 public class AuthService {
@@ -33,7 +36,8 @@ public class AuthService {
         user.setFirstname(request.getFirstname());
         user.setLastname(request.getLastname());
         user.setRole("Learner");
-
+        user.setProvider(AuthProvider.LOCAL);
+        user.setProviderId(null);
         User saved = userRepository.save(user);
 
         return new UserRegisterResponseDto(
@@ -55,7 +59,7 @@ public class AuthService {
                 user.getUserId(),
                 user.getRole()
         );
-        sessionManager.addSession(token, user.getUserId(), jwtUtils.getExpirationMillis());
+        sessionManager.addSession(token, user.getUserId(),user.getRole(), jwtUtils.getExpirationMillis());
         return token;
     }
 
@@ -64,5 +68,7 @@ public class AuthService {
             sessionManager.removeSession(token);
         }
     }
+
+
 
 }

@@ -52,6 +52,13 @@ export function LoginPage() {
       setLoading(false);
     }
   };
+    const handleGoogleLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    };
+
+    const handleFacebookLogin = () => {
+      window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
+    };
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -161,7 +168,7 @@ export function LoginPage() {
 
             {/* Social Login */}
             <div className="flex gap-[20px] mb-[30px]">
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button onClick={handleGoogleLogin} className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
                 <img
                   src={imgGoogle}
                   alt="Google"
@@ -172,7 +179,7 @@ export function LoginPage() {
                 </span>
               </button>
 
-              <button className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
+              <button onClick={handleFacebookLogin} className="flex-1 h-[60px] bg-white border border-[rgba(0,0,0,0.44)] rounded-[6px] flex items-center justify-center gap-[12px] hover:bg-gray-50 transition-colors">
                 <img
                   src={imgFacebook}
                   alt="Facebook"

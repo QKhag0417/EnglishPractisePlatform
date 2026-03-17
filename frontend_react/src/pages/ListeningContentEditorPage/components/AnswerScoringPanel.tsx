@@ -118,15 +118,55 @@ export function AnswerScoringPanel({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="mcq-single">
-              Multiple Choice – Single Correct
+
+            <SelectItem value="Multiple Choice">
+              Multiple choice
             </SelectItem>
-            <SelectItem value="mcq-multiple">
-              Multiple Choice – Multiple Correct
+
+            <SelectItem value="Matching">
+              Matching
             </SelectItem>
-            <SelectItem value="short-text">
-              Short Text (auto-checked)
+
+            <SelectItem value="Plan Labelling">
+              Plan labelling
             </SelectItem>
+
+            <SelectItem value="Map Labelling">
+              Map labelling
+            </SelectItem>
+
+            <SelectItem value="Diagram Labelling">
+              Diagram labelling
+            </SelectItem>
+
+            <SelectItem value="Form Completion">
+              Form completion
+            </SelectItem>
+
+            <SelectItem value="Note Completion">
+              Note completion
+            </SelectItem>
+
+            <SelectItem value="Table Completion">
+              Table completion
+            </SelectItem>
+
+            <SelectItem value="Flow-chart Completion">
+              Flow-chart completion
+            </SelectItem>
+
+            <SelectItem value="Summary Completion">
+              Summary completion
+            </SelectItem>
+
+            <SelectItem value="Sentence Completion">
+              Sentence completion
+            </SelectItem>
+
+            <SelectItem value="Short-answer Questions">
+              Short-answer questions
+            </SelectItem>
+
           </SelectContent>
         </Select>
       </div>

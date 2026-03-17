@@ -1,11 +1,9 @@
 package com.ieltsmastermind.authentication.controller;
 
 import com.ieltsmastermind.authentication.business.AuthService;
+import com.ieltsmastermind.authentication.business.PasswordResetService;
 import com.ieltsmastermind.authentication.business.JwtUtils;
-import com.ieltsmastermind.authentication.domain.dto.UserLoginRequestDto;
-import com.ieltsmastermind.authentication.domain.dto.UserLoginResponseDto;
-import com.ieltsmastermind.authentication.domain.dto.UserRegisterRequestDto;
-import com.ieltsmastermind.authentication.domain.dto.UserRegisterResponseDto;
+import com.ieltsmastermind.authentication.domain.dto.*;
 import com.ieltsmastermind.common.response.ApiResponse;
 import com.ieltsmastermind.user.management.domain.entity.User;
 import jakarta.validation.Valid;
@@ -19,12 +17,19 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService) {
+    private final PasswordResetService passwordResetService;
+
+
+
+    public AuthController(JwtUtils jwtUtils, AuthService authService, PasswordResetService passwordResetService) {
+        this.jwtUtils = jwtUtils;
         this.authService = authService;
+
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -87,6 +92,61 @@ public class AuthController {
             response.addCookie(cookie);
 
             return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(
+            @Valid @RequestBody UserForgotPasswordRequestDto request) {
+
+        try {
+            System.out.println("Forgot password request email: " + request.getEmail());
+
+            passwordResetService.sendResetCode(request.getEmail());
+
+            return ResponseEntity.ok(
+                    ApiResponse.success(
+                            "If the email exists, a verification code has been sent.",
+                            null
+                    )
+            );
+
+        } catch (Exception e) {
+
+            // In lỗi ra console backend
+            System.out.println("ERROR in forgot-password API:");
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<ApiResponse<UserVerifyCodeResponseDto>> verifyCode(
+            @RequestBody UserVerifyCodeRequestDto request) {
+        try {
+            String resetToken = passwordResetService.verifyResetCode(request.getEmail(), request.getCode());
+            return ResponseEntity.ok(ApiResponse.success("Code verified", new UserVerifyCodeResponseDto(resetToken)));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(
+            @RequestBody UserResetPasswordRequestDto request) {
+        try {
+            passwordResetService.resetPassword(request.getResetToken(), request.getNewPassword());
+            return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage(), null));
         } catch (Exception e) {

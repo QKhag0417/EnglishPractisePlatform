@@ -118,15 +118,62 @@ export function AnswerScoringPanel({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="mcq-single">
-              Multiple Choice – Single Correct
+            <SelectItem value="Multiple Choice">
+              Multiple choice
             </SelectItem>
-            <SelectItem value="mcq-multiple">
-              Multiple Choice – Multiple Correct
+
+            <SelectItem value="Identifying Information (True/False/Not Given)">
+              Identifying information (True/False/Not Given)
             </SelectItem>
-            <SelectItem value="short-text">
-              Short Text (auto-checked)
+
+            <SelectItem value="Identifying Writer's Views/Claims (Yes/No/Not Given)">
+              Identifying writer’s views/claims (Yes/No/Not Given)
             </SelectItem>
+
+            <SelectItem value="Matching Information">
+              Matching information
+            </SelectItem>
+
+            <SelectItem value="Matching Headings">
+              Matching headings
+            </SelectItem>
+
+            <SelectItem value="Matching Features">
+              Matching features
+            </SelectItem>
+
+            <SelectItem value="Matching Sentence Endings">
+              Matching sentence endings
+            </SelectItem>
+
+            <SelectItem value="Sentence Completion">
+              Sentence completion
+            </SelectItem>
+
+            <SelectItem value="Summary Completion">
+              Summary completion
+            </SelectItem>
+
+            <SelectItem value="Note Completion">
+              Note completion
+            </SelectItem>
+
+            <SelectItem value="Table Completion">
+              Table completion
+            </SelectItem>
+
+            <SelectItem value="Flow-chart Completion">
+              Flow-chart completion
+            </SelectItem>
+
+            <SelectItem value="Diagram Label Completion">
+              Diagram label completion
+            </SelectItem>
+
+            <SelectItem value="Short-answer Questions">
+              Short-answer questions
+            </SelectItem>
+
           </SelectContent>
         </Select>
       </div>

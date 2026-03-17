@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Question, QuestionType, Option } from "../types";
-import { DEFAULT_OPTIONS } from "../types";
+import { mapApiTypeToUi , mapUiTypeToApi, Question, QuestionType} from "../types";
 import { useListeningEditorApi } from "./useListeningEditorApi";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate} from "react-router";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 
@@ -61,16 +60,11 @@ export function useListeningEditorState(
 
   // ================= EDITOR PANEL =================
   const [questionType, setQuestionType] =
-    useState<QuestionType>("short-text");
+    useState<QuestionType>("Multiple Choice");
   const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
-  const [options, setOptions] = useState<Option[]>(DEFAULT_OPTIONS);
-  const [currentQuestionText, setCurrentQuestionText] = useState("");
-  const [currentExplanation, setCurrentExplanation] = useState("");
-  const [currentScore, setCurrentScore] = useState("1");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">("saved");
-  const [shuffleOptions, setShuffleOptions] = useState(false);
 
   // ================= THUMBNAIL&AUDIO =================
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
@@ -114,13 +108,10 @@ export function useListeningEditorState(
       id: undefined,
       tempId: Date.now().toString(),
       number: 1,
-      type: "Short Text",
-      points: 1,
+      type: "Multiple Choice",
       correctAnswer: "",
-      questionType: "short-text",
-      questionText: "",
+      questionType: "Multiple Choice",
       correctAnswers: [],
-      explanation: "",
     };
 
     setQuestions([initialQuestion]);
@@ -169,22 +160,10 @@ export function useListeningEditorState(
             id: q.id,
             tempId: q.id,
             number: q.orderIndex,
-            type: q.type,
-            points: 1,
+            type: mapApiTypeToUi(q.type),
             correctAnswer: "",
-            questionType:
-              q.type === "MCQ_SINGLE"
-                ? "mcq-single"
-                : q.type === "MCQ_MULTIPLE"
-                ? "mcq-multiple"
-                : q.type === "SHORT_TEXT"
-                ? "short-text"
-                : "written-response",
-            questionText: "",
+            questionType: mapApiTypeToUi(q.type),
             correctAnswers: q.correctAnswers || [],
-            options: [],
-            shuffleOptions: false,
-            explanation: "",
           })
         );
 
@@ -208,13 +187,10 @@ export function useListeningEditorState(
       id: undefined,
       tempId: Date.now().toString(),
       number: questions.length + 1,
-      type: "Short Text",
-      points: 1,
+      type: "Multiple Choice",
       correctAnswer: "",
-      questionType: "short-text",
-      questionText: "",
+      questionType: "Multiple Choice",
       correctAnswers: [],
-      explanation: "",
     };
 
     setQuestions((prev) => [...prev, newQuestion]);
@@ -262,32 +238,10 @@ export function useListeningEditorState(
         q.tempId  === selectedQuestionTempId
           ? {
               ...q,
-              type:
-                questionType === "short-text"
-                  ? "Short Text"
-                  : questionType === "mcq-single"
-                    ? "MCQ - Single"
-                    : questionType === "mcq-multiple"
-                      ? "MCQ - Multiple"
-                      : "Written Response",
-              points: parseInt(currentScore) || 1,
-              correctAnswer:
-                questionType === "short-text"
-                  ? correctAnswers.join(", ")
-                  : questionType === "mcq-single"
-                    ? options.find((o) => o.isCorrect)?.text || ""
-                    : questionType === "mcq-multiple"
-                      ? options
-                          .filter((o) => o.isCorrect)
-                          .map((o) => o.text)
-                          .join(", ")
-                      : "Manual marking required",
+              type: questionType,
+              correctAnswer: correctAnswers.join(", "),
               questionType,
-              questionText: currentQuestionText,
               correctAnswers,
-              options,
-              shuffleOptions,
-              explanation: currentExplanation,
             }
           : q,
       ),
@@ -300,25 +254,13 @@ export function useListeningEditorState(
       setQuestionType(selectedQuestion.questionType);
       setCorrectAnswers(selectedQuestion.correctAnswers || []);
 
-
-      setCurrentExplanation(selectedQuestion.explanation || "");
-      setCurrentScore(String(selectedQuestion.points || 1));
-      setCurrentQuestionText(selectedQuestion.questionText || "");
-
       setSaveState("saved");
       setHasUnsavedChanges(false);
   }, [selectedQuestionTempId]);
 
   useEffect(() => {
     const tags = Array.from(
-      new Set(
-        questions.map((q) => {
-          if (q.questionType === "mcq-single") return "MCQ - Single";
-          if (q.questionType === "mcq-multiple") return "MCQ - Multiple";
-          if (q.questionType === "short-text") return "Short Text";
-          return "Written Response";
-        })
-      )
+      new Set(questions.map((q) => q.questionType))
     );
 
     setQuestionTypeTags(tags);
@@ -336,24 +278,12 @@ export function useListeningEditorState(
       setQuestionType(selectedQuestion.questionType);
       setCorrectAnswers(selectedQuestion.correctAnswers || []);
 
-
-      setCurrentExplanation(selectedQuestion.explanation || "");
-      setCurrentScore(String(selectedQuestion.points || 1));
-      setCurrentQuestionText(selectedQuestion.questionText || "");
-
       setSaveState("saved");
       setHasUnsavedChanges(false);
   };
 
   const mapSingleQuestionToApi = (q: Question, index: number) => {
-    const apiType =
-      q.questionType === "mcq-single"
-        ? "MCQ_SINGLE"
-        : q.questionType === "mcq-multiple"
-        ? "MCQ_MULTIPLE"
-        : q.questionType === "short-text"
-        ? "SHORT_TEXT"
-        : "WRITTEN_RESPONSE";
+    const apiType = mapUiTypeToApi(q.questionType);
 
     return {
       orderIndex: index + 1,
@@ -500,14 +430,7 @@ export function useListeningEditorState(
         if (q.id) {
           await updateContentQuestion(q.id, {
             orderIndex: 1000 + i,
-            type:
-              q.questionType === "mcq-single"
-                ? "MCQ_SINGLE"
-                : q.questionType === "mcq-multiple"
-                ? "MCQ_MULTIPLE"
-                : q.questionType === "short-text"
-                ? "SHORT_TEXT"
-                : "WRITTEN_RESPONSE",
+            type: mapUiTypeToApi(q.questionType),
             correctAnswers: q.correctAnswers ?? [],
           });
         }
@@ -686,14 +609,6 @@ export function useListeningEditorState(
     setQuestionType,
     correctAnswers,
     setCorrectAnswers,
-    options,
-    setOptions,
-    currentQuestionText,
-    setCurrentQuestionText,
-    currentExplanation,
-    setCurrentExplanation,
-    currentScore,
-    setCurrentScore,
 
     // answer
     newAnswerInput,
