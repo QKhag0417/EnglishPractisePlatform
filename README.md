@@ -76,20 +76,19 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 FACEBOOK_CLIENT_ID=your_facebook_client_id
 FACEBOOK_CLIENT_SECRET=your_facebook_client_secret
-3. Run backend
-cd ielts-mastermind-backend
-./mvnw spring-boot:run
-4. Run frontend
-cd frontend
-npm install
-npm start
-API Example
+3. Install dependencies
+npm run setup
 
-POST /auth/login
+This will install dependencies for both frontend and backend.
 
-Request:
+4. Run project (development mode)
+npm run dev
 
-{
-  "email": "user@example.com",
-  "password": "123456"
-}
+This command will:
+
+Start frontend (React)
+
+Start backend (Spring Boot)
+
+5. Build project
+npm run build
