@@ -1,6 +1,10 @@
 # English Practice Platform
 
-An English learning platform that helps users improve their skills through interactive exercises, authentication, and personalized experience.
+# English Practice Platform
+
+An English learning platform designed to help users improve their IELTS Listening and Reading skills through structured practice, real exam-style exercises, and personalized progress tracking.
+
+The system focuses on simulating real test scenarios, allowing users to practice effectively, identify weaknesses, and gradually enhance their performance over time.
 
 ---
 
