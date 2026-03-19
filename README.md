@@ -1,1 +1,95 @@
-# ielts-mastermind-backend
+# English Practice Platform
+
+An English learning platform that helps users improve their skills through interactive exercises, authentication, and personalized experience.
+
+---
+
+## Features
+
+- Authentication (JWT and OAuth2 with Google and Facebook)
+- User management and role-based access
+- English practice modules
+- Progress tracking
+- Email integration (SMTP)
+- Redis caching and session management
+
+---
+
+## Tech Stack
+
+### Backend
+- Java (Spring Boot)
+- Spring Security (JWT and OAuth2)
+- MySQL
+- Redis
+
+### Frontend
+- React.js
+
+---
+
+## Architecture
+
+Client (React)
+    ↓
+Backend API (Spring Boot)
+    ↓
+Redis (Session / Cache)
+    ↓
+MySQL (Database)
+
+---
+
+## Authentication Flow
+
+1. User logs in with email/password or OAuth (Google/Facebook)
+2. Server validates credentials
+3. Server generates JWT token
+4. Session is stored in Redis
+5. Client sends JWT in Authorization header for each request
+
+---
+
+## Setup and Run
+
+### 1. Clone project
+
+```bash
+git clone https://github.com/QKhag0417/EnglishPractisePlatform.git
+cd EnglishPractisePlatform
+2. Setup environment variables
+
+Create file:
+
+env.properties
+
+Example:
+
+db.username=your_db_username
+db.password=your_db_password
+
+MAIL_USERNAME=your_email
+MAIL_PASSWORD=your_password
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+FACEBOOK_CLIENT_ID=your_facebook_client_id
+FACEBOOK_CLIENT_SECRET=your_facebook_client_secret
+3. Run backend
+cd ielts-mastermind-backend
+./mvnw spring-boot:run
+4. Run frontend
+cd frontend
+npm install
+npm start
+API Example
+
+POST /auth/login
+
+Request:
+
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
