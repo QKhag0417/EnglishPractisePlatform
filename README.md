@@ -43,15 +43,7 @@ MySQL (Database)
 
 ---
 
-## Authentication Flow
 
-1. User logs in with email/password or OAuth (Google/Facebook)
-2. Server validates credentials
-3. Server generates JWT token
-4. Session is stored in Redis
-5. Client sends JWT in Authorization header for each request
-
----
 
 ## Setup and Run
 
