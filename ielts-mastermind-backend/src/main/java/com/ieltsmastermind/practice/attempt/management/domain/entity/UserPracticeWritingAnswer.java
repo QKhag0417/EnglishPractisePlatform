@@ -4,14 +4,25 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "user_practice_writing_answer")
+@Table(
+        name = "user_practice_writing_answer",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_writing_answer_submission_order",
+                        columnNames = {"user_practice_submission_id", "order_index"}
+                )
+        }
+)
 public class UserPracticeWritingAnswer {
 
     @Id
@@ -29,6 +40,14 @@ public class UserPracticeWritingAnswer {
     private Integer wordCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_practice_submission_id", updatable = false)
+    @JoinColumn(name = "user_practice_submission_id", nullable = false, updatable = false)
     private UserPracticeSubmission submission;
+
+    @OneToMany(mappedBy = "writingAnswer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("criterionName ASC, createdAt ASC")
+    private List<UserPracticeWritingCriterionFeedback> criterionFeedbacks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "writingAnswer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC")
+    private List<UserPracticeWritingReview> writingReviews = new ArrayList<>();
 }

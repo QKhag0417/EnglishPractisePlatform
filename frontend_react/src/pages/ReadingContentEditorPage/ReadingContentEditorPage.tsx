@@ -16,23 +16,21 @@ import { useParams, useNavigate } from "react-router";
 import { useReadingEditorState } from "./hooks/useReadingEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
 import { PassageEditorBlock } from "./components/PassageEditorBlock";
+import { NavBarUnified } from "../../components/NavBarUnified";
 
 export function ReadingContentEditorPage() {
   // ===== HANDLERS =====
-  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
   const handleCancel = () => {
-    navigate("/admin/content-management");
+    navigate("/content-management");
   };
+
   const { exerciseId } = useParams();
   const isEditMode = !!exerciseId;
 
   const {
+    // meta
     title,
     setTitle,
     instructions,
@@ -43,48 +41,59 @@ export function ReadingContentEditorPage() {
     setDurationMinutes,
     status,
     setStatus,
+
+    // passages
     passageText,
     setPassageText,
+
+    // questions
     questions,
+    setQuestions,
     selectedQuestionTempId,
     setSelectedQuestionTempId,
     selectedQuestion,
     addNewQuestion,
     deleteQuestion,
-    questionType,
-    setQuestionType,
-    topicTags,
-    setTopicTags,
-    correctAnswers,
-    setCorrectAnswers,
+    handleSaveQuestion,
+    handleCancelQuestion,
     questionTypeTags,
     setQuestionTypeTags,
-    options,
-    setOptions,
+    topicTags,
+    setTopicTags,
+
+    // editor
+    questionType,
+    setQuestionType,
+    topicTag,
+    setTopicTag,
+    correctAnswers,
+    setCorrectAnswers,
+
+    // answer
     newAnswerInput,
     setNewAnswerInput,
     saveState,
     setSaveState,
     markAsUnsaved,
-    handleSaveExit,
-    handleSaveQuestion,
-    handleCancelQuestion,
-    thumbnailPreview,
-    setThumbnailPreview,
+
+    //thumbnail
     thumbnailFile,
     setThumbnailFile,
+    thumbnailPreview,
+    setThumbnailPreview,
     thumbnailInputRef,
     handleThumbnailChange,
-    handleSaveThumbnail,
-    thumbnailSaved,
-    handleRemoveThumbnail,
-    safeRevokeObjectUrl,
     handleThumbnailDrop,
     handleDragOver,
     displayUpdatedOn,
     updatedOn,
     setUpdatedOn,
+    safeRevokeObjectUrl,
+    handleSaveThumbnail,
+    thumbnailSaved,
+    handleRemoveThumbnail,
 
+    // supporting images
     multiImageInputRef,
     uploadedImages,
     handleMultiImageChange,
@@ -94,11 +103,12 @@ export function ReadingContentEditorPage() {
 
     hasImageChanges,
     setHasImageChanges,
+    handleSaveExit,
   } = useReadingEditorState(isEditMode, exerciseId);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <NavBarAdmin onLogout={handleLogout} />
+      <NavBarUnified />
 
       <EditorHeader
         isEditMode={isEditMode}
@@ -145,6 +155,8 @@ export function ReadingContentEditorPage() {
                 selectedQuestionNumber={selectedQuestion?.number}
                 questionType={questionType}
                 setQuestionType={setQuestionType}
+                topicTag={topicTag}
+                setTopicTag={setTopicTag}
                 correctAnswers={correctAnswers}
                 setCorrectAnswers={setCorrectAnswers}
                 newAnswerInput={newAnswerInput}
@@ -154,6 +166,7 @@ export function ReadingContentEditorPage() {
                 handleSaveQuestion={handleSaveQuestion}
                 handleCancelQuestion={handleCancelQuestion}
               />
+
               <SupportingImagesBlock
                 multiImageInputRef={
                   multiImageInputRef as React.RefObject<HTMLInputElement>
@@ -198,7 +211,6 @@ export function ReadingContentEditorPage() {
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );

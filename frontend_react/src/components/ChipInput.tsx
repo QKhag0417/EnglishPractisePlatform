@@ -5,7 +5,6 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { X } from "lucide-react";
 
 interface ChipInputProps {
   value: string[];
@@ -64,13 +63,6 @@ export const ChipInput = forwardRef<ChipInputRef, ChipInputProps>(
               className="inline-flex items-center gap-[6px] px-[10px] py-[4px] bg-gray-100 hover:bg-gray-200 rounded-[6px] font-['Inter'] text-[14px] text-gray-900 transition-colors"
             >
               <span>{tag}</span>
-              <button
-                type="button"
-                onClick={() => handleRemoveTag(tag)}
-                className="flex items-center justify-center hover:text-gray-700 transition-colors"
-              >
-                <X className="w-[14px] h-[14px]" />
-              </button>
             </div>
           ))}
 
@@ -84,7 +76,11 @@ export const ChipInput = forwardRef<ChipInputRef, ChipInputProps>(
               onKeyDown={handleKeyDown}
               onBlur={handleAddTag}
               placeholder={value.length === 0 ? placeholder : ""}
-              className="flex-1 min-w-[120px] outline-none bg-transparent font-['Inter'] text-[14px] text-gray-900 placeholder:text-gray-400"
+              className={`outline-none bg-transparent font-['Inter'] text-[14px] text-gray-900 placeholder:text-gray-400 ${
+                value.length === 0
+                  ? "flex-1 min-w-[120px]"
+                  : "flex-none min-w-[40px] w-[40px]"
+              }`}
             />
           )}
         </div>

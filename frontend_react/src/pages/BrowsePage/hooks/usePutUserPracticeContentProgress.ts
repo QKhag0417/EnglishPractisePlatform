@@ -2,8 +2,8 @@
 import { API_BASE } from "../../../env";
 import { useApiPut } from "../../../utils/api/useApiPut";
 import type {
-  UserPracticeContentProgress,
-  UserPracticeContentProgressDTO,
+  UserPracticeContentProgressPut,
+  UserPracticeContentProgressPutDTO,
   UserPracticeContentProgressPutBody,
 } from "../types";
 
@@ -11,13 +11,13 @@ const initialBody: UserPracticeContentProgressPutBody = {
   isBookmarked: false,
 };
 
-const initialProgress: UserPracticeContentProgress = {
+const initialProgress: UserPracticeContentProgressPut = {
   userPracticeContentProgressId: "",
 };
 
 function mapUserPracticeContentProgressDTOToUserPracticeContentProgress(
-  dto: UserPracticeContentProgressDTO,
-): UserPracticeContentProgress {
+  dto: UserPracticeContentProgressPutDTO,
+): UserPracticeContentProgressPut {
   return {
     userPracticeContentProgressId: dto.id ?? "",
   };
@@ -37,8 +37,8 @@ export function usePutUserPracticeContentProgress(params: {
     error,
     put,
   } = useApiPut<
-    UserPracticeContentProgressDTO,
-    UserPracticeContentProgress,
+    UserPracticeContentProgressPutDTO,
+    UserPracticeContentProgressPut,
     UserPracticeContentProgressPutBody
   >({
     request: {

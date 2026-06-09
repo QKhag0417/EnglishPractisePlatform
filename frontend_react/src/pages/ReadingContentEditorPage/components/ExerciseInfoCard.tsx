@@ -8,16 +8,24 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import { ChipInput } from "../../../components/ChipInput";
+import { SelectV2 } from "../../TutorDashboardPage/components";
+import { BackendReadingQuestionType, mapReadingApiTypeToUi } from "../types";
+import {
+  BackendTopicTag,
+  mapTopicTagApiToUi,
+  TopicTag,
+} from "../../ListeningContentEditorPage/types";
+import { useEffect } from "react";
 
 interface ExerciseInfoCardProps {
   title: string;
   onTitleChange: (value: string) => void;
   task: string;
   onTaskChange: (value: string) => void;
-  questionTypeTags: string[];
-  onQuestionTypeTagsChange: (tags: string[]) => void;
-  topicTags: string[];
-  onTopicTagsChange: (tags: string[]) => void;
+  questionTypeTags: BackendReadingQuestionType[];
+  onQuestionTypeTagsChange: (tags: BackendReadingQuestionType[]) => void;
+  topicTags: BackendTopicTag[];
+  onTopicTagsChange: (tags: BackendTopicTag[]) => void;
   updatedOn: string;
   questionsCount: number;
   durationMinutes: number;
@@ -38,6 +46,16 @@ export function ExerciseInfoCard({
   durationMinutes,
   onDurationChange,
 }: ExerciseInfoCardProps) {
+  // =========================
+  // Defaulting Task to ALL since Task is not needed for Listening
+  // =========================
+
+  useEffect(() => {
+    if (!task) {
+      onTaskChange("ALL");
+    }
+  }, [task, onTaskChange]);
+
   return (
     <div className="bg-white rounded-[12px] p-[24px] shadow-sm border border-gray-200">
       <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[20px] block">
@@ -54,25 +72,8 @@ export function ExerciseInfoCard({
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder="Enter exercise title…"
-            className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
+            className="w-full min-h-[40px] px-[12px] py-[8px] bg-white border border-gray-300 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 outline-none"
           />
-        </div>
-
-        {/* Task */}
-        <div>
-          <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
-            Task
-          </Label>
-          <Select value={task} onValueChange={onTaskChange}>
-            <SelectTrigger className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto">
-              <SelectValue placeholder="Select a task" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TASK_1">Task 1</SelectItem>
-              <SelectItem value="TASK_2">Task 2</SelectItem>
-              <SelectItem value="TASK_3">Task 3</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Question Type Tags */}
@@ -82,10 +83,10 @@ export function ExerciseInfoCard({
           </Label>
           <div className="pointer-events-none">
             <ChipInput
-              value={questionTypeTags}
+              value={questionTypeTags.map(mapReadingApiTypeToUi)}
               onChange={() => {}}
               placeholder="Add tag..."
-              maxTags={4}
+              maxTags={100}
             />
           </div>
         </div>
@@ -95,12 +96,14 @@ export function ExerciseInfoCard({
           <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
             Topic
           </Label>
-          <ChipInput
-            value={topicTags}
-            onChange={onTopicTagsChange}
-            placeholder="Add tag..."
-            maxTags={4}
-          />
+          <div className="pointer-events-none">
+            <ChipInput
+              value={topicTags.map(mapTopicTagApiToUi)}
+              onChange={() => {}}
+              placeholder="Add tag..."
+              maxTags={100}
+            />
+          </div>
         </div>
 
         {/* Updated On */}
@@ -108,12 +111,9 @@ export function ExerciseInfoCard({
           <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
             Updated On
           </Label>
-          <Input
-            type="date"
-            value={updatedOn}
-            readOnly
-            className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 h-auto"
-          />
+          <div className="w-full min-h-[40px] px-[12px] py-[8px] bg-gray-100 border border-gray-300 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
+            {updatedOn.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$2/$3/$1")}
+          </div>
         </div>
 
         {/* Questions Count */}
@@ -121,7 +121,7 @@ export function ExerciseInfoCard({
           <Label className="font-['Inter'] text-[14px] text-gray-700 mb-[8px] block">
             Questions
           </Label>
-          <div className="px-[12px] py-[10px] bg-gray-100 border border-gray-200 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
+          <div className="w-full min-h-[40px] px-[12px] py-[8px] bg-gray-100 border border-gray-300 rounded-[8px] font-['Inter'] text-[14px] text-gray-900">
             {questionsCount}
           </div>
         </div>
@@ -136,6 +136,7 @@ export function ExerciseInfoCard({
             value={durationMinutes}
             onChange={(e) => onDurationChange(Number(e.target.value))}
             min="1"
+            className="w-full min-h-[40px] px-[12px] py-[8px] bg-white border border-gray-300 rounded-[8px] font-['Inter'] text-[14px] text-gray-900 outline-none"
           />
         </div>
       </div>

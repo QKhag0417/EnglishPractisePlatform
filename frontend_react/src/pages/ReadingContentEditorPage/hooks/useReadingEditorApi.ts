@@ -5,10 +5,10 @@ import { apiPost } from "../../../utils/api/apiPost";
 import { apiPut } from "../../../utils/api/apiPut";
 
 export function useReadingEditorApi() {
-
   // ================================
   // Get detail (edit mode)
   // ================================
+
   const fetchDetail = async (id: string) => {
     const result = await apiGet<any>({
       apiBase: API_BASE,
@@ -25,6 +25,7 @@ export function useReadingEditorApi() {
   // ================================
   // Upload image
   // ================================
+
   const uploadImages = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -46,6 +47,7 @@ export function useReadingEditorApi() {
   // ================================
   // Upload thumbnail
   // ================================
+
   const uploadThumbnail = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -64,10 +66,10 @@ export function useReadingEditorApi() {
     return result.data; // thumbnailUrl
   };
 
-
   // ================================
   // Delete Image
   // ================================
+
   const deleteImages = async (url: string) => {
     const result = await apiDelete<void>({
       apiBase: API_BASE,
@@ -87,6 +89,7 @@ export function useReadingEditorApi() {
   // ================================
   // Delete thumbnail
   // ================================
+
   const deleteThumbnail = async (url: string) => {
     const result = await apiDelete<void>({
       apiBase: API_BASE,
@@ -103,10 +106,10 @@ export function useReadingEditorApi() {
     return true;
   };
 
-
   // ================================
   // Create content
   // ================================
+
   const createContent = async (payload: any) => {
     const result = await apiPost<any>({
       apiBase: API_BASE,
@@ -124,6 +127,7 @@ export function useReadingEditorApi() {
   // ================================
   //  Update content
   // ================================
+
   const updateContent = async (id: string, payload: any) => {
     const result = await apiPut<any>({
       apiBase: API_BASE,
@@ -138,16 +142,14 @@ export function useReadingEditorApi() {
     return result.data;
   };
 
-
-
-
   // ================================
   //  Save (auto detect create/update)
   // ================================
+
   const saveContent = async (
     payload: any,
     isEditMode: boolean,
-    editId?: string
+    editId?: string,
   ) => {
     if (isEditMode && editId) {
       return await updateContent(editId, payload);
@@ -156,15 +158,13 @@ export function useReadingEditorApi() {
     return await createContent(payload);
   };
 
-
   // ================================
   // Get questions by practiceContentId
   // ================================
-  const fetchContentQuestions = async (
-    practiceContentId: string
-  ) => {
+
+  const fetchContentQuestions = async (practiceContentId: string) => {
     const FULL_INCLUDE =
-      "id,practiceContentId,orderIndex,type,correctAnswers";
+      "id,practiceContentId,orderIndex,type,topicTag,correctAnswers";
 
     const result = await apiGet<any[]>({
       apiBase: API_BASE,
@@ -181,9 +181,10 @@ export function useReadingEditorApi() {
   // ================================
   // Create question
   // ================================
+
   const createContentQuestion = async (
     practiceContentId: string,
-    payload: any
+    payload: any,
   ) => {
     const result = await apiPost<any>({
       apiBase: API_BASE,
@@ -201,6 +202,7 @@ export function useReadingEditorApi() {
   // ================================
   // Update question
   // ================================
+
   const updateContentQuestion = async (id: string, payload: any) => {
     const result = await apiPut<any>({
       apiBase: API_BASE,
@@ -218,6 +220,7 @@ export function useReadingEditorApi() {
   // ================================
   // Delete question
   // ================================
+
   const deleteContentQuestion = async (id: string) => {
     const result = await apiDelete<any>({
       apiBase: API_BASE,
@@ -238,7 +241,6 @@ export function useReadingEditorApi() {
     deleteImages,
     uploadThumbnail,
     deleteThumbnail,
-
 
     createContent,
     updateContent,

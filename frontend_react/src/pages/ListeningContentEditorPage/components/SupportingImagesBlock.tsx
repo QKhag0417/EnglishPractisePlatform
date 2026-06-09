@@ -3,11 +3,11 @@ import { Plus, Check, X, Image } from "lucide-react";
 import { API_BASE } from "../../../env";
 
 interface UploadedImage {
-  id: string
-  file?: File
-  preview: string
-  url?: string
-  saved: boolean
+  id: string;
+  file?: File;
+  preview: string;
+  url?: string;
+  saved: boolean;
 }
 
 interface Props {
@@ -60,7 +60,10 @@ export function SupportingImagesBlock({
       {uploadedImages.length > 0 ? (
         <div className="grid grid-cols-2 gap-[16px]">
           {uploadedImages.map((image) => (
-            <div key={image.id} className="border border-gray-200 rounded-[8px] overflow-hidden">
+            <div
+              key={image.id}
+              className="border border-gray-200 rounded-[8px] overflow-hidden"
+            >
               <div className="relative">
                 <img
                   src={image.preview}
@@ -82,12 +85,22 @@ export function SupportingImagesBlock({
                       className="flex-1 px-[8px] py-[4px] bg-white border border-gray-200 rounded-[4px] font-['Inter'] text-[11px] text-gray-700"
                     />
                     <button
-                      onClick={() => handleCopyUrl(image.url || '')}
+                      onClick={() => handleCopyUrl(image.url || "")}
                       className="p-[4px] hover:bg-gray-200 rounded-[4px] transition-colors"
                       title="Copy URL"
                     >
-                      <svg className="w-[14px] h-[14px] text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      <svg
+                        className="w-[14px] h-[14px] text-gray-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -129,7 +142,6 @@ export function SupportingImagesBlock({
             Click "Add Images" to upload supporting images
           </p>
         </div>
-
       )}
     </div>
   );

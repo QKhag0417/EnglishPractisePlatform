@@ -26,20 +26,21 @@ public class InlineParserImpl implements InlineParser {
         private final String style;
         private final String color;
         private final Integer size;
+        private final Integer weight;
 
-        public Format(String style, String color, Integer size) {
+        public Format(String style, String color, Integer size, Integer weight) {
             this.style = style;
             this.color = color;
             this.size = size;
+            this.weight = weight;
         }
-
     }
 
-    private static final Pattern GAP_RE = Pattern.compile("^\\[gap:(\\d+)\\]");
+    private static final Pattern GAP_RE = Pattern.compile("^\\[gap\\]");
     private static final Pattern F_OPEN_RE = Pattern.compile("^\\[f([^\\]]*)\\]");
 
     @Override
-    public List<InlineNode> parseInline(String text) {
+    public List<InlineNode> parseInline(String text, ParseContext context) {
         List<InlineNode> nodes = new ArrayList<>();
         Format active = null;
 
@@ -58,11 +59,10 @@ public class InlineParserImpl implements InlineParser {
 
             String rest = text.substring(b);
 
-            // [gap:n]
+            // [gap]
             Matcher gapM = GAP_RE.matcher(rest);
             if (gapM.find()) {
-                int n = Integer.parseInt(gapM.group(1));
-                nodes.add(new GapInline(n));
+                nodes.add(new GapInline(context.nextQuestionNumber()));
                 i = b + gapM.group(0).length();
                 continue;
             }
@@ -86,7 +86,17 @@ public class InlineParserImpl implements InlineParser {
                     }
                 }
 
-                active = new Format(style, color, size);
+                Integer weight = null;
+                String weightStr = attrs.get("weight");
+                if (weightStr != null) {
+                    try {
+                        weight = Integer.parseInt(weightStr);
+                    } catch (NumberFormatException ignored) {
+                        weight = null;
+                    }
+                }
+
+                active = new Format(style, color, size, weight);
                 i = b + fOpen.group(0).length();
                 continue;
             }
@@ -113,7 +123,8 @@ public class InlineParserImpl implements InlineParser {
                 value,
                 active != null ? active.getStyle() : null,
                 active != null ? active.getColor() : null,
-                active != null ? active.getSize() : null
+                active != null ? active.getSize() : null,
+                active != null ? active.getWeight() : null
         ));
     }
 }

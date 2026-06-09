@@ -1,11 +1,24 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { UserAnswers } from "../types";
 
-type Args = {};
+type Args = { answerCount?: number };
 
-export function useUserAnswer({}: Args = {}) {
+export function useUserAnswer({ answerCount = 0 }: Args = {}) {
   const [answers, setAnswers] = useState<UserAnswers>({});
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  useEffect(() => {
+    setAnswers((prev) => {
+      const next: UserAnswers = { ...prev };
+
+      for (let i = 1; i <= answerCount; i++) {
+        if (!(i in next)) {
+          next[i] = [];
+        }
+      }
+
+      return next;
+    });
+  }, [answerCount]);
 
   const onAnswerChange = useCallback((questionId: number, value: string[]) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -15,7 +28,5 @@ export function useUserAnswer({}: Args = {}) {
     answers,
     setAnswers,
     onAnswerChange,
-    currentQuestionIndex,
-    setCurrentQuestionIndex,
   };
 }

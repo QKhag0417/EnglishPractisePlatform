@@ -4,23 +4,34 @@ import { ApiResult } from "./apiResult";
 export async function apiDelete<T>(params: {
   apiBase: string;
   path: string;
-  body?: unknown; // optional: some APIs support DELETE with a body
+  body?: unknown;
   signal?: AbortSignal;
+  isFormData?: boolean;
 }): Promise<ApiResult<T>> {
-  const { apiBase, path, body, signal } = params;
+  const { apiBase, path, body, signal, isFormData } = params;
 
   const url = new URL(path, apiBase);
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const res = await fetch(url.toString(), {
       method: "DELETE",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       ...(signal ? { signal } : {}),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? (body as BodyInit)
+            : JSON.stringify(body),
     });
 
     let json: ApiResponse<T> | null = null;
@@ -30,8 +41,7 @@ export async function apiDelete<T>(params: {
       json = null;
     }
 
-    const rawStatus = json?.status;
-    const apiSuccess = typeof rawStatus === "string" ? rawStatus.toLowerCase() === "success" : false;
+    const apiSuccess = String(json?.status ?? "").toLowerCase() === "success";
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {
@@ -47,11 +57,7 @@ export async function apiDelete<T>(params: {
     (ok ? console.info : console.error)("[apiDelete]", result);
     return result;
   } catch (e: any) {
-    const message =
-      e?.name === "AbortError"
-        ? "Request aborted"
-        : (e?.message ?? "Network error");
-
+    const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,
       data: null,

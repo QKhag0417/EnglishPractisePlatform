@@ -1,17 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import imgEllipse2 from "figma:asset/9a288964fe3263113bbb7774d6f4ff60e22ab39b.png";
-import { ProfileDropdown } from './ProfileDropdown';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { IELTSMastermindLogo } from './Logo';
-import { useAuth } from '../contexts/AuthContext';
+import { ProfileDropdown } from "./ProfileDropdown";
+import { IELTSMastermindLogo } from "./Logo";
+import { useAuth } from "../contexts/AuthContext";
+import { getAvatarMeta } from "./utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 function DownArrow() {
   return (
     <div className="h-[24px] relative shrink-0 w-[29px]">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 29 24">
+      <svg
+        className="block size-full"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 29 24"
+      >
         <g id="Down Arrow">
-          <path d="M10 10L14.5 14L19 10" id="Vector" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M10 10L14.5 14L19 10"
+            id="Vector"
+            stroke="var(--stroke-0, white)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </g>
       </svg>
     </div>
@@ -25,16 +36,21 @@ interface NavItemProps {
   dropdownItems?: { label: string; onClick: () => void }[];
 }
 
-function NavItem({ label, hasDropdown = false, onClick, dropdownItems }: NavItemProps) {
+export function NavItem({
+  label,
+  hasDropdown = false,
+  onClick,
+  dropdownItems,
+}: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={() => hasDropdown && setIsOpen(true)}
       onMouseLeave={() => hasDropdown && setIsOpen(false)}
     >
-      <div 
+      <div
         className="content-stretch flex gap-[10px] items-center relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity pb-2"
         onClick={onClick}
       >
@@ -110,7 +126,7 @@ function NavMenu() {
           { label: "Exercise", onClick: () => navigate("/speaking/browse") },
         ]}
       />
-      <NavItem
+      {/* <NavItem
         label="Test"
         hasDropdown
         dropdownItems={[
@@ -120,80 +136,69 @@ function NavMenu() {
             onClick: () => navigate("/evaluation-test"),
           },
         ]}
-      />
+      /> */}
     </div>
   );
 }
 
+interface ProfileProps {}
 
-interface ProfileProps {
-  onLogout: () => void;
-}
-
-function Profile({ onLogout }: ProfileProps) {
+export function Profile({}: ProfileProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
 
-  const getInitials = () => {
-    if (user?.firstname) return user.firstname[0].toUpperCase();
-    else if (user?.name) {
-      return user.name[0].toUpperCase();
-    }
-    return 'U';
-  };
+  // =========================
+  // Get avatar meta
+  // =========================
+
+  const avatarMeta = getAvatarMeta(
+    user?.firstname,
+    user?.lastname,
+    user?.avatarUrl,
+  );
 
   return (
     <div className="relative">
-      <div 
+      <div
         className="content-stretch flex gap-[10px] items-start relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="relative shrink-0 size-[49px] rounded-full overflow-hidden bg-[#c8511b] flex items-center justify-center">
-          {user?.avatarUrl ? (
-            <ImageWithFallback 
-              alt="User profile" 
-              className="block max-w-none size-full object-cover" 
-              height="49" 
-              src={user.avatarUrl} 
-              width="49" 
+        <div
+          className="content-stretch flex gap-[10px] items-start relative shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Avatar className="w-[44px] h-[44px] flex-shrink-0">
+            <AvatarImage
+              src={avatarMeta.avatarUrl || undefined}
+              alt="User profile"
             />
-          ) : (
-            <span className="font-['Inter'] text-[20px] font-semibold text-white">
-              {getInitials()}
-            </span>
-          )}
+            <AvatarFallback
+              className={`${avatarMeta.colorClass} text-white font-['Inter'] font-semibold text-[20px]`}
+            >
+              {avatarMeta.initials}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
 
-      {isOpen && (
-        <ProfileDropdown 
-          onClose={() => setIsOpen(false)} 
-          onLogout={() => {
-            setIsOpen(false);
-            onLogout();
-          }}
-        />
-      )}
+      {isOpen && <ProfileDropdown onClose={() => setIsOpen(false)} />}
     </div>
   );
 }
 
 interface NavBarLearnerProps {
+  /**
+   * @deprecated No longer used. This prop has no effect.
+   */
   onLogout?: () => void;
 }
 
 export function NavBarLearner({ onLogout }: NavBarLearnerProps) {
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
-  };
-
   return (
     <div className="fixed top-0 left-0 right-0 bg-[#1977f3] box-border content-stretch flex h-[66px] items-center justify-between px-[12px] py-[8px] z-50">
       <IELTSMastermindLogo />
       <NavMenu />
-      <Profile onLogout={handleLogout} />
+      <Profile />
     </div>
   );
 }
@@ -207,13 +212,15 @@ export function NavBarGuest() {
       <NavMenu />
       <div className="flex gap-[12px] items-center">
         <button
-          onClick={() => navigate('/login')}
+          id="nav-login-button"
+          onClick={() => navigate("/login")}
           className="px-[24px] py-[8px] bg-white text-[#1977f3] rounded-[8px] font-['DM_Sans'] font-medium text-[16px] hover:bg-gray-100 transition-colors"
         >
           Login
         </button>
         <button
-          onClick={() => navigate('/register')}
+          id="nav-register-button"
+          onClick={() => navigate("/register")}
           className="px-[24px] py-[8px] bg-[#fcbf65] text-black rounded-[8px] font-['DM_Sans'] font-medium text-[16px] hover:bg-[#e5ab52] transition-colors"
         >
           Register

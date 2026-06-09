@@ -1,3 +1,13 @@
+export type LocalDateTimeArray = [
+  number, // year
+  number, // month
+  number, // day
+  number, // hour
+  number, // minute
+  number, // second
+  number, // nanosecond
+];
+
 export type Skill = "listening" | "reading" | "writing" | "speaking" | string;
 
 export interface ExerciseInstruction {
@@ -104,6 +114,7 @@ export type PracticeSubmissionPostBody = {
   userId: string;
   practiceContentId: string;
   timeSpentSeconds: number;
+  learnerTestActivities: LearnerTestActivity[];
 };
 
 export type UserAnswerDTO = {
@@ -160,4 +171,41 @@ export type UserPracticeContentProgressAttemptIncrementDTO = {
 
 export type UserPracticeContentProgressAttemptIncrement = {
   userPracticeContentProgressId: string;
+};
+
+export type LearnerTestActivityType =
+  | "GAP_FOCUS"
+  | "GAP_INPUT"
+  | "GAP_BLUR"
+  | "MCQ_SELECT"
+  | "MCQ_DESELECT"
+  | "TEST_START"
+  | "TEST_SUBMIT";
+
+export type LogActivityInput = {
+  activityType: LearnerTestActivityType;
+  questionNumber?: number;
+  value?: string;
+};
+
+export type LearnerTestActivity = LogActivityInput & {
+  offsetMs: number;
+};
+
+// =========================
+// Create Writing AI Feedback
+// =========================
+
+export type CreateWritingAIFeedbackRequestBody = {
+  submissionId: string;
+};
+
+export type CreateWritingAIFeedbackResponseDTO = {
+  status: string;
+  message: string;
+  data: string;
+};
+
+export type CreateWritingAIFeedback = {
+  submissionId: string;
 };

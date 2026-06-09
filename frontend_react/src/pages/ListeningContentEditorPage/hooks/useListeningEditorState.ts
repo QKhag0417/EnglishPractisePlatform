@@ -1,29 +1,43 @@
 import { useState, useRef, useEffect } from "react";
-import { mapApiTypeToUi , mapUiTypeToApi, Question, QuestionType} from "../types";
+import {
+  BackendListeningQuestionType,
+  BackendTopicTag,
+  ListeningQuestionType,
+  mapListeningApiTypeToUi,
+  mapListeningUiTypeToApi,
+  mapTopicTagApiToUi,
+  mapTopicTagUiToApi,
+  Question,
+  TopicTag,
+} from "../types";
 import { useListeningEditorApi } from "./useListeningEditorApi";
-import { useNavigate} from "react-router";
+import { useNavigate } from "react-router";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
 
-export function useListeningEditorState(
-  isEditMode: boolean,
-  id?: string
-) {
+export function useListeningEditorState(isEditMode: boolean, id?: string) {
   const navigate = useNavigate();
 
   const [hasImageChanges, setHasImageChanges] = useState(false);
+
   const markImageChanged = () => {
     setHasImageChanges(true);
   };
+
   const {
     fetchDetail,
+
+    uploadImages,
+    deleteImages,
     uploadThumbnail,
-    uploadAudio,
     deleteThumbnail,
+    uploadAudio,
     deleteAudio,
+
     createContent,
     updateContent,
     saveContent,
+
     createContentQuestion,
     deleteContentQuestion,
     updateContentQuestion,
@@ -38,37 +52,47 @@ export function useListeningEditorState(
     handleRemoveImage,
     handleCopyUrl,
     getSavedImageUrls,
-    loadExistingImages
+    loadExistingImages,
   } = useSupportingImagesState(id, markImageChanged);
 
   // ================= META =================
   const [title, setTitle] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [transcript, setTranscript] = useState("");
   const [task, setTask] = useState("");
-  const [durationMinutes, setDurationMinutes] = useState(15);
+  const [durationMinutes, setDurationMinutes] = useState(30);
   const [status, setStatus] = useState<"Draft" | "Published">("Draft");
   const [newAnswerInput, setNewAnswerInput] = useState("");
 
   // ================= QUESTIONS =================
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionTempId, setSelectedQuestionTempId] = useState("");
-  const [questionTypeTags, setQuestionTypeTags] = useState<string[]>([]);
+  const [questionTypeTags, setQuestionTypeTags] = useState<
+    BackendListeningQuestionType[]
+  >([]);
+  const [topicTags, setTopicTags] = useState<BackendTopicTag[]>([]);
+
   const selectedQuestion = questions.find(
-    (q) => q.tempId === selectedQuestionTempId
+    (q) => q.tempId === selectedQuestionTempId,
   );
-  const [topicTags, setTopicTags] = useState<string[]>([]);
 
   // ================= EDITOR PANEL =================
   const [questionType, setQuestionType] =
-    useState<QuestionType>("Multiple Choice");
+    useState<ListeningQuestionType>("Multiple Choice");
+  const [topicTag, setTopicTag] = useState<TopicTag>("Education and Learning");
+
   const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">("saved");
+  const [saveState, setSaveState] = useState<"saved" | "unsaved" | "editing">(
+    "saved",
+  );
 
   // ================= THUMBNAIL&AUDIO =================
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(
+    null,
+  );
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [thumbnailSaved, setThumbnailSaved] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -80,8 +104,8 @@ export function useListeningEditorState(
   const audioInputRef = useRef<HTMLInputElement>(null);
 
   const safeRevokeObjectUrl = (url: string | null) => {
-      if (!url) return;
-      if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+    if (!url) return;
+    if (url.startsWith("blob:")) URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -94,10 +118,10 @@ export function useListeningEditorState(
   const [updatedOn, setUpdatedOn] = useState<string>("");
 
   const markAsUnsaved = () => {
-      if (saveState === "saved") {
-        setSaveState("unsaved");
-        setHasUnsavedChanges(true);
-      }
+    if (saveState === "saved") {
+      setSaveState("unsaved");
+      setHasUnsavedChanges(true);
+    }
   };
 
   // ================= INITIAL CREATE MODE =================
@@ -111,11 +135,12 @@ export function useListeningEditorState(
       type: "Multiple Choice",
       correctAnswer: "",
       questionType: "Multiple Choice",
+      topicTag: "Education and Learning",
       correctAnswers: [],
     };
 
     setQuestions([initialQuestion]);
-    setSelectedQuestionTempId(initialQuestion.tempId);;
+    setSelectedQuestionTempId(initialQuestion.tempId);
   }, [isEditMode]);
 
   // ================= EDIT MODE LOAD =================
@@ -124,15 +149,16 @@ export function useListeningEditorState(
 
     const loadData = async () => {
       try {
-
         const content = await fetchDetail(id);
 
         if (content.imageUrls && content.imageUrls.length > 0) {
           loadExistingImages(content.imageUrls);
         }
+
         // ===== SET META =====
         setTitle(content.title || "");
         setInstructions(content.instructions || "");
+        setTranscript(content.transcript || "");
         setTask(content.task || "");
         setDurationMinutes(content.durationMinutes || 15);
         setStatus(content.status === "PUBLISHED" ? "Published" : "Draft");
@@ -160,11 +186,12 @@ export function useListeningEditorState(
             id: q.id,
             tempId: q.id,
             number: q.orderIndex,
-            type: mapApiTypeToUi(q.type),
+            type: mapListeningApiTypeToUi(q.type),
             correctAnswer: "",
-            questionType: mapApiTypeToUi(q.type),
+            questionType: mapListeningApiTypeToUi(q.type),
+            topicTag: mapTopicTagApiToUi(q.topicTag),
             correctAnswers: q.correctAnswers || [],
-          })
+          }),
         );
 
         setQuestions(mappedQuestions);
@@ -172,7 +199,6 @@ export function useListeningEditorState(
         if (mappedQuestions.length > 0) {
           setSelectedQuestionTempId(mappedQuestions[0].tempId);
         }
-
       } catch (err) {
         console.error("Failed to load content", err);
         alert("Cannot load content for editing");
@@ -190,22 +216,22 @@ export function useListeningEditorState(
       type: "Multiple Choice",
       correctAnswer: "",
       questionType: "Multiple Choice",
+      topicTag: "Education and Learning",
       correctAnswers: [],
     };
 
     setQuestions((prev) => [...prev, newQuestion]);
   };
 
-
   const deleteQuestion = async (tempId: string) => {
-    const questionToDelete = questions.find(q => q.tempId === tempId);
+    const questionToDelete = questions.find((q) => q.tempId === tempId);
 
     try {
       if (questionToDelete?.id) {
         await deleteContentQuestion(questionToDelete.id);
       }
 
-      const filtered = questions.filter(q => q.tempId !== tempId);
+      const filtered = questions.filter((q) => q.tempId !== tempId);
 
       const renumbered = filtered.map((q, index) => ({
         ...q,
@@ -213,7 +239,6 @@ export function useListeningEditorState(
       }));
 
       setQuestions(renumbered);
-
     } catch (err: any) {
       alert(err?.message || "Delete failed");
     }
@@ -235,12 +260,13 @@ export function useListeningEditorState(
 
     setQuestions((prev) =>
       prev.map((q) =>
-        q.tempId  === selectedQuestionTempId
+        q.tempId === selectedQuestionTempId
           ? {
               ...q,
               type: questionType,
               correctAnswer: correctAnswers.join(", "),
               questionType,
+              topicTag,
               correctAnswers,
             }
           : q,
@@ -249,53 +275,62 @@ export function useListeningEditorState(
   };
 
   useEffect(() => {
-      if (!selectedQuestion) return;
+    if (!selectedQuestion) return;
 
-      setQuestionType(selectedQuestion.questionType);
-      setCorrectAnswers(selectedQuestion.correctAnswers || []);
+    setQuestionType(selectedQuestion.questionType);
+    setTopicTag(selectedQuestion.topicTag);
+    setCorrectAnswers(selectedQuestion.correctAnswers || []);
 
-      setSaveState("saved");
-      setHasUnsavedChanges(false);
+    setSaveState("saved");
+    setHasUnsavedChanges(false);
   }, [selectedQuestionTempId]);
 
   useEffect(() => {
-    const tags = Array.from(
-      new Set(questions.map((q) => q.questionType))
+    const questionTypeTags = Array.from(
+      new Set(questions.map((q) => mapListeningUiTypeToApi(q.questionType))),
     );
 
-    setQuestionTypeTags(tags);
+    const topicTags = Array.from(
+      new Set(questions.map((q) => mapTopicTagUiToApi(q.topicTag))),
+    );
+
+    setQuestionTypeTags(questionTypeTags);
+    setTopicTags(topicTags);
   }, [questions]);
 
   const handleSaveQuestion = () => {
-      ensureCurrentQuestionIsPersisted();
-      setSaveState("saved");
-      setHasUnsavedChanges(false);
-    };
+    ensureCurrentQuestionIsPersisted();
+    setSaveState("saved");
+    setHasUnsavedChanges(false);
+  };
 
   const handleCancelQuestion = () => {
-      if (!selectedQuestion) return;
+    if (!selectedQuestion) return;
 
-      setQuestionType(selectedQuestion.questionType);
-      setCorrectAnswers(selectedQuestion.correctAnswers || []);
+    setQuestionType(selectedQuestion.questionType);
+    setTopicTag(selectedQuestion.topicTag);
+    setCorrectAnswers(selectedQuestion.correctAnswers || []);
 
-      setSaveState("saved");
-      setHasUnsavedChanges(false);
+    setSaveState("saved");
+    setHasUnsavedChanges(false);
   };
 
   const mapSingleQuestionToApi = (q: Question, index: number) => {
-    const apiType = mapUiTypeToApi(q.questionType);
+    const apiType = mapListeningUiTypeToApi(q.questionType);
+    const apiTopicTag = mapTopicTagUiToApi(q.topicTag);
 
     return {
       orderIndex: index + 1,
       type: apiType,
+      topicTag: apiTopicTag,
       correctAnswers: (q.correctAnswers ?? [])
-        .map(a => a.trim())
-        .filter(a => a.length > 0),
+        .map((a) => a.trim())
+        .filter((a) => a.length > 0),
     };
   };
 
   const handleSaveThumbnail = async () => {
-    if (!thumbnailFile) return;
+    if (!thumbnailFile || !(thumbnailFile instanceof File)) return;
 
     try {
       const url = await uploadThumbnail(thumbnailFile);
@@ -338,7 +373,7 @@ export function useListeningEditorState(
   };
 
   const handleSaveAudio = async () => {
-    if (!audioFile) return;
+    if (!audioFile || !(audioFile instanceof File)) return;
 
     try {
       const url = await uploadAudio(audioFile);
@@ -378,7 +413,6 @@ export function useListeningEditorState(
     }
   };
 
-
   const handleSaveExit = async () => {
     try {
       ensureCurrentQuestionIsPersisted();
@@ -392,6 +426,7 @@ export function useListeningEditorState(
         skill: "LISTENING",
         title,
         instructions,
+        transcript,
         task,
         questionTypeTags,
         topicTags,
@@ -400,14 +435,10 @@ export function useListeningEditorState(
         status: status === "Draft" ? "DRAFT" : "PUBLISHED",
         thumbnailUrl,
         audioUrl,
-        imageUrls: getSavedImageUrls()
+        imageUrls: getSavedImageUrls(),
       };
 
-      const contentResponse = await saveContent(
-        contentPayload,
-        isEditMode,
-        id
-      );
+      const contentResponse = await saveContent(contentPayload, isEditMode, id);
 
       if (!contentResponse?.id) {
         throw new Error("Cannot get content ID from response");
@@ -430,7 +461,8 @@ export function useListeningEditorState(
         if (q.id) {
           await updateContentQuestion(q.id, {
             orderIndex: 1000 + i,
-            type: mapUiTypeToApi(q.questionType),
+            type: mapListeningUiTypeToApi(q.questionType),
+            topicTag: mapTopicTagUiToApi(q.topicTag),
             correctAnswers: q.correctAnswers ?? [],
           });
         }
@@ -445,7 +477,7 @@ export function useListeningEditorState(
         if (!question.id) {
           const created = await createContentQuestion(
             contentId,
-            mapSingleQuestionToApi(question, i)
+            mapSingleQuestionToApi(question, i),
           );
 
           updatedQuestions[i] = {
@@ -461,14 +493,13 @@ export function useListeningEditorState(
 
         await updateContentQuestion(
           question.id!,
-          mapSingleQuestionToApi(question, i)
+          mapSingleQuestionToApi(question, i),
         );
       }
 
       setQuestions(updatedQuestions);
       setHasImageChanges(false);
-      navigate("/admin/content-management");
-
+      navigate("/content-management");
     } catch (err: any) {
       alert(err?.message || "Save failed");
     }
@@ -483,10 +514,6 @@ export function useListeningEditorState(
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -495,7 +522,6 @@ export function useListeningEditorState(
     setThumbnailPreview(url);
     setThumbnailUrl(null);
     setThumbnailSaved(false);
-
   };
 
   const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -505,10 +531,6 @@ export function useListeningEditorState(
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
       return;
     }
 
@@ -531,10 +553,6 @@ export function useListeningEditorState(
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -543,7 +561,6 @@ export function useListeningEditorState(
     setThumbnailPreview(url);
     setThumbnailUrl(null);
     setThumbnailSaved(false);
-
   };
 
   const handleAudioDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -554,10 +571,6 @@ export function useListeningEditorState(
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/wave"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a .mp3 or .wav file");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
       return;
     }
 
@@ -582,6 +595,8 @@ export function useListeningEditorState(
     setTitle,
     instructions,
     setInstructions,
+    transcript,
+    setTranscript,
     task,
     setTask,
     durationMinutes,
@@ -607,6 +622,8 @@ export function useListeningEditorState(
     // editor
     questionType,
     setQuestionType,
+    topicTag,
+    setTopicTag,
     correctAnswers,
     setCorrectAnswers,
 

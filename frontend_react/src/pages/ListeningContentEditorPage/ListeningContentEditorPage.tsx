@@ -1,97 +1,101 @@
-import { NavBarAdmin } from "../../components/NavBarAdmin";
 import { Footer } from "../../components/Footer";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import { Button } from "../../components/ui/button";
-import { Plus } from "lucide-react";
 import { EditorHeader } from "./components/EditorHeader";
 import { QuestionsTable } from "./components/QuestionsTable";
 import { AnswerScoringPanel } from "./components/AnswerScoringPanel";
 import { UploadThumbnailCard } from "./components/UploadThumbnailCard";
 import { UploadAudioCard } from "./components/UploadAudioCard";
 import { ExerciseInfoCard } from "./components/ExerciseInfoCard";
-import { useSupportingImagesState } from "./hooks/useSupportingImagesState";
-import { useAuth } from "../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router";
 import { useListeningEditorState } from "./hooks/useListeningEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
+import { NavBarUnified } from "../../components/NavBarUnified";
 
 export function ListeningContentEditorPage() {
   // ===== HANDLERS =====
-  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
   const handleCancel = () => {
-    navigate("/admin/content-management");
+    navigate("/content-management");
   };
+
   const { exerciseId } = useParams();
   const isEditMode = !!exerciseId;
 
   const {
+    // meta
     title,
     setTitle,
     instructions,
     setInstructions,
+    transcript,
+    setTranscript,
     task,
     setTask,
     durationMinutes,
     setDurationMinutes,
     status,
     setStatus,
+
+    // questions
     questions,
+    setQuestions,
     selectedQuestionTempId,
     setSelectedQuestionTempId,
     selectedQuestion,
     addNewQuestion,
     deleteQuestion,
-    questionType,
-    setQuestionType,
-    topicTags,
-    setTopicTags,
-    correctAnswers,
-    setCorrectAnswers,
+    handleSaveQuestion,
+    handleCancelQuestion,
     questionTypeTags,
     setQuestionTypeTags,
-    options,
-    setOptions,
+    topicTags,
+    setTopicTags,
+
+    // editor
+    questionType,
+    setQuestionType,
+    topicTag,
+    setTopicTag,
+    correctAnswers,
+    setCorrectAnswers,
+
+    // answer
     newAnswerInput,
     setNewAnswerInput,
     saveState,
     setSaveState,
     markAsUnsaved,
-    handleSaveExit,
-    handleSaveQuestion,
-    handleCancelQuestion,
-    thumbnailPreview,
-    setThumbnailPreview,
+
+    //thumbnail && audio
     thumbnailFile,
     setThumbnailFile,
+    thumbnailPreview,
+    setThumbnailPreview,
     thumbnailInputRef,
+    audioInputRef,
     handleThumbnailChange,
     handleAudioChange,
-    audioInputRef,
+    handleThumbnailDrop,
+    handleAudioDrop,
+    handleDragOver,
+    displayUpdatedOn,
+    audioPreview,
+    setAudioPreview,
+    updatedOn,
+    setUpdatedOn,
     audioFile,
+    setAudioFile,
+    safeRevokeObjectUrl,
     handleSaveThumbnail,
     handleSaveAudio,
     thumbnailSaved,
     audioSaved,
     handleRemoveThumbnail,
     handleRemoveAudio,
-    safeRevokeObjectUrl,
-    setAudioFile,
-    handleThumbnailDrop,
-    audioPreview,
-    setAudioPreview,
-    handleAudioDrop,
-    handleDragOver,
-    displayUpdatedOn,
-    updatedOn,
-    setUpdatedOn,
 
+    // supporting images
     multiImageInputRef,
     uploadedImages,
     handleMultiImageChange,
@@ -101,11 +105,12 @@ export function ListeningContentEditorPage() {
 
     hasImageChanges,
     setHasImageChanges,
+    handleSaveExit,
   } = useListeningEditorState(isEditMode, exerciseId);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <NavBarAdmin onLogout={handleLogout} />
+      <NavBarUnified />
 
       <EditorHeader
         isEditMode={isEditMode}
@@ -135,6 +140,20 @@ export function ListeningContentEditorPage() {
                 />
               </div>
 
+              {/* Audio Script Block */}
+              <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
+                <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[16px] block">
+                  Audio Transcript
+                </Label>
+                <Textarea
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                  placeholder="Type the audio script/transcript for this listening exercise here..."
+                  className="min-h-[200px] border border-gray-300 rounded-[8px] resize-none font-['Inter'] bg-white
+                 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+
               <QuestionsTable
                 questions={questions}
                 selectedQuestionTempId={selectedQuestionTempId}
@@ -147,6 +166,8 @@ export function ListeningContentEditorPage() {
                 selectedQuestionNumber={selectedQuestion?.number}
                 questionType={questionType}
                 setQuestionType={setQuestionType}
+                topicTag={topicTag}
+                setTopicTag={setTopicTag}
                 correctAnswers={correctAnswers}
                 setCorrectAnswers={setCorrectAnswers}
                 newAnswerInput={newAnswerInput}
@@ -156,6 +177,7 @@ export function ListeningContentEditorPage() {
                 handleSaveQuestion={handleSaveQuestion}
                 handleCancelQuestion={handleCancelQuestion}
               />
+
               <SupportingImagesBlock
                 multiImageInputRef={
                   multiImageInputRef as React.RefObject<HTMLInputElement>
@@ -211,7 +233,6 @@ export function ListeningContentEditorPage() {
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );

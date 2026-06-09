@@ -7,3 +7,8 @@ export { formatLocalDateTime } from "./formatLocalDateTime";
 export { formatTimeVerbose } from "./formatTimeVerbose";
 export { buildImageUrl } from "./buildImageUrl";
 export { formatTaskLabel } from "./formatTaskLabel";
+export { getAvatarMeta } from "./getAvatarMeta";
+export { formatRelativeLocalDateTime } from "./formatRelativeLocalDateTime";
+export { buildAudioUrl } from "./buildAudioUrl";
+export { formatAudioTime } from "./formatAudioTime";
+export { mapTutorStatus } from "./mapTutorStatus";

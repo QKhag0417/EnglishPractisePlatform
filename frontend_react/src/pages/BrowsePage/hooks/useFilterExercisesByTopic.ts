@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ExerciseMetadata, TagFilter } from "../types";
+import type { ExerciseMetadata, TopicFilter } from "../types";
+import { TopicTag } from "../../ListeningContentEditorPage/types";
 
 export function useFilterExercisesByTopic(params: {
   exercises: ExerciseMetadata[];
 }) {
   const { exercises } = params;
 
-  const [selectedTopic, setSelectedTopic] = useState<TagFilter>("all");
+  const [selectedTopic, setSelectedTopic] = useState<TopicFilter>("all");
 
   const availableTopics = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<TopicTag>();
     for (const ex of exercises) {
       for (const t of ex.topics ?? []) set.add(t);
     }

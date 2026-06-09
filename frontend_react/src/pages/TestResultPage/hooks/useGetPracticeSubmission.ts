@@ -20,6 +20,7 @@ function mapPracticeSubmissionDTOToPracticeSubmission(
     wrongAnswerCount: dto.wrongAnswerCount ?? 0,
     skipAnswerCount: dto.skipAnswerCount ?? 0,
     submittedAt: dto.submittedAt ?? [0, 0, 0, 0, 0, 0, 0],
+    isTutorReviewRequested: dto.isTutorReviewRequested ?? false,
   };
 }
 
@@ -33,6 +34,7 @@ const initialPracticeSubmission: PracticeSubmission = {
   wrongAnswerCount: 0,
   skipAnswerCount: 0,
   submittedAt: [0, 0, 0, 0, 0, 0, 0],
+  isTutorReviewRequested: false,
 };
 
 export function useGetPracticeSubmission(submissionId: string) {

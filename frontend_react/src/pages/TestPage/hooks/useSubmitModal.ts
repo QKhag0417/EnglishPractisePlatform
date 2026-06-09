@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { LogActivityInput } from "../types";
 
 type Args = {
   onGoToResults: () => void;
   onPostSubmission: () => Promise<unknown>;
   onPostSubmissionAnswers: () => Promise<unknown>;
   onPostAttemptIncrement: () => Promise<unknown>;
+  onLogActivity?: (input: LogActivityInput) => void;
 };
 
 type ConfirmSubmitStep =
@@ -20,6 +22,7 @@ export function useSubmitModal({
   onPostSubmission,
   onPostSubmissionAnswers,
   onPostAttemptIncrement,
+  onLogActivity,
 }: Args) {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
@@ -38,8 +41,12 @@ export function useSubmitModal({
   const confirmSubmit = useCallback(async () => {
     if (isSubmitting) return;
 
+    onLogActivity?.({
+      activityType: "TEST_SUBMIT",
+    });
+
     setConfirmSubmitStep("postingSubmission");
-  }, [isSubmitting]);
+  }, [isSubmitting, onLogActivity]);
 
   useEffect(() => {
     if (confirmSubmitStep !== "postingSubmission") return;

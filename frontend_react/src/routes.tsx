@@ -1,28 +1,27 @@
 import { createBrowserRouter, Navigate } from "react-router";
-import { HomePage } from "./pages/HomePage";
-import { MockTestPage } from "./pages/MockTestPage";
+import { HomePage } from "./pages/HomePage/HomePage";
 import { BrowsePage } from "./pages/BrowsePage/BrowsePage";
 import { ListeningOverviewPage } from "./pages/ListeningOverviewPage";
 import { TestPage } from "./pages/TestPage/TestPage";
 import { ReadingOverviewPage } from "./pages/ReadingOverviewPage";
 import { WritingOverviewPage } from "./pages/WritingOverviewPage";
 import { SpeakingOverviewPage } from "./pages/SpeakingOverviewPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { LoginPage } from "./pages/LoginPage/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { AuthPromptPage } from "./pages/AuthPromptPage";
 import { PracticeContentManagementPage } from "./pages/PracticeContentManagementPage/PracticeContentManagementPage.tsx";
-import { UserManagementPage } from "./pages/UserManagementPage";
-import { EvaluationTestPage } from "./pages/EvaluationTestPage";
+import { UserManagementPage } from "./pages/UserManagementPage/UserManagementPage";
 import { ListeningContentEditorPage } from "./pages/ListeningContentEditorPage/ListeningContentEditorPage.tsx";
 import { ReadingContentEditorPage } from "./pages/ReadingContentEditorPage/ReadingContentEditorPage.tsx";
 import { WritingContentEditorPage } from "./pages/WritingContentEditorPage/WritingContentEditorPage.tsx";
-import { SpeakingContentEditorPage } from "./pages/SpeakingContentEditorPage";
-import { MyProfilePage } from "./pages/MyProfilePage";
+import { MyProfilePage } from "./pages/MyProfilePage/MyProfilePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { TestResultPage } from "./pages/TestResultPage/TestResultPage";
 import { IntroductionPage } from "./pages/IntroductionPage/IntroductionPage.tsx";
 import { TutorDashboardPage } from "./pages/TutorDashboardPage/TutorDashboardPage.tsx";
+import OAuth2Callback from "./pages/OAuth2Callback/OAuth2Callback.tsx";
+import StudyPlanPage from "./pages/StudyPlanPage/StudyPlanPage.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +38,10 @@ export const router = createBrowserRouter([
     Component: RegisterPage,
   },
   {
+    path: "/oauth2/callback",
+    Component: OAuth2Callback,
+  },
+  {
     path: "/forgot-password",
     Component: ForgotPasswordPage,
   },
@@ -46,7 +49,16 @@ export const router = createBrowserRouter([
     path: "/auth-prompt",
     Component: AuthPromptPage,
   },
-  // Listening routes
+  // User profile routes
+  {
+    path: "/my-profile/:section?",
+    Component: MyProfilePage,
+  },
+  {
+    path: "/study-plan",
+    Component: StudyPlanPage,
+  },
+  // Learner routes
   {
     path: "/:skill/browse",
     Component: BrowsePage,
@@ -54,6 +66,18 @@ export const router = createBrowserRouter([
   {
     path: "/listening/overview",
     Component: ListeningOverviewPage,
+  },
+  {
+    path: "/reading/overview",
+    Component: ReadingOverviewPage,
+  },
+  {
+    path: "/writing/overview",
+    Component: WritingOverviewPage,
+  },
+  {
+    path: "/speaking/overview",
+    Component: SpeakingOverviewPage,
   },
   {
     path: "/:skill/introduction/:exerciseId",
@@ -67,38 +91,6 @@ export const router = createBrowserRouter([
     path: "/test/result/:submissionId",
     Component: TestResultPage,
   },
-  //   // Reading routes
-  //   {
-  //     path: "/reading",
-  //     Component: ReadingPage,
-  //   },
-  {
-    path: "/reading/overview",
-    Component: ReadingOverviewPage,
-  },
-  //   {
-  //     path: "/reading/test/:exerciseId",
-  //     Component: ReadingTestPage,
-  //   },
-  //   Writing routes
-  //   {
-  //     path: "/writing",
-  //     Component: WritingPage,
-  //   },
-  {
-    path: "/writing/overview",
-    Component: WritingOverviewPage,
-  },
-  //   // Speaking routes
-  //   {
-  //     path: "/speaking",
-  //     Component: SpeakingPage,
-  //   },
-  {
-    path: "/speaking/overview",
-    Component: SpeakingOverviewPage,
-  },
-  //   // Mock test route
   //   {
   //     path: "/mocktest",
   //     Component: MockTestPage,
@@ -110,63 +102,35 @@ export const router = createBrowserRouter([
   //   },
   // Admin routes
   {
-    path: "/admin/content-management",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <PracticeContentManagementPage />
-      </ProtectedRoute>
-    ),
+    path: "/content-management",
+    Component: PracticeContentManagementPage,
   },
   {
-    path: "/admin/content/listening/add",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <ListeningContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/listening/add",
+    Component: ListeningContentEditorPage,
   },
   {
-    path: "/admin/content/listening/edit/:exerciseId",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <ListeningContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/listening/edit/:exerciseId",
+    Component: ListeningContentEditorPage,
   },
   {
-    path: "/admin/content/reading/add",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <ReadingContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/reading/add",
+    Component: ReadingContentEditorPage,
   },
   {
-    path: "/admin/content/reading/edit/:exerciseId",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <ReadingContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/reading/edit/:exerciseId",
+    Component: ReadingContentEditorPage,
   },
   {
-    path: "/admin/content/writing/add",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <WritingContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/writing/add",
+    Component: WritingContentEditorPage,
   },
   {
-    path: "/admin/content/writing/edit/:exerciseId",
-    element: (
-      <ProtectedRoute allowedRoles={["administrator"]}>
-        <WritingContentEditorPage />
-      </ProtectedRoute>
-    ),
+    path: "/content/writing/edit/:exerciseId",
+    Component: WritingContentEditorPage,
   },
   //   {
-  //     path: "/admin/content/speaking/add",
+  //     path: "/content/speaking/add",
   //     element: (
   //       <ProtectedRoute allowedRoles={["administrator"]}>
   //         <SpeakingContentEditorPage />
@@ -174,7 +138,7 @@ export const router = createBrowserRouter([
   //     ),
   //   },
   //   {
-  //     path: "/admin/content/speaking/edit/:exerciseId",
+  //     path: "/content/speaking/edit/:exerciseId",
   //     element: (
   //       <ProtectedRoute allowedRoles={["administrator"]}>
   //         <SpeakingContentEditorPage />
@@ -189,17 +153,14 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  // Tutor routes
+  {
+    path: "/tutor/dashboard",
+    Component: TutorDashboardPage,
+  },
   // Catch-all route - redirect to home
   {
     path: "*",
     element: <Navigate to="/" replace />,
-  },
-  {
-    path: "/my-profile",
-    Component: MyProfilePage,
-  },
-  {
-    path: "/tutor/dashboard",
-    Component: TutorDashboardPage,
   },
 ]);

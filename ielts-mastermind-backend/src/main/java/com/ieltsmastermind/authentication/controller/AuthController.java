@@ -6,6 +6,7 @@ import com.ieltsmastermind.authentication.business.JwtUtils;
 import com.ieltsmastermind.authentication.domain.dto.*;
 import com.ieltsmastermind.common.response.ApiResponse;
 import com.ieltsmastermind.user.management.domain.entity.User;
+import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,6 @@ public class AuthController {
     private final AuthService authService;
 
     private final PasswordResetService passwordResetService;
-
-
 
     public AuthController(JwtUtils jwtUtils, AuthService authService, PasswordResetService passwordResetService) {
         this.jwtUtils = jwtUtils;
@@ -54,7 +53,7 @@ public class AuthController {
             String token = authService.login(request.getEmail(), request.getPassword());
 
             int maxAgeSeconds = (int) (jwtUtils.getExpirationMillis() / 1000);
-            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
+            Cookie cookie = new jakarta.servlet.http.Cookie("jwt", token);
             cookie.setHttpOnly(true);
             cookie.setSecure(false);
             cookie.setPath("/");
@@ -84,7 +83,7 @@ public class AuthController {
                 authService.logout(jwtCookie);
             }
 
-            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", null);
+            Cookie cookie = new Cookie("jwt", null);
             cookie.setHttpOnly(true);
             cookie.setSecure(false);
             cookie.setPath("/");

@@ -11,6 +11,7 @@ const initialBody: PracticeSubmissionPostBody = {
   userId: "",
   practiceContentId: "",
   timeSpentSeconds: 0,
+  learnerTestActivities: [],
 };
 
 const initialSubmission: PracticeSubmission = {
@@ -26,7 +27,7 @@ function mapPracticeSubmissionDTOToPracticeSubmission(
 }
 
 export function usePostUserSubmission(params?: PracticeSubmissionPostBody) {
-  const body = params ?? initialBody;
+  const defaultBody = params ?? initialBody;
 
   const {
     item: submission,
@@ -42,7 +43,7 @@ export function usePostUserSubmission(params?: PracticeSubmissionPostBody) {
     request: {
       apiBase: API_BASE,
       path: "/api/practice-submission",
-      body,
+      body: defaultBody,
     },
     initialItem: initialSubmission,
     mapItem: mapPracticeSubmissionDTOToPracticeSubmission,

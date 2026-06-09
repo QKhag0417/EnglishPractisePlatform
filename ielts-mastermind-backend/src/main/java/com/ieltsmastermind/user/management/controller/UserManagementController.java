@@ -26,7 +26,6 @@ public class UserManagementController {
         this.userService = userService;
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponseDto>> createUser(
             @Valid @RequestBody UserCreateRequestDto request
@@ -92,7 +91,6 @@ public class UserManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(
             @PathVariable String id,
@@ -114,7 +112,6 @@ public class UserManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteUser(
             @PathVariable String id

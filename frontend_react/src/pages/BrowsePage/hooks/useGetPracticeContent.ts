@@ -1,5 +1,7 @@
 import { API_BASE } from "../../../env";
 import { useApiGet } from "../../../utils/api/useApiGet";
+import { mapTopicTagApiToUi } from "../../ListeningContentEditorPage/types";
+import { mapQuestionApiTypeToUi } from "../../MyProfilePage/types";
 import {
   ExerciseMetadata,
   PracticeContentDTO,
@@ -19,8 +21,20 @@ function mapTime(arr?: number[]): string {
 }
 
 function mapTask(task: string): number {
-  const match = task.match(/(\d+)/);
-  return match ? Number(match[1]) : NaN;
+  switch (task) {
+    case "ALL":
+      return 0;
+    case "TASK_1":
+      return 1;
+    case "TASK_2":
+      return 2;
+    case "TASK_3":
+      return 3;
+    case "TASK_4":
+      return 4;
+    default:
+      return 0;
+  }
 }
 
 function mapPracticeContentDTOToExerciseMetadata(
@@ -33,8 +47,11 @@ function mapPracticeContentDTOToExerciseMetadata(
     attempts: dto.attemptCount ?? 0,
     image: dto.thumbnailUrl ?? "",
     task: mapTask(dto.task),
-    questionTypes: dto.questionTypeTags ?? [],
-    topics: dto.topicTags ?? [],
+    questionTypes:
+      dto.questionTypeTags?.map((type) =>
+        mapQuestionApiTypeToUi(dto.skill ?? "", type),
+      ) ?? [],
+    topics: dto.topicTags?.map(mapTopicTagApiToUi) ?? [],
     status: dto.status,
     updated: mapTime(dto.updatedOn),
     questions: dto.questionCount ?? 0,

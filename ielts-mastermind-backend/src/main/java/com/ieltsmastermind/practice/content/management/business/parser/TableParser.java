@@ -4,5 +4,5 @@ import com.ieltsmastermind.practice.content.management.domain.model.doc.TableNod
 
 public interface TableParser {
 
-    TableNode parseTable(String block);
+    TableNode parseTable(String block, ParseContext context);
 }

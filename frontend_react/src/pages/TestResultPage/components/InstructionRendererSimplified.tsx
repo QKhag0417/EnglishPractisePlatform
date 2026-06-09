@@ -41,14 +41,15 @@ type DocNode =
 
 function GapInput({ n }: { n: number }) {
   return (
-    <span className="inline-flex items-center gap-2 align-middle">
+    <span className="inline-flex max-w-full items-center gap-2 align-middle">
       <span className="flex items-center justify-center w-6 h-6 bg-[#1977f3] text-white rounded-full font-bold text-[12px] flex-shrink-0">
         {n}
       </span>
       <input
-        className="h-8 w-[220px] rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
+        className="h-8 min-w-0 flex-1 rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
         value={""}
         placeholder=""
+        readOnly
       />
     </span>
   );
@@ -185,6 +186,7 @@ function MultipleChoiceRender({
               type={isSinglePick ? "radio" : "checkbox"}
               name={isSinglePick ? `q-${node.n}` : undefined}
               className={inputClassName}
+              disabled
             />
 
             <span className="text-[14px] text-black font-semibold mr-2">

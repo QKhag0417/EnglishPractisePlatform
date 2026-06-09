@@ -18,7 +18,7 @@ export function useApiGet<TDto, TItem>(opts: {
     return () => abortRef.current?.abort();
   }, []);
 
-  const get = useCallback(async () => {
+  const get = useCallback(async (): Promise<TItem | null> => {
     abortRef.current?.abort();
 
     const controller = new AbortController();
@@ -35,20 +35,26 @@ export function useApiGet<TDto, TItem>(opts: {
         signal: controller.signal,
       });
 
-      if (controller.signal.aborted) return res;
+      if (controller.signal.aborted) {
+        return null;
+      }
 
       if (!res.ok) {
         setError(res.message);
-        return res;
+        throw new Error(res.message);
       }
 
-      if (res.data != null) {
-        setItem(mapItem(res.data));
+      if (res.data == null) {
+        const msg = "No data returned";
+        setError(msg);
+        throw new Error(msg);
       }
 
-      return res;
+      const mappedItem = mapItem(res.data);
+      setItem(mappedItem);
+      return mappedItem;
     } finally {
-      if (!controller.signal.aborted) setLoading(false);
+      setLoading(false);
     }
   }, [request.apiBase, request.path, request.include, mapItem]);
 

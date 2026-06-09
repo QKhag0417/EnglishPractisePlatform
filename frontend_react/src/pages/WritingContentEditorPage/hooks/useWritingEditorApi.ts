@@ -5,14 +5,13 @@ import { apiPost } from "../../../utils/api/apiPost";
 import { apiPut } from "../../../utils/api/apiPut";
 
 export function useWritingEditorApi() {
-
   // ================================
   // Get detail (edit mode)
   // ================================
   const fetchDetail = async (id: string) => {
     const result = await apiGet<any>({
       apiBase: API_BASE,
-      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,topicTags,thumbnailUrl,durationMinutes,createdOn,updatedOn,status,imageurls`,
+      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,durationMinutes,createdOn,updatedOn,status,imageurls`,
     });
 
     if (!result.ok) {
@@ -64,8 +63,6 @@ export function useWritingEditorApi() {
     return result.data; // thumbnailUrl
   };
 
-
-
   // ================================
   // Delete Image
   // ================================
@@ -104,8 +101,6 @@ export function useWritingEditorApi() {
     return true;
   };
 
-
-
   // ================================
   // Create content
   // ================================
@@ -140,16 +135,13 @@ export function useWritingEditorApi() {
     return result.data;
   };
 
-
-
-
   // ================================
   //  Save (auto detect create/update)
   // ================================
   const saveContent = async (
     payload: any,
     isEditMode: boolean,
-    editId?: string
+    editId?: string,
   ) => {
     if (isEditMode && editId) {
       return await updateContent(editId, payload);
@@ -157,7 +149,6 @@ export function useWritingEditorApi() {
 
     return await createContent(payload);
   };
-
 
   return {
     fetchDetail,
@@ -170,6 +161,5 @@ export function useWritingEditorApi() {
     createContent,
     updateContent,
     saveContent,
-
   };
 }

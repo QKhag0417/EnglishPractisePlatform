@@ -13,14 +13,15 @@ import java.util.regex.Pattern;
 @Component
 public class TableParserImpl implements TableParser {
 
-    // Equivalent of: /\[row\]([\s\S]*?)\[\/row\]/g
+    // [row]...[/row]
     private static final Pattern ROW_RE = Pattern.compile("\\[row\\]([\\s\\S]*?)\\[/row\\]");
 
-    // Equivalent of: /\[cell([^\]]*)\]([\s\S]*?)\[\/cell\]/g
+    // [cell ...]...[/cell]
     private static final Pattern CELL_RE = Pattern.compile("\\[cell([^\\]]*)\\]([\\s\\S]*?)\\[/cell\\]");
 
-    // Equivalent of: /^\[table([^\]]*)\]/
-    private static final Pattern TABLE_OPEN_RE = Pattern.compile("^\\[table([^\\]]*)\\]");
+    // exact [table]
+    private static final String TABLE_OPEN = "[table]";
+    private static final String TABLE_CLOSE = "[/table]";
 
     private final AttrsParser attrsParser;
     private final InlineParser inlineParser;
@@ -32,15 +33,10 @@ public class TableParserImpl implements TableParser {
     }
 
     @Override
-    public TableNode parseTable(String block) {
-        Matcher openM = TABLE_OPEN_RE.matcher(block);
-        int openLen = 0;
-        if (openM.find()) {
-            openLen = openM.group(0).length();
-            // String tableAttrsRaw = openM.group(1); // if you ever need it
-        }
+    public TableNode parseTable(String block, ParseContext context) {
+        int openLen = block.startsWith(TABLE_OPEN) ? TABLE_OPEN.length() : 0;
 
-        int closeIndex = block.lastIndexOf("[/table]");
+        int closeIndex = block.lastIndexOf(TABLE_CLOSE);
         if (closeIndex < 0) closeIndex = block.length(); // defensive fallback
 
         String inner = block.substring(openLen, closeIndex);
@@ -68,15 +64,15 @@ public class TableParserImpl implements TableParser {
                     }
                 }
 
-                List<InlineNode> content = inlineParser.parseInline(cm.group(2).trim());
+                List<InlineNode> content = inlineParser.parseInline(cm.group(2).trim(), context);
                 cells.add(new TableNode.TableCellNode(colspan, content));
             }
 
-            // Optional shortcut: allow [row]Some text [gap:1][/row] (no explicit [cell])
+            // Optional shortcut: allow [row]Some text [gap][/row] (no explicit [cell])
             if (cells.isEmpty()) {
                 cells.add(new TableNode.TableCellNode(
                         null,
-                        inlineParser.parseInline(rowInner.trim())
+                        inlineParser.parseInline(rowInner.trim(), context)
                 ));
             }
 
@@ -85,5 +81,4 @@ public class TableParserImpl implements TableParser {
 
         return new TableNode(rows);
     }
-
 }

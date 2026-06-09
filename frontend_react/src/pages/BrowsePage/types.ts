@@ -1,5 +1,9 @@
+import { BackendTopicTag, TopicTag } from "../ListeningContentEditorPage/types";
+import { BackendQuestionType, UIQuestionType } from "../MyProfilePage/types";
+
 export type TaskFilter = "all" | number;
-export type TagFilter = "all" | string;
+export type TagFilter = "all" | UIQuestionType;
+export type TopicFilter = "all" | TopicTag;
 
 export type SortBy = "newest" | "oldest" | "attempts" | "a-z" | "z-a";
 
@@ -10,8 +14,8 @@ export interface ExerciseMetadata {
   attempts: number;
   image: string;
   task: number;
-  questionTypes: string[];
-  topics: string[];
+  questionTypes: UIQuestionType[];
+  topics: TopicTag[];
   status: "DRAFT" | "PUBLISHED" | string;
   updated: string;
   questions: number;
@@ -41,9 +45,9 @@ export interface PracticeContentDTO {
   skill: "LISTENING" | "READING" | "WRITING" | "SPEAKING" | string;
   title: string;
   thumbnailUrl: string;
-  task: "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
-  questionTypeTags: string[];
-  topicTags: string[];
+  task: "ALL" | "TASK_1" | "TASK_2" | "TASK_3" | "TASK_4" | string;
+  questionTypeTags: BackendQuestionType[];
+  topicTags: BackendTopicTag[];
   status: "DRAFT" | "PUBLISHED" | string;
   updatedOn: number[];
   questionCount: number;

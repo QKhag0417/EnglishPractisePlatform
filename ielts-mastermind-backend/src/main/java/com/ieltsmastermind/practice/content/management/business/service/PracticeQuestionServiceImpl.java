@@ -44,6 +44,7 @@ public class PracticeQuestionServiceImpl implements PracticeQuestionService {
 
         question.setOrderIndex(request.getOrderIndex());
         question.setType(request.getType());
+        question.setTopicTag(request.getTopicTag());
 
         question.setCorrectAnswers(
                 request.getCorrectAnswers() != null
@@ -88,6 +89,7 @@ public class PracticeQuestionServiceImpl implements PracticeQuestionService {
 
         if (request.getOrderIndex() != null) question.setOrderIndex(request.getOrderIndex());
         if (request.getType() != null) question.setType(request.getType());
+        if (request.getTopicTag() != null) question.setTopicTag(request.getTopicTag());
         if (request.getCorrectAnswers() != null) question.setCorrectAnswers(request.getCorrectAnswers());
 
         PracticeQuestion saved = practiceQuestionRepository.save(question);
@@ -110,6 +112,7 @@ public class PracticeQuestionServiceImpl implements PracticeQuestionService {
     private void applyIncludes(PracticeQuestion content, PracticeQuestionResponseDto dto, IncludeSpec includes) {
         if (includes.has("orderindex")) dto.setOrderIndex(content.getOrderIndex());
         if (includes.has("type")) dto.setType(content.getType());
+        if (includes.has("topictag")) dto.setTopicTag(content.getTopicTag());
         if (includes.has("correctanswers")) dto.setCorrectAnswers(content.getCorrectAnswers());
     }
 }

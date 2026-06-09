@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface InlineParser {
 
-    List<InlineNode> parseInline(String text);
+    List<InlineNode> parseInline(String text, ParseContext context);
 }

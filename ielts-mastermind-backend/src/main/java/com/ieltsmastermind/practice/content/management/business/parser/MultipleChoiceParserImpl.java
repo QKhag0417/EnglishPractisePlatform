@@ -26,7 +26,7 @@ public class MultipleChoiceParserImpl implements MultipleChoiceParser {
     }
 
     @Override
-    public MultipleChoiceNode parseMultipleChoice(String block) {
+    public MultipleChoiceNode parseMultipleChoice(String block, ParseContext context) {
         Matcher openM = MC_OPEN_RE.matcher(block);
         int openLen = 0;
         String openAttrsStr = "";
@@ -43,16 +43,6 @@ public class MultipleChoiceParserImpl implements MultipleChoiceParser {
 
         Map<String, String> attrs = attrsParser.parseAttrs(openAttrsStr);
 
-        int n = -1;
-        String nStr = attrs.get("n");
-        if (nStr != null) {
-            try {
-                n = Integer.parseInt(nStr);
-            } catch (NumberFormatException ignored) {
-                n = -1;
-            }
-        }
-
         int pick = 1;
         String pickStr = attrs.get("pick");
         if (pickStr != null) {
@@ -63,6 +53,11 @@ public class MultipleChoiceParserImpl implements MultipleChoiceParser {
             }
         }
         if (pick < 1) pick = 1;
+
+        int n = context.nextQuestionNumber();
+        for (int i = 1; i < pick; i++) {
+            context.nextQuestionNumber();
+        }
 
         List<MultipleChoiceNode.MultipleChoiceOption> options = new ArrayList<>();
 

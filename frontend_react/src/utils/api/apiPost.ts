@@ -30,8 +30,8 @@ export async function apiPost<T>(params: {
         body === undefined
           ? undefined
           : isFormData
-          ? (body as BodyInit)
-          : JSON.stringify(body),
+            ? (body as BodyInit)
+            : JSON.stringify(body),
     });
 
     let json: ApiResponse<T> | null = null;
@@ -57,17 +57,6 @@ export async function apiPost<T>(params: {
     (ok ? console.info : console.error)("[apiPost]", result);
     return result;
   } catch (e: any) {
-    if (e?.name === "AbortError") {
-      const result: ApiResult<T> = {
-        ok: false,
-        data: null,
-        message: "Request aborted",
-        url: url.toString(),
-      };
-      console.info("[apiPost]", result);
-      return result;
-    }
-
     const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,

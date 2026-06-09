@@ -3,6 +3,7 @@ package com.ieltsmastermind.practice.attempt.management.domain.entity;
 import com.ieltsmastermind.practice.attempt.management.domain.enums.Result;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(
         name = "user_practice_submission_answer",

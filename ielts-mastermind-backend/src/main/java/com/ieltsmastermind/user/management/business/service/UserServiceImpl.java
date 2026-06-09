@@ -125,6 +125,10 @@ public class UserServiceImpl implements UserService {
         if (request.getTimezone() != null) user.setTimezone(request.getTimezone());
         if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
         if (request.getTargetBand() != null) user.setTargetBand(request.getTargetBand());
+        if (request.getTargetListeningBand() != null) user.setTargetListeningBand(request.getTargetListeningBand());
+        if (request.getTargetReadingBand() != null) user.setTargetReadingBand(request.getTargetReadingBand());
+        if (request.getTargetWritingBand() != null) user.setTargetWritingBand(request.getTargetWritingBand());
+        if (request.getTargetSpeakingBand() != null) user.setTargetSpeakingBand(request.getTargetSpeakingBand());
         if (request.getExamDate() != null) user.setExamDate(request.getExamDate());
         if (request.getRole() != null) user.setRole(request.getRole());
         if (request.getIsActive() != null) user.setIsActive(request.getIsActive());
@@ -143,6 +147,29 @@ public class UserServiceImpl implements UserService {
     public void delete(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        new ArrayList<>(user.getPracticeSubmissions())
+                .forEach(practiceSubmission -> {
+                    practiceSubmission.setUserId(null);
+                    practiceSubmission.setUser(null);
+                });
+
+        new ArrayList<>(user.getPracticeContentProgresses())
+                .forEach(progress -> {
+                    progress.setUserId(null);
+                    progress.setUser(null);
+                });
+
+        new ArrayList<>(user.getSubmissionFeedbacks())
+                .forEach(feedback -> feedback.setAuthor(null));
+
+        new ArrayList<>(user.getLearnerStudyPlans())
+                .forEach(studyPlan -> studyPlan.setUser(null));
+
+        new ArrayList<>(user.getSubmissionAnalytics())
+                .forEach(analytics -> analytics.setUser(null));
+
+        userRepository.flush();
 
         userRepository.delete(user);
     }
@@ -183,6 +210,10 @@ public class UserServiceImpl implements UserService {
         if (includes.has("timezone")) dto.setTimezone(user.getTimezone());
         if (includes.has("avatarurl")) dto.setAvatarUrl(user.getAvatarUrl());
         if (includes.has("targetband")) dto.setTargetBand(user.getTargetBand());
+        if (includes.has("targetlisteningband")) dto.setTargetListeningBand(user.getTargetListeningBand());
+        if (includes.has("targetreadingband")) dto.setTargetReadingBand(user.getTargetReadingBand());
+        if (includes.has("targetwritingband")) dto.setTargetWritingBand(user.getTargetWritingBand());
+        if (includes.has("targetspeakingband")) dto.setTargetSpeakingBand(user.getTargetSpeakingBand());
         if (includes.has("examdate")) dto.setExamDate(user.getExamDate());
     }
 }

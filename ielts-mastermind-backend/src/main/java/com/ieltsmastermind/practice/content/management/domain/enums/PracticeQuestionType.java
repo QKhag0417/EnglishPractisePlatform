@@ -2,6 +2,7 @@ package com.ieltsmastermind.practice.content.management.domain.enums;
 
 public enum PracticeQuestionType {
 
+    // Listening
     MULTIPLE_CHOICE,
     MATCHING,
     PLAN_LABELLING,
@@ -15,12 +16,29 @@ public enum PracticeQuestionType {
     SENTENCE_COMPLETION,
     SHORT_ANSWER_QUESTIONS,
 
+    // Reading
     IDENTIFYING_INFORMATION_TRUE_FALSE_NOT_GIVEN,
     IDENTIFYING_WRITERS_VIEWS_CLAIMS_YES_NO_NOT_GIVEN,
     MATCHING_INFORMATION,
     MATCHING_HEADINGS,
     MATCHING_FEATURES,
     MATCHING_SENTENCE_ENDINGS,
-    DIAGRAM_LABEL_COMPLETION
+    DIAGRAM_LABEL_COMPLETION,
 
+    // Writing Task 1
+    LINE_GRAPH,
+    BAR_CHART,
+    PIE_CHART,
+    TABLE,
+    PROCESS_DIAGRAM,
+    MAP,
+    MIXED_VISUALS,
+
+    // Writing Task 2
+    AGREE_DISAGREE,
+    OPINION,
+    DISCUSSION,
+    PROBLEM_SOLUTION,
+    ADVANTAGES_DISADVANTAGES,
+    TWO_PART_QUESTION
 }

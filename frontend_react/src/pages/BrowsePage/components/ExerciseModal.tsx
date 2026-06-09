@@ -12,6 +12,7 @@ import { useNavigate } from "react-router";
 import { ExerciseMetadata } from "../types";
 import { buildImageUrl } from "../utils/buildImageUrl";
 import { useAuth } from "../../../contexts/AuthContext";
+import { formatTaskLabel } from "../utils";
 
 interface ExerciseModalProps {
   exerciseMetadata: ExerciseMetadata;
@@ -133,7 +134,7 @@ export function ExerciseModal({
                 </p>
                 <div className="flex gap-[8px] flex-wrap">
                   <span className="px-[12px] py-[4px] bg-[#fcbf65] rounded-[6px] font-['Inter'] text-[14px] text-black">
-                    Task {exerciseMetadata.task}
+                    {formatTaskLabel(exerciseMetadata.task)}
                   </span>
                 </div>
               </div>

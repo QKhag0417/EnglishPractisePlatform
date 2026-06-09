@@ -1,47 +1,74 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Args = {
   durationMinutes: number;
-  isRunning: boolean;
-  onExpire?: () => void;
 };
 
-export function useCountdownTimer({
-  durationMinutes,
-  isRunning,
-  onExpire,
-}: Args) {
-  const initialSeconds = useMemo(() => {
+export function useCountdownTimer({ durationMinutes }: Args) {
+  const initialMs = useMemo(() => {
     const mins = Number.isFinite(durationMinutes) ? durationMinutes : 0;
-    return Math.max(0, mins) * 60;
+    return Math.max(0, mins) * 60 * 1000;
   }, [durationMinutes]);
 
-  const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const [secondsRemaining, setSecondsRemaining] = useState(
+    Math.ceil(initialMs / 1000),
+  );
 
-  // Check if countdown timer should start
+  const [isExpired, setIsExpired] = useState(false);
+
+  const endTimeRef = useRef<number | null>(null);
+  const remainingMsRef = useRef(initialMs);
+
+  const getElapsedMs = useCallback(() => {
+    return Math.max(
+      0,
+      Math.min(initialMs, Math.round(initialMs - remainingMsRef.current)),
+    );
+  }, [initialMs]);
+
   useEffect(() => {
-    if (isRunning) {
-      setSecondsRemaining(initialSeconds);
+    if (initialMs <= 0) {
+      remainingMsRef.current = 0;
+      endTimeRef.current = null;
+      setSecondsRemaining(0);
+      setIsExpired(false);
+      return;
     }
-  }, [isRunning, initialSeconds]);
 
-  // Countdown tick
-  useEffect(() => {
-    if (!isRunning) return;
+    remainingMsRef.current = initialMs;
+    endTimeRef.current = performance.now() + initialMs;
+    setSecondsRemaining(Math.ceil(initialMs / 1000));
+    setIsExpired(false);
 
-    const timer = window.setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          window.clearInterval(timer);
-          onExpire?.();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const tick = () => {
+      if (endTimeRef.current === null) return;
 
-    return () => window.clearInterval(timer);
-  }, [isRunning, secondsRemaining, onExpire]);
+      const remaining = Math.max(0, endTimeRef.current - performance.now());
+      remainingMsRef.current = remaining;
+      setSecondsRemaining(Math.ceil(remaining / 1000));
 
-  return { secondsRemaining, setSecondsRemaining };
+      if (remaining <= 0) {
+        setIsExpired(true);
+        endTimeRef.current = null;
+      }
+    };
+
+    tick();
+
+    const timer = window.setInterval(tick, 250);
+
+    return () => {
+      window.clearInterval(timer);
+
+      if (endTimeRef.current !== null) {
+        remainingMsRef.current = Math.max(
+          0,
+          endTimeRef.current - performance.now(),
+        );
+        endTimeRef.current = null;
+      }
+    };
+  }, [initialMs]);
+
+  return { secondsRemaining, getElapsedMs, isExpired };
 }

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Pause, Play, Volume2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { PauseCircle, PlayCircle, Volume2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
@@ -9,13 +9,13 @@ import { API_BASE } from "../../../env.ts";
 import {
   useGetListeningExercise,
   useCountdownTimer,
-  useSubmitModal,
   useUserAnswer,
   useAudioPlayer,
   useExitModal,
   usePostUserSubmission,
   usePostUserAnswersBulk,
   usePostUserPracticeContentProgressAttemptIncrement,
+  useTestActivityLogger,
 } from "../hooks/index.ts";
 
 import { formatTime, buildAudioUrl } from "../utils";
@@ -53,41 +53,49 @@ export function ListeningTestScreen({ exerciseId }: Props) {
   // User Answers
   // =========================
 
-  const userAnswer = useUserAnswer({});
+  const userAnswer = useUserAnswer({
+    answerCount: getListeningExercise.exercise.totalQuestions,
+  });
 
   // =========================
   // Countdown Timer
   // =========================
 
-  const onExpireRef = useRef<() => void>(() => {});
-
   const countdownTimer = useCountdownTimer({
     durationMinutes: getListeningExercise.exercise.duration,
-    isRunning: getListeningExercise.exercise.duration > 0,
-    onExpire: () => onExpireRef.current(),
   });
+
+  // =========================
+  // Test Activity Logger
+  // =========================
+
+  const testActivityLogger = useTestActivityLogger({
+    getElapsedMs: countdownTimer.getElapsedMs,
+  });
+
+  // =========================
+  // Log test start activity on component mount
+  // =========================
+
+  useEffect(() => {
+    if (!exerciseId) return;
+
+    testActivityLogger.logActivity({
+      activityType: "TEST_START",
+    });
+  }, [exerciseId]);
 
   // =========================
   // Post User Submission
   // =========================
 
-  const postUserSubmission = usePostUserSubmission({
-    userId: user?.id || "",
-    practiceContentId: exerciseId,
-    timeSpentSeconds:
-      getListeningExercise.exercise.duration * 60 -
-      countdownTimer.secondsRemaining,
-  });
+  const postUserSubmission = usePostUserSubmission();
 
   // =========================
   // Post User Answers Bulk
   // =========================
 
-  const postUserAnswersBulk = usePostUserAnswersBulk({
-    userPracticeSubmissionId:
-      postUserSubmission.submission.practiceSubmissionId || "",
-    answers: userAnswer.answers,
-  });
+  const postUserAnswersBulk = usePostUserAnswersBulk();
 
   // =========================
   // Post User Attempt Increment
@@ -103,19 +111,49 @@ export function ListeningTestScreen({ exerciseId }: Props) {
   // Submit Modal
   // =========================
 
-  const submitModal = useSubmitModal({
-    onGoToResults: () =>
-      navigate(
-        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
-      ),
-    onPostSubmission: postUserSubmission.post,
-    onPostSubmissionAnswers: postUserAnswersBulk.post,
-    onPostAttemptIncrement: postAttemptIncrement.post,
-  });
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  const openSubmitModal = useCallback(() => setShowSubmitModal(true), []);
+  const cancelSubmitModal = useCallback(() => setShowSubmitModal(false), []);
+
+  const confirmSubmit = async () => {
+    testActivityLogger.logActivity({
+      activityType: "TEST_SUBMIT",
+    });
+
+    const submission = await postUserSubmission.post({
+      userId: user?.id || "",
+      practiceContentId: exerciseId,
+      timeSpentSeconds:
+        getListeningExercise.exercise.duration * 60 -
+        countdownTimer.secondsRemaining,
+      learnerTestActivities: testActivityLogger.getQueuedActivities(),
+    });
+
+    const submissionId = submission?.practiceSubmissionId;
+
+    await postUserAnswersBulk.post({
+      userPracticeSubmissionId: submissionId || "",
+      answers: Object.entries(userAnswer.answers)
+        .map(([orderIndex, answers]) => ({
+          orderIndex: Number(orderIndex),
+          answers: answers ?? [],
+        }))
+        .filter((row) => Number.isFinite(row.orderIndex))
+        .sort((a, b) => a.orderIndex - b.orderIndex),
+    });
+
+    await postAttemptIncrement.post();
+
+    setShowSubmitModal(false);
+    navigate(`/test/result/${submissionId}`);
+  };
 
   useEffect(() => {
-    onExpireRef.current = submitModal.openSubmitModal;
-  }, [submitModal.openSubmitModal]);
+    if (countdownTimer.isExpired) {
+      openSubmitModal();
+    }
+  }, [countdownTimer.isExpired, openSubmitModal]);
 
   // =========================
   // Audio Player
@@ -170,25 +208,24 @@ export function ListeningTestScreen({ exerciseId }: Props) {
           src={buildAudioUrl(
             API_BASE,
             getListeningExercise.exercise.audioUrl || "",
-          )} // TODO: handle missing audioUrl case better
+          )}
           preload="metadata"
           onLoadedMetadata={audioPlayer.handleLoadedMetadata}
           onTimeUpdate={audioPlayer.handleTimeUpdate}
           onEnded={audioPlayer.handleEnded}
         />
 
-        <div className="bg-[#f5f5dc] border border-gray-300 rounded-lg p-6 mb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={audioPlayer.togglePlay}
-                className="bg-[#fcbf65] hover:bg-[#e5ab52] text-white p-3 rounded-full transition-colors"
-                type="button"
+                className="w-[44px] h-[44px] rounded-full bg-[#1977f3] hover:bg-[#1567d3] flex items-center justify-center transition-colors flex-shrink-0"
               >
                 {audioPlayer.isPlaying ? (
-                  <Pause className="w-6 h-6" />
+                  <PauseCircle className="w-[24px] h-[24px] text-white" />
                 ) : (
-                  <Play className="w-6 h-6" />
+                  <PlayCircle className="w-[24px] h-[24px] text-white" />
                 )}
               </button>
 
@@ -213,7 +250,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
             aria-valuenow={Math.round(audioPlayer.audioProgress)}
           >
             <div
-              className="bg-[#fcbf65] h-2 rounded-full transition-all"
+              className="bg-[#1977f3] h-2 rounded-full transition-all"
               style={{ width: `${audioPlayer.audioProgress}%` }}
             />
           </div>
@@ -225,6 +262,7 @@ export function ListeningTestScreen({ exerciseId }: Props) {
             instruction={getListeningExercise.exercise.examText}
             userAnswers={userAnswer.answers}
             onAnswerChange={userAnswer.onAnswerChange}
+            onLogActivity={testActivityLogger.logActivity}
           />
         </div>
 
@@ -236,16 +274,14 @@ export function ListeningTestScreen({ exerciseId }: Props) {
             }).map((_, index) => {
               const answer = userAnswer.answers[index + 1];
 
-              const isAnswered = (answer?.length ?? 0) > 0;
-
-              const isCurrent = userAnswer.currentQuestionIndex === index;
+              const isAnswered = (answer?.[0]?.length ?? 0) > 0;
 
               return (
                 <button
                   key={index}
                   className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
 ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
-${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
+`}
                 >
                   {index + 1}
                 </button>
@@ -254,7 +290,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
           </div>
 
           <button
-            onClick={submitModal.openSubmitModal}
+            onClick={openSubmitModal}
             className="bg-[#fcbf65] hover:bg-[#e5ab52] text-black px-10 py-3 rounded-lg font-bold text-[18px] transition-colors"
           >
             Submit
@@ -263,7 +299,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
       </div>
 
       {/* Submit Confirmation Modal */}
-      {submitModal.showSubmitModal && (
+      {showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
@@ -277,14 +313,14 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
-                  onClick={() => submitModal.setShowSubmitModal(false)} // TODO: check this again
+                  onClick={() => setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                 >
                   Continue Test
                 </button>
               )}
               <button
-                onClick={submitModal.confirmSubmit}
+                onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
               >
                 Submit

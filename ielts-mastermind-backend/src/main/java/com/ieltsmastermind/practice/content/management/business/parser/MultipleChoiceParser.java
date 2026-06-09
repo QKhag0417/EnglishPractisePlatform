@@ -4,5 +4,5 @@ import com.ieltsmastermind.practice.content.management.domain.model.doc.Multiple
 
 public interface MultipleChoiceParser {
 
-    MultipleChoiceNode parseMultipleChoice(String block);
+    MultipleChoiceNode parseMultipleChoice(String block, ParseContext context);
 }

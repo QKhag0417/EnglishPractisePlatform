@@ -49,6 +49,12 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         if (request.getSkill() == PracticeContentSkill.LISTENING) {
             ListeningPracticeContent listening = new ListeningPracticeContent();
             listening.setAudioUrl(request.getAudioUrl());
+
+            listening.setTranscript(request.getTranscript());
+            List<DocNode> transcriptNodes = instructionParser.parseInstruction(request.getTranscript());
+            JsonNode transcriptParsedJson = jsonConverter.toJsonNode(transcriptNodes);
+            listening.setTranscriptParsed(transcriptParsedJson);
+
             content = listening;
 
         } else if (request.getSkill() == PracticeContentSkill.READING) {
@@ -179,6 +185,13 @@ public class PracticeContentServiceImpl implements PracticeContentService {
             if (request.getAudioUrl() != null) {
                 listening.setAudioUrl(request.getAudioUrl());
             }
+
+            if (request.getTranscript() != null) {
+                listening.setTranscript(request.getTranscript());
+                List<DocNode> transcriptNodes = instructionParser.parseInstruction(request.getTranscript());
+                JsonNode transcriptParsedJson = jsonConverter.toJsonNode(transcriptNodes);
+                listening.setTranscriptParsed(transcriptParsedJson);
+            }
         } else if (content instanceof ReadingPracticeContent reading) {
             if (request.getPassage() != null) {
                 reading.setPassage(request.getPassage());
@@ -189,7 +202,6 @@ public class PracticeContentServiceImpl implements PracticeContentService {
         }
 
         content.setThumbnailUrl(request.getThumbnailUrl());
-
 
         PracticeContent savedContent = practiceContentRepository.save(content);
 
@@ -229,7 +241,15 @@ public class PracticeContentServiceImpl implements PracticeContentService {
                 fileUploadService.deleteImageByUrl(dto);
             }
         }
-        //  Let JPA cascade handle everything else
+
+        new ArrayList<>(content.getSubmissions())
+                .forEach(submission -> {
+                    submission.setPracticeContentId(null);
+                    submission.setPracticeContent(null);
+                });
+
+        practiceContentRepository.flush();
+
         practiceContentRepository.delete(content);
     }
 
@@ -252,6 +272,8 @@ public class PracticeContentServiceImpl implements PracticeContentService {
 
         if (content instanceof ListeningPracticeContent listening) {
             if (includes.has("audiourl")) dto.setAudioUrl(listening.getAudioUrl());
+            if (includes.has("transcript")) dto.setTranscript(listening.getTranscript());
+            if (includes.has("transcriptparsed")) dto.setTranscriptParsed(listening.getTranscriptParsed());
         } else if (content instanceof ReadingPracticeContent reading) {
             if (includes.has("passage")) dto.setPassage(reading.getPassage());
             if (includes.has("passageparsed")) dto.setPassageParsed(reading.getPassageParsed());

@@ -6,10 +6,7 @@ interface Props {
   setPassageText: (value: string) => void;
 }
 
-export function PassageEditorBlock({
-  passageText,
-  setPassageText,
-}: Props) {
+export function PassageEditorBlock({ passageText, setPassageText }: Props) {
   return (
     <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
       <Label className="font-['Inter'] font-semibold text-[16px] text-gray-900 mb-[16px] block">
@@ -18,8 +15,6 @@ export function PassageEditorBlock({
 
       {/* Passage Text */}
       <div>
-
-
         <Textarea
           value={passageText}
           onChange={(e) => setPassageText(e.target.value)}

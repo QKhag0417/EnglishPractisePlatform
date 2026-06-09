@@ -21,7 +21,6 @@ public class FileUploadController {
         this.fileUploadService = fileUploadService;
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping(value = "/thumbnails", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadThumbnail(@RequestParam("file") MultipartFile file) {
         try {
@@ -40,7 +39,6 @@ public class FileUploadController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping(value = "/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadAudio(@RequestParam("file") MultipartFile file) {
         try {
@@ -81,7 +79,6 @@ public class FileUploadController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/thumbnails")
     public ResponseEntity<ApiResponse<Void>> deleteThumbnail(
             @Valid @RequestBody FileDeleteRequestDto request
@@ -100,7 +97,6 @@ public class FileUploadController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/audio")
     public ResponseEntity<ApiResponse<Void>> deleteAudio(
             @Valid @RequestBody FileDeleteRequestDto request
@@ -121,7 +117,6 @@ public class FileUploadController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadImage(
             @RequestParam("file") MultipartFile file
@@ -144,7 +139,6 @@ public class FileUploadController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/images")
     public ResponseEntity<ApiResponse<Void>> deleteImage(
             @Valid @RequestBody FileDeleteRequestDto request

@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPut } from "./apiPut";
 
 export function useApiPut<TDto, TItem, TBody = unknown>(opts: {
-  request: { apiBase: string; path: string; body?: TBody };
+  request: {
+    apiBase: string;
+    path: string;
+    body?: TBody;
+    isFormData?: boolean;
+  };
   mapItem: (dto: TDto) => TItem;
   initialItem: TItem;
 }) {
@@ -18,41 +23,49 @@ export function useApiPut<TDto, TItem, TBody = unknown>(opts: {
     return () => abortRef.current?.abort();
   }, []);
 
-  const put = useCallback(async () => {
-    const controller = new AbortController();
-    abortRef.current = controller;
+  const put = useCallback(
+    async (body?: TBody): Promise<TItem | null> => {
+      abortRef.current?.abort();
 
-    setLoading(true);
-    setError(null);
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-    const promise = (async () => {
+      setLoading(true);
+      setError(null);
+
       try {
         const res = await apiPut<TDto>({
           apiBase: request.apiBase,
           path: request.path,
-          body: request.body,
+          body: body ?? request.body,
           signal: controller.signal,
+          isFormData: request.isFormData,
         });
 
-        if (controller.signal.aborted) return res;
+        if (controller.signal.aborted) {
+          return null;
+        }
 
         if (!res.ok) {
           setError(res.message);
-          return res;
+          throw new Error(res.message);
         }
 
-        if (res.data != null) {
-          setItem(mapItem(res.data));
+        if (res.data == null) {
+          const msg = "No data returned";
+          setError(msg);
+          throw new Error(msg);
         }
 
-        return res;
+        const mappedItem = mapItem(res.data);
+        setItem(mappedItem);
+        return mappedItem;
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        setLoading(false);
       }
-    })();
-
-    return promise;
-  }, [request.apiBase, request.path, request.body, mapItem]);
+    },
+    [request.apiBase, request.path, request.body, request.isFormData, mapItem],
+  );
 
   return { item, setItem, loading, error, put };
 }

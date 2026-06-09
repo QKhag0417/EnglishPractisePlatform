@@ -18,25 +18,24 @@ export function usePracticeContentApi() {
   ): Promise<ApiResult<PracticeContentMetadata[]>> => {
     return apiGet<PracticeContentMetadata[]>({
       apiBase: API_BASE,
-      path:
-        "/api/practice-content?include=id,title,skill,updatedOn,questionCount,durationMinutes,status",
+      path: "/api/practice-content?include=id,title,skill,updatedOn,questionCount,durationMinutes,status,attemptCount",
       signal,
     });
   };
 
   const deletePracticeContent = async (
-      id: string,
-      signal?: AbortSignal
-    ): Promise<ApiResult<null>> => {
-      return apiDelete<null>({
-        apiBase: API_BASE,
-        path: `/api/practice-content/${id}`,
-        signal,
-      });
-    };
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<ApiResult<null>> => {
+    return apiDelete<null>({
+      apiBase: API_BASE,
+      path: `/api/practice-content/${id}`,
+      signal,
+    });
+  };
 
   return {
-      fetchMetadata,
-      deletePracticeContent,
+    fetchMetadata,
+    deletePracticeContent,
   };
 }

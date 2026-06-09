@@ -1,14 +1,11 @@
-import { NavBarLearner } from "../../../components/NavBar";
 import { Footer } from "../../../components/Footer";
-import { useAuth } from "../../../contexts/AuthContext.tsx";
-
 import {
   formatTime,
   indexByOrderIndex,
   mapPracticeSkill,
   formatLocalDateTime,
 } from "../utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   useGetPracticeContentAnswers,
   useGetPracticeSubmission,
@@ -16,7 +13,26 @@ import {
   useGetPracticeContent,
   useGetUserData,
 } from "../hooks";
-import { CheckCircle, Clock, Key, Target, TrendingUp } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  Key,
+  MinusCircle,
+  Target,
+  TrendingUp,
+  User,
+} from "lucide-react";
+import {
+  FeedbackSection,
+  ReviewListening,
+  ReviewReading,
+  TutorStatusButtons,
+} from "./index.ts";
+import { Badge } from "../../../components/ui/badge.tsx";
+import { NavBarUnified } from "../../../components/NavBarUnified.tsx";
+import { useAuth } from "../../../contexts/AuthContext.tsx";
+import { TutorStatus } from "../types.ts";
 
 type Props = {
   submissionId: string;
@@ -27,7 +43,24 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
   // Auth
   // =========================
 
-  const { logout: onLogout } = useAuth();
+  const { user } = useAuth();
+
+  const isTutor = user?.role === "tutor";
+
+  // =========================
+  // State for current tutor status
+  // =========================
+
+  const [currentTutorStatus, setCurrentTutorStatus] =
+    useState<TutorStatus | null>(null);
+
+  // =========================
+  // Show feedback section only when tutor status is not pending
+  // =========================
+
+  const showFeedbackSection =
+    !isTutor ||
+    (currentTutorStatus !== null && currentTutorStatus !== "PENDING");
 
   // =========================
   // Get practice submission data
@@ -54,6 +87,9 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
     if (!practiceContentId) return;
     getPracticeContent.get();
   }, [practiceContentId, getPracticeContent.get]);
+
+  const isListening = getPracticeContent.practiceContent?.skill === "LISTENING";
+  const isReading = getPracticeContent.practiceContent?.skill === "READING";
 
   // =========================
   // Get practice content answers data
@@ -121,45 +157,70 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header - Using NavBarLearner */}
-      <NavBarLearner onLogout={onLogout} />
+      {/* Header  */}
+      <NavBarUnified />
 
       {/* Header Section */}
       <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-[1800px] mx-auto">
           <div className="flex items-center justify-between">
             {/* Left */}
             <div>
               <div className="flex items-center gap-[12px] mb-[4px]">
-                <h1 className="font-['Inter'] text-[28px] text-gray-900">
+                <h1
+                  className="min-w-0 truncate max-w-[600px] font-['Inter'] text-[28px] text-gray-800"
+                  title={getPracticeContent.practiceContent?.title || ""}
+                >
                   {getPracticeContent.practiceContent?.title}
                 </h1>
+                <Badge className="shrink-0 bg-green-100 text-green-700 border-green-200">
+                  <CheckCircle className="w-[14px] h-[14px] mr-[6px]" />
+                  Completed
+                </Badge>
               </div>
-              <p className="font-['Inter'] text-[14px] text-gray-600">
-                {mapPracticeSkill(getPracticeContent.practiceContent?.skill)} •{" "}
-                {formatLocalDateTime(
-                  getPracticeSubmission.submission?.submittedAt,
-                )}
-              </p>
+              <div className="flex flex-wrap items-center gap-[16px] font-['Inter'] text-[14px] text-gray-600">
+                <div className="flex items-center gap-[6px]">
+                  <User className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {getUserData.userData?.firstname}{" "}
+                    {getUserData.userData?.lastname}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-[6px]">
+                  <Target className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {mapPracticeSkill(
+                      getPracticeContent.practiceContent?.skill,
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-[6px]">
+                  <CalendarDays className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {formatLocalDateTime(
+                      getPracticeSubmission.submission?.submittedAt,
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Right */}
-            <div className="text-right">
-              <p className="font-['Inter'] text-[28px] text-gray-900 mb-[4px]">
-                {getUserData.userData?.firstname}{" "}
-                {getUserData.userData?.lastname}
-              </p>
-              <p className="font-['Inter'] text-[14px] text-gray-600 leading-none">
-                {getUserData.userData?.email}
-              </p>
-            </div>
+            {isTutor && (
+              <TutorStatusButtons
+                submissionId={submissionId}
+                onTutorStatusChange={setCurrentTutorStatus}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content - Add top padding to account for fixed navbar */}
       <div className="flex-1 pt-[24px] pb-[48px]">
-        <div className="max-w-[1000px] mx-auto px-8 space-y-[24px] w-full">
+        <div className="max-w-[1800px] mx-auto px-[60px] space-y-[24px] w-full">
           {/* Summary Card */}
           <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
             <div className="flex items-center gap-[10px] mb-[24px]">
@@ -169,7 +230,7 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
               </h2>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-5 gap-8">
               {/* Circular Progress */}
               <div className="flex items-center justify-center">
                 <div className="relative w-40 h-40">
@@ -202,66 +263,64 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex-1 ml-12 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-[8px]">
-                    {" "}
-                    <Clock className="w-[16px] h-[16px] text-gray-600" />
-                    <span className="font-['Inter'] font-semibold text-[16px] text-gray-700">
-                      Time Spent
-                    </span>
-                  </div>
-
-                  <span className="font-['Inter'] font-bold text-[16px] text-black">
-                    {formatTime(timeSpent)}
+              {/* Stats - Spread across remaining columns */}
+              <div className="flex flex-col justify-center space-y-2">
+                <div className="flex items-center gap-[8px]">
+                  {" "}
+                  <Clock className="w-[18px] h-[18px] text-gray-600" />
+                  <span className="font-['Inter'] font-semibold text-[16px] text-gray-700">
+                    Time Spent
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-[8px]">
-                    {" "}
-                    <CheckCircle className="w-[16px] h-[16px] text-[#28a745]" />
-                    <span className="font-['Inter'] font-semibold text-[16px] text-[#28a745]">
-                      Correct
-                    </span>
-                  </div>
 
-                  <span className="font-['Inter'] text-[16px] text-gray-700">
-                    {correctCount} sections
+                <span className="font-['Inter'] font-bold text-[20px] text-black ml-[26px]">
+                  {formatTime(timeSpent)}
+                </span>
+              </div>
+
+              <div className="flex flex-col justify-center space-y-2">
+                <div className="flex items-center gap-[8px]">
+                  {" "}
+                  <CheckCircle className="w-[18px] h-[18px] text-[#28a745]" />
+                  <span className="font-['Inter'] font-semibold text-[16px] text-[#28a745]">
+                    Correct
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-[8px]">
-                    {" "}
-                    <Target className="w-[16px] h-[16px] text-[#dc3545]" />
-                    <span className="font-['Inter'] font-semibold text-[16px] text-[#dc3545]">
-                      Wrong
-                    </span>
-                  </div>
 
-                  <span className="font-['Inter'] text-[16px] text-gray-700">
-                    {wrongCount} sections
+                <span className="font-['Inter'] font-bold text-[20px] text-[#28a745] ml-[26px]">
+                  {correctCount} questions
+                </span>
+              </div>
+
+              <div className="flex flex-col justify-center space-y-2">
+                <div className="flex items-center gap-[8px]">
+                  {" "}
+                  <Target className="w-[18px] h-[18px] text-[#dc3545]" />
+                  <span className="font-['Inter'] font-semibold text-[16px] text-[#dc3545]">
+                    Wrong
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-[8px]">
-                    {" "}
-                    <span className="w-[16px] h-[16px] flex items-center justify-center text-gray-500 font-bold">
-                      ⊝
-                    </span>
-                    <span className="font-['Inter'] font-semibold text-[16px] text-gray-500">
-                      Skip
-                    </span>
-                  </div>
 
-                  <span className="font-['Inter'] text-[16px] text-gray-700">
-                    {skipCount} sections
+                <span className="font-['Inter'] font-bold text-[20px] text-[#dc3545] ml-[26px]">
+                  {wrongCount} questions
+                </span>
+              </div>
+
+              <div className="flex flex-col justify-center space-y-2">
+                <div className="flex items-center gap-[8px]">
+                  {" "}
+                  <MinusCircle className="w-[18px] h-[18px] text-gray-500" />
+                  <span className="font-['Inter'] font-semibold text-[16px] text-gray-500">
+                    Skip
                   </span>
                 </div>
+
+                <span className="font-['Inter'] font-bold text-[20px] text-gray-700 ml-[26px]">
+                  {skipCount} questions
+                </span>
               </div>
             </div>
           </div>
-
           {/* Detailed Results Card */}
           <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
             <div className="flex items-center gap-[10px] mb-[24px]">
@@ -273,7 +332,7 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
             </div>
 
             {/* Question Grid */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-5 gap-x-8 gap-y-4">
               {Object.keys(correctAnswersByIndex)
                 .map(Number)
                 .sort((a, b) => a - b)
@@ -330,6 +389,14 @@ export function ListeningReadingResultScreen({ submissionId }: Props) {
                 })}
             </div>
           </div>
+          {/* Review & Explanations */}
+          {isListening && <ReviewListening exerciseId={practiceContentId} />}
+          {isReading && <ReviewReading exerciseId={practiceContentId} />}
+
+          {/* Get Feedback Section */}
+          {showFeedbackSection && (
+            <FeedbackSection submissionId={submissionId} />
+          )}
         </div>
       </div>
 

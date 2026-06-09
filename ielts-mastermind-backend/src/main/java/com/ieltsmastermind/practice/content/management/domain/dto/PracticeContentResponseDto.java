@@ -1,10 +1,7 @@
 package com.ieltsmastermind.practice.content.management.domain.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentSkill;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeTaskType;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeQuestionType;
+import com.ieltsmastermind.practice.content.management.domain.enums.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,10 +19,12 @@ public class PracticeContentResponseDto {
     private String instructions;
     private JsonNode instructionsParsed;
     private PracticeTaskType task;
-    private Set<String> questionTypeTags;
-    private Set<String> topicTags;
+    private Set<PracticeQuestionType> questionTypeTags;
+    private Set<PracticeTopicTag> topicTags;
     private String thumbnailUrl;
     private String audioUrl;
+    private String transcript;
+    private JsonNode transcriptParsed;
     private List<String> imageUrls;
     private String passage;
     private JsonNode passageParsed;

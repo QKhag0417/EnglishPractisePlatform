@@ -47,11 +47,15 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/oauth2/**",
+                                "/uploads/images/**",
+                                "/uploads/thumbnails/**",
+                                "/uploads/audio/**",
                                 "/login/oauth2/**"
                         ).permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/files/thumbnails/**", "/files/audio/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/practice-content").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/home").permitAll()
                         .requestMatchers("/error", "/error/**").permitAll()
                         .anyRequest().authenticated()
                 )

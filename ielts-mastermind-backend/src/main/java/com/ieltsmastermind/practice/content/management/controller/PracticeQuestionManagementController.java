@@ -27,7 +27,6 @@ public class PracticeQuestionManagementController {
         this.practiceQuestionService = practiceQuestionService;
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping("/{practiceContentId}")
     public ResponseEntity<ApiResponse<PracticeQuestionResponseDto>> create(
             @PathVariable String practiceContentId,
@@ -74,7 +73,6 @@ public class PracticeQuestionManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PracticeQuestionResponseDto>> updatePracticeQuestion(
             @PathVariable String id,
@@ -96,7 +94,6 @@ public class PracticeQuestionManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deletePracticeQuestion(
             @PathVariable String id

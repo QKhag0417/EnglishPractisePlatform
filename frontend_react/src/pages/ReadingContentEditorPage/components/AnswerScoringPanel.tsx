@@ -10,13 +10,17 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 
-import { QuestionType, Option } from "../types";
+import { ReadingQuestionType } from "../types";
+import { SelectV2 } from "../../TutorDashboardPage/components";
+import { TopicTag } from "../../ListeningContentEditorPage/types";
 
 interface Props {
   selectedQuestionNumber?: number;
 
-  questionType: QuestionType;
-  setQuestionType: (v: QuestionType) => void;
+  questionType: ReadingQuestionType;
+  setQuestionType: (v: ReadingQuestionType) => void;
+  topicTag: TopicTag;
+  setTopicTag: (v: TopicTag) => void;
 
   correctAnswers: string[];
   setCorrectAnswers: React.Dispatch<React.SetStateAction<string[]>>;
@@ -35,6 +39,8 @@ export function AnswerScoringPanel({
   selectedQuestionNumber,
   questionType,
   setQuestionType,
+  topicTag,
+  setTopicTag,
   correctAnswers,
   setCorrectAnswers,
   newAnswerInput,
@@ -45,14 +51,7 @@ export function AnswerScoringPanel({
   handleCancelQuestion,
 }: Props) {
   // ========================
-  // Option handlers
-  // ========================
-
-
-
-
-  // ========================
-  // Short text handlers
+  // Add correct answer
   // ========================
 
   const addCorrectAnswer = () => {
@@ -62,10 +61,129 @@ export function AnswerScoringPanel({
     markAsUnsaved();
   };
 
+  // ========================
+  // Remove correct answer
+  // ========================
+
   const removeCorrectAnswer = (index: number) => {
     setCorrectAnswers(correctAnswers.filter((_, i) => i !== index));
     markAsUnsaved();
   };
+
+  // =========================
+  // Question type options
+  // =========================
+  const questionTypeOptions: { value: ReadingQuestionType; label: string }[] = [
+    { value: "Multiple Choice", label: "Multiple Choice" },
+    {
+      value: "Identifying Information (True/False/Not Given)",
+      label: "Identifying Information (True/False/Not Given)",
+    },
+    {
+      value: "Identifying Writer's Views/Claims (Yes/No/Not Given)",
+      label: "Identifying Writer's Views/Claims (Yes/No/Not Given)",
+    },
+    { value: "Matching Information", label: "Matching Information" },
+    { value: "Matching Headings", label: "Matching Headings" },
+    { value: "Matching Features", label: "Matching Features" },
+    {
+      value: "Matching Sentence Endings",
+      label: "Matching Sentence Endings",
+    },
+    { value: "Sentence Completion", label: "Sentence Completion" },
+    { value: "Summary Completion", label: "Summary Completion" },
+    { value: "Note Completion", label: "Note Completion" },
+    { value: "Table Completion", label: "Table Completion" },
+    { value: "Flow-chart Completion", label: "Flow-chart Completion" },
+    { value: "Diagram Label Completion", label: "Diagram Label Completion" },
+    { value: "Short-answer Questions", label: "Short-answer Questions" },
+  ];
+
+  // =========================
+  // Topic tag options
+  // =========================
+
+  const topicTagOptions: { value: TopicTag; label: string }[] = [
+    { value: "Education and Learning", label: "Education and Learning" },
+    { value: "Work, Jobs and Careers", label: "Work, Jobs and Careers" },
+    {
+      value: "Technology, Internet and AI",
+      label: "Technology, Internet and AI",
+    },
+    {
+      value: "Health, Healthcare and Lifestyle",
+      label: "Health, Healthcare and Lifestyle",
+    },
+    {
+      value: "Environment, Climate and Sustainability",
+      label: "Environment, Climate and Sustainability",
+    },
+    {
+      value: "Government, Law and Public Policy",
+      label: "Government, Law and Public Policy",
+    },
+    {
+      value: "Society, Social Behavior and Values",
+      label: "Society, Social Behavior and Values",
+    },
+    {
+      value: "Family, Children and Ageing",
+      label: "Family, Children and Ageing",
+    },
+    {
+      value: "Media, Advertising and Communication",
+      label: "Media, Advertising and Communication",
+    },
+    {
+      value: "Culture, Art, Traditions and Language",
+      label: "Culture, Art, Traditions and Language",
+    },
+    {
+      value: "Travel, Tourism and Transport",
+      label: "Travel, Tourism and Transport",
+    },
+    {
+      value: "Housing, Cities and Urban/Rural Life",
+      label: "Housing, Cities and Urban/Rural Life",
+    },
+    {
+      value: "Science, Research and Innovation",
+      label: "Science, Research and Innovation",
+    },
+    {
+      value: "Business, Economy and Consumer Behavior",
+      label: "Business, Economy and Consumer Behavior",
+    },
+    {
+      value: "Food, Agriculture and Farming",
+      label: "Food, Agriculture and Farming",
+    },
+    {
+      value: "Sport, Leisure and Hobbies",
+      label: "Sport, Leisure and Hobbies",
+    },
+    {
+      value: "History, Archaeology and Heritage",
+      label: "History, Archaeology and Heritage",
+    },
+    {
+      value: "Energy, Natural Resources and Infrastructure",
+      label: "Energy, Natural Resources and Infrastructure",
+    },
+    {
+      value: "Crime, Safety and Security",
+      label: "Crime, Safety and Security",
+    },
+    {
+      value: "Globalisation, Migration and International Development",
+      label: "Globalisation, Migration and International Development",
+    },
+    {
+      value: "Population and Demographics",
+      label: "Population and Demographics",
+    },
+    { value: "Animals and Wildlife", label: "Animals and Wildlife" },
+  ];
 
   return (
     <div className="bg-white rounded-[12px] p-[32px] shadow-sm border border-gray-200">
@@ -102,137 +220,89 @@ export function AnswerScoringPanel({
 
       {/* Question Type */}
       <div className="mb-[24px]">
-        <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
+        <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[12px] block">
           Question type
         </Label>
 
-        <Select
+        <SelectV2
           value={questionType}
-          onValueChange={(v: QuestionType) => {
-            setQuestionType(v);
+          onChange={(value) => {
+            setQuestionType(value as ReadingQuestionType);
             markAsUnsaved();
           }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-
-          <SelectContent>
-            <SelectItem value="Multiple Choice">
-              Multiple choice
-            </SelectItem>
-
-            <SelectItem value="Identifying Information (True/False/Not Given)">
-              Identifying information (True/False/Not Given)
-            </SelectItem>
-
-            <SelectItem value="Identifying Writer's Views/Claims (Yes/No/Not Given)">
-              Identifying writer’s views/claims (Yes/No/Not Given)
-            </SelectItem>
-
-            <SelectItem value="Matching Information">
-              Matching information
-            </SelectItem>
-
-            <SelectItem value="Matching Headings">
-              Matching headings
-            </SelectItem>
-
-            <SelectItem value="Matching Features">
-              Matching features
-            </SelectItem>
-
-            <SelectItem value="Matching Sentence Endings">
-              Matching sentence endings
-            </SelectItem>
-
-            <SelectItem value="Sentence Completion">
-              Sentence completion
-            </SelectItem>
-
-            <SelectItem value="Summary Completion">
-              Summary completion
-            </SelectItem>
-
-            <SelectItem value="Note Completion">
-              Note completion
-            </SelectItem>
-
-            <SelectItem value="Table Completion">
-              Table completion
-            </SelectItem>
-
-            <SelectItem value="Flow-chart Completion">
-              Flow-chart completion
-            </SelectItem>
-
-            <SelectItem value="Diagram Label Completion">
-              Diagram label completion
-            </SelectItem>
-
-            <SelectItem value="Short-answer Questions">
-              Short-answer questions
-            </SelectItem>
-
-          </SelectContent>
-        </Select>
+          options={questionTypeOptions}
+          placeholder="Question type"
+        />
       </div>
 
+      {/* Topic Tag */}
+      <div className="mb-[24px]">
+        <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[12px] block">
+          Topic tag
+        </Label>
 
+        <SelectV2
+          value={topicTag}
+          onChange={(value) => {
+            setTopicTag(value as TopicTag);
+            markAsUnsaved();
+          }}
+          options={topicTagOptions}
+          placeholder="Topic tag"
+        />
+      </div>
 
       {/* Short Text */}
+      <div className="space-y-[16px]">
+        <div>
+          <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
+            Correct answers
+          </Label>
 
-        <div className="space-y-[16px]">
-          <div>
-            <Label className="font-['Inter'] font-medium text-[14px] text-gray-700 mb-[8px] block">
-              Correct answers
-            </Label>
-
-            <div className="flex flex-wrap gap-[8px] mb-[12px]">
-              {correctAnswers.map((ans, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-center gap-[6px] bg-blue-100 text-blue-800 px-[12px] py-[6px] rounded-[6px] font-['Inter'] text-[14px]"
-                >
-                  <span>{ans}</span>
-                  <button
-                    onClick={() => removeCorrectAnswer(i)}
-                    className="hover:bg-blue-200 rounded-full p-[2px] transition-colors"
-                  >
-                    <X className="w-[14px] h-[14px]" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-[8px]">
-              <Input
-                placeholder="Type an answer and press Enter"
-                value={newAnswerInput}
-                onChange={(e) => setNewAnswerInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addCorrectAnswer();
-                  }
-                }}
-              />
-              <Button
-                onClick={addCorrectAnswer}
-                disabled={!newAnswerInput.trim()}
-                className="bg-[#1977f3] hover:bg-[#1567d3]"
+          <div className="flex flex-wrap gap-[8px] mb-[12px]">
+            {correctAnswers.map((ans, i) => (
+              <div
+                key={i}
+                className="inline-flex items-center gap-[6px] bg-blue-100 text-blue-800 px-[12px] py-[6px] rounded-[6px] font-['Inter'] text-[14px]"
               >
-                Add
-              </Button>
-            </div>
-
-            <p className="font-['Inter'] text-[12px] text-gray-500 mt-[8px]">
-              Add multiple accepted variations (e.g., "Docklands",
-              "Eastside Docklands")
-            </p>
+                <span>{ans}</span>
+                <button
+                  onClick={() => removeCorrectAnswer(i)}
+                  className="hover:bg-blue-200 rounded-full p-[2px] transition-colors"
+                >
+                  <X className="w-[14px] h-[14px]" />
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
 
+          <div className="flex gap-[8px]">
+            <Input
+              placeholder="Type an answer and press Enter"
+              value={newAnswerInput}
+              onChange={(e) => setNewAnswerInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCorrectAnswer();
+                }
+              }}
+            />
+            <Button
+              onClick={addCorrectAnswer}
+              disabled={!newAnswerInput.trim()}
+              className="bg-[#1977f3] hover:bg-[#1567d3]"
+            >
+              Add
+            </Button>
+          </div>
+
+          <p className="font-['Inter'] text-[12px] text-gray-500 mt-[8px]">
+            Add multiple accepted variations (e.g., "Docklands", "Eastside
+            Docklands")
+          </p>
+        </div>
+      </div>
 
       {/* Actions */}
       <div className="mt-[24px] flex items-center gap-[12px]">

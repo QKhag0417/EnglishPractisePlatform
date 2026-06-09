@@ -1,0 +1,24 @@
+Paragraphs:
+Separated by blank lines
+
+Inline syntax inside paragraphs:
+[f style="..." color="..." size="..."]text[/f]
+[gap:n]
+
+Table syntax
+Tables:
+[table]
+  [row]
+    [cell colspan="..."]...[/cell]
+    [cell colspan="..."]...[/cell]
+  [/row]
+[/table]
+
+Image syntax
+[img src="..." alt="..." width="..."]
+
+Multiple-choice syntax
+[multiple-choice n="..." pick="..."]
+  [option key="..."]...[/option]
+  [option key="..."]...[/option]
+[/multiple-choice]

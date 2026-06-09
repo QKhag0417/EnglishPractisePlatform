@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { IELTSMastermindLogo } from "../../../components/Logo.tsx";
 import { InstructionRenderer } from "./InstructionRenderer.tsx";
@@ -7,14 +7,14 @@ import {
   useCountdownTimer,
   useGetReadingExercise,
   useUserAnswer,
-  useSubmitModal,
   usePostUserAnswersBulk,
   usePostUserSubmission,
   useExitModal,
   usePostUserPracticeContentProgressAttemptIncrement,
+  useTestActivityLogger,
 } from "../hooks/index.ts";
 
-import { formatTime, buildAudioUrl } from "../utils";
+import { formatTime } from "../utils";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
 
@@ -50,41 +50,49 @@ export function ReadingTestScreen({ exerciseId }: Props) {
   // User Answers
   // =========================
 
-  const userAnswer = useUserAnswer({});
+  const userAnswer = useUserAnswer({
+    answerCount: getReadingExercise.exercise.totalQuestions,
+  });
 
   // =========================
   // Countdown Timer
   // =========================
 
-  const onExpireRef = useRef<() => void>(() => {});
-
   const countdownTimer = useCountdownTimer({
     durationMinutes: getReadingExercise.exercise.duration,
-    isRunning: getReadingExercise.exercise.duration > 0,
-    onExpire: () => onExpireRef.current(),
   });
+
+  // =========================
+  // Test Activity Logger
+  // =========================
+
+  const testActivityLogger = useTestActivityLogger({
+    getElapsedMs: countdownTimer.getElapsedMs,
+  });
+
+  // =========================
+  // Log test start activity on component mount
+  // =========================
+
+  useEffect(() => {
+    if (!exerciseId) return;
+
+    testActivityLogger.logActivity({
+      activityType: "TEST_START",
+    });
+  }, [exerciseId]);
 
   // =========================
   // Post User Submission
   // =========================
 
-  const postUserSubmission = usePostUserSubmission({
-    userId: user?.id || "",
-    practiceContentId: exerciseId,
-    timeSpentSeconds:
-      getReadingExercise.exercise.duration * 60 -
-      countdownTimer.secondsRemaining,
-  });
+  const postUserSubmission = usePostUserSubmission();
 
   // =========================
   // Post User Answers Bulk
   // =========================
 
-  const postUserAnswersBulk = usePostUserAnswersBulk({
-    userPracticeSubmissionId:
-      postUserSubmission.submission.practiceSubmissionId || "",
-    answers: userAnswer.answers,
-  });
+  const postUserAnswersBulk = usePostUserAnswersBulk();
 
   // =========================
   // Post User Attempt Increment
@@ -100,19 +108,49 @@ export function ReadingTestScreen({ exerciseId }: Props) {
   // Submit Modal
   // =========================
 
-  const submitModal = useSubmitModal({
-    onGoToResults: () =>
-      navigate(
-        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
-      ),
-    onPostSubmission: postUserSubmission.post,
-    onPostSubmissionAnswers: postUserAnswersBulk.post,
-    onPostAttemptIncrement: postAttemptIncrement.post,
-  });
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  const openSubmitModal = useCallback(() => setShowSubmitModal(true), []);
+  const cancelSubmitModal = useCallback(() => setShowSubmitModal(false), []);
+
+  const confirmSubmit = async () => {
+    testActivityLogger.logActivity({
+      activityType: "TEST_SUBMIT",
+    });
+
+    const submission = await postUserSubmission.post({
+      userId: user?.id || "",
+      practiceContentId: exerciseId,
+      timeSpentSeconds:
+        getReadingExercise.exercise.duration * 60 -
+        countdownTimer.secondsRemaining,
+      learnerTestActivities: testActivityLogger.getQueuedActivities(),
+    });
+
+    const submissionId = submission?.practiceSubmissionId;
+
+    await postUserAnswersBulk.post({
+      userPracticeSubmissionId: submissionId || "",
+      answers: Object.entries(userAnswer.answers)
+        .map(([orderIndex, answers]) => ({
+          orderIndex: Number(orderIndex),
+          answers: answers ?? [],
+        }))
+        .filter((row) => Number.isFinite(row.orderIndex))
+        .sort((a, b) => a.orderIndex - b.orderIndex),
+    });
+
+    await postAttemptIncrement.post();
+
+    setShowSubmitModal(false);
+    navigate(`/test/result/${submissionId}`);
+  };
 
   useEffect(() => {
-    onExpireRef.current = submitModal.openSubmitModal;
-  }, [submitModal.openSubmitModal]);
+    if (countdownTimer.isExpired) {
+      openSubmitModal();
+    }
+  }, [countdownTimer.isExpired, openSubmitModal]);
 
   // =========================
   // Exit Modal
@@ -169,6 +207,7 @@ export function ReadingTestScreen({ exerciseId }: Props) {
             instruction={getReadingExercise.exercise.examText}
             userAnswers={userAnswer.answers}
             onAnswerChange={userAnswer.onAnswerChange}
+            onLogActivity={testActivityLogger.logActivity}
           />
         </div>
       </div>
@@ -182,16 +221,14 @@ export function ReadingTestScreen({ exerciseId }: Props) {
             }).map((_, index) => {
               const answer = userAnswer.answers[index + 1];
 
-              const isAnswered = (answer?.length ?? 0) > 0;
-
-              const isCurrent = userAnswer.currentQuestionIndex === index;
+              const isAnswered = (answer?.[0]?.length ?? 0) > 0;
 
               return (
                 <button
                   key={index}
                   className={`w-12 h-12 rounded border-2 font-medium text-[16px] transition-colors
 ${isAnswered ? "bg-[#1977f3] text-white border-[#1977f3]" : "bg-white text-gray-700 border-gray-400 hover:border-[#1977f3]"}
-${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
+`}
                 >
                   {index + 1}
                 </button>
@@ -200,7 +237,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
           </div>
 
           <button
-            onClick={submitModal.openSubmitModal}
+            onClick={openSubmitModal}
             className="px-8 py-3 bg-[#fcbf65] hover:bg-[#e5ab52] text-black rounded font-['Inter'] font-bold text-[16px] transition-colors"
             type="button"
           >
@@ -210,7 +247,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
       </div>
 
       {/* Submit Confirmation Modal */}
-      {submitModal.showSubmitModal && (
+      {showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
@@ -224,7 +261,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
             <div className="flex gap-4">
               {countdownTimer.secondsRemaining > 0 && (
                 <button
-                  onClick={() => submitModal.setShowSubmitModal(false)} // TODO: check this again
+                  onClick={() => setShowSubmitModal(false)}
                   className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
                   type="button"
                 >
@@ -232,7 +269,7 @@ ${isCurrent ? "ring-2 ring-[#dc3545]" : ""}`}
                 </button>
               )}
               <button
-                onClick={submitModal.confirmSubmit}
+                onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
                 type="button"
               >

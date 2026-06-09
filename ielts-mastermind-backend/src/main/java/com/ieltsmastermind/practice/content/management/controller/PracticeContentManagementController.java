@@ -25,7 +25,6 @@ public class PracticeContentManagementController {
         this.practiceContentService = practiceContentService;
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PostMapping
     public ResponseEntity<ApiResponse<PracticeContentResponseDto>> create(
             @Valid @RequestBody PracticeContentCreateRequestDto request
@@ -92,7 +91,6 @@ public class PracticeContentManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PracticeContentResponseDto>> update(
             @PathVariable String id,
@@ -114,7 +112,6 @@ public class PracticeContentManagementController {
         }
     }
 
-    @PreAuthorize("hasRole('Administrator')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> delete(
             @PathVariable String id

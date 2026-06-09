@@ -15,16 +15,14 @@ export function EditorHeader({
   onStatusChange,
   onCancel,
   onSaveExit,
-  disableCancel
+  disableCancel,
 }: EditorHeaderProps) {
   return (
     <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
       <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="font-['Inter'] text-[32px] text-gray-900">
-            {isEditMode
-              ? "Edit Reading Exercise"
-              : "Add Reading Exercise"}
+            {isEditMode ? "Edit Reading Exercise" : "Add Reading Exercise"}
           </h1>
 
           <div className="flex items-center gap-[12px]">

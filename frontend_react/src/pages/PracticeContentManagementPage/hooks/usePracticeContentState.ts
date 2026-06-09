@@ -38,7 +38,7 @@ export function usePracticeContentState(navigate: NavigateFunction) {
           questions: Number(dto.questionCount ?? 0),
           duration: Number(dto.durationMinutes ?? 0),
 
-          attempts: Number(dto.attempts ?? 0),
+          attempts: Number(dto.attemptCount ?? 0),
           status: normalizeStatus(dto.status),
         }));
 
@@ -81,9 +81,7 @@ export function usePracticeContentState(navigate: NavigateFunction) {
   };
 
   const handleEdit = (content: PracticeContentMetadata) => {
-    navigate(
-      `/admin/content/${content.skill.toLowerCase()}/edit/${content.id}`,
-    );
+    navigate(`/content/${content.skill.toLowerCase()}/edit/${content.id}`);
   };
 
   const handleAddNew = () => {
@@ -94,7 +92,13 @@ export function usePracticeContentState(navigate: NavigateFunction) {
     skill: "Listening" | "Reading" | "Writing" | "Speaking",
   ) => {
     setIsSkillModalOpen(false);
-    navigate(`/admin/content/${skill.toLowerCase()}/add`);
+
+    // DELETE: delete this when Speaking is implemented
+    if (skill === "Speaking") {
+      return;
+    }
+
+    navigate(`/content/${skill.toLowerCase()}/add`);
   };
 
   return {

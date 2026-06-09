@@ -3,9 +3,7 @@ package com.ieltsmastermind.practice.content.management.domain.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeContentProgress;
 import com.ieltsmastermind.practice.attempt.management.domain.entity.UserPracticeSubmission;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentSkill;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeContentStatus;
-import com.ieltsmastermind.practice.content.management.domain.enums.PracticeTaskType;
+import com.ieltsmastermind.practice.content.management.domain.enums.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,9 +28,10 @@ public class PracticeContent {
     private String id = UUID.randomUUID().toString();
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, updatable = false)
+    @Column(name = "skill", nullable = false, updatable = false)
     private PracticeContentSkill skill;
 
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -43,26 +42,28 @@ public class PracticeContent {
     private JsonNode instructionsParsed;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "task", nullable = false)
     private PracticeTaskType task;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "practice_content_question_type_tag",
             joinColumns = @JoinColumn(name = "practice_content_id")
     )
+    @Enumerated(EnumType.STRING)
     @Column(name = "tag")
-    private Set<String> questionTypeTags = new HashSet<>();
+    private Set<PracticeQuestionType> questionTypeTags = new HashSet<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "practice_content_topic_tag",
             joinColumns = @JoinColumn(name = "practice_content_id")
     )
+    @Enumerated(EnumType.STRING)
     @Column(name = "tag")
-    private Set<String> topicTags = new HashSet<>();
+    private Set<PracticeTopicTag> topicTags = new HashSet<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "practice_content_images",
             joinColumns = @JoinColumn(name = "practice_content_id")
@@ -70,16 +71,23 @@ public class PracticeContent {
     @Column(name = "image_url")
     private List<String> imageUrls = new ArrayList<>();
 
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
+    @Column(name = "duration_minutes")
     private Integer durationMinutes;
+
+    @Column(name = "question_count")
     private Integer questionCount;
 
+    @Column(name = "updated_on", nullable = false)
     private LocalDateTime updatedOn;
+
+    @Column(name = "created_on", nullable = false, updatable = false)
     private LocalDateTime createdOn;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private PracticeContentStatus status;
 
     @Column(name = "attempt_count", nullable = false)
@@ -88,7 +96,7 @@ public class PracticeContent {
     @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PracticeQuestion> questions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "practiceContent")
     private List<UserPracticeSubmission> submissions = new ArrayList<>();
 
     @OneToMany(mappedBy = "practiceContent", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -96,5 +104,17 @@ public class PracticeContent {
 
     protected PracticeContent(PracticeContentSkill skill) {
         this.skill = skill;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdOn = now;
+        this.updatedOn = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedOn = LocalDateTime.now();
     }
 }

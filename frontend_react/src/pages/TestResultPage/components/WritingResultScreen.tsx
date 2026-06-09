@@ -1,7 +1,6 @@
-import { NavBarLearner } from "../../../components/NavBar";
 import { Footer } from "../../../components/Footer";
 import { useAuth } from "../../../contexts/AuthContext.tsx";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   useGetPracticeContent,
   useGetPracticeSubmission,
@@ -16,12 +15,24 @@ import {
 } from "../utils/index.ts";
 import {
   BookOpen,
+  CalendarDays,
   CheckCircle,
   Clock,
   FileText,
   PenSquare,
+  Target,
+  User,
 } from "lucide-react";
 import { InstructionRendererSimplified } from "./InstructionRendererSimplified.tsx";
+import { FeedbackSection } from "./FeedbackSection.tsx";
+import { Badge } from "../../../components/ui/badge";
+import { NavBarUnified } from "../../../components/NavBarUnified.tsx";
+import {
+  TutorStatusButtons,
+  WritingFeedbackAnalysis,
+  WritingOverallScore,
+} from "./index.ts";
+import { TutorStatus } from "../types.ts";
 
 type Props = {
   submissionId: string;
@@ -32,7 +43,31 @@ export function WritingResultScreen({ submissionId }: Props) {
   // Auth
   // =========================
 
-  const { logout: onLogout } = useAuth();
+  const { user } = useAuth();
+
+  const isTutor = user?.role === "tutor";
+
+  // =========================
+  // State for current tutor status
+  // =========================
+
+  const [currentTutorStatus, setCurrentTutorStatus] =
+    useState<TutorStatus | null>(null);
+
+  // =========================
+  // Tutor review visibility/editability
+  // =========================
+
+  const showTutorReviewedContent =
+    !isTutor ||
+    (currentTutorStatus !== null && currentTutorStatus !== "PENDING");
+
+  const canEditTutorReviewedContent =
+    isTutor && currentTutorStatus === "IN_REVIEW";
+
+  const showFeedbackSection = showTutorReviewedContent;
+
+  const [hasWritingScore, setHasWritingScore] = useState(false);
 
   // =========================
   // Get practice submission data
@@ -60,6 +95,8 @@ export function WritingResultScreen({ submissionId }: Props) {
     getPracticeContent.get();
   }, [practiceContentId, getPracticeContent.get]);
 
+  const taskType = getPracticeContent.practiceContent?.task ?? "";
+
   // =========================
   // Get practice submission answers data
   // =========================
@@ -72,6 +109,8 @@ export function WritingResultScreen({ submissionId }: Props) {
   }, [submissionId, getWritingAnswer.get]);
 
   const writingAnswer = getWritingAnswer.writingAnswers?.[0];
+
+  const writingSubmissionId = writingAnswer?.id || "";
 
   // =========================
   // Get user data
@@ -88,44 +127,72 @@ export function WritingResultScreen({ submissionId }: Props) {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Header - Using NavBarLearner */}
-      <NavBarLearner onLogout={onLogout} />
+      {/* Header */}
+      <NavBarUnified />
 
       {/* Header Section */}
       <div className="pt-[80px] pb-[20px] px-[60px] bg-white border-b border-gray-200">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <div className="flex items-center justify-between">
             {/* Left */}
             <div>
-              <div className="flex items-center gap-[12px] mb-[4px]">
-                <h1 className="font-['Inter'] text-[28px] text-gray-900">
+              <div className="flex items-center gap-[20px] mb-[4px]">
+                <h1
+                  className="min-w-0 truncate max-w-[600px] font-['Inter'] text-[28px] text-gray-800"
+                  title={getPracticeContent.practiceContent?.title || ""}
+                >
                   {getPracticeContent.practiceContent?.title}
                 </h1>
+                <Badge className="shrink-0 bg-green-100 text-green-700 border-green-200 ">
+                  <CheckCircle className="w-[14px] h-[14px] mr-[6px]" />
+                  Completed
+                </Badge>
               </div>
-              <p className="font-['Inter'] text-[14px] text-gray-600">
-                {mapPracticeSkill(getPracticeContent.practiceContent?.skill)} •{" "}
-                {formatLocalDateTime(
-                  getPracticeSubmission.submission?.submittedAt,
-                )}
-              </p>
+              <div className="flex flex-wrap items-center gap-[16px] font-['Inter'] text-[14px] text-gray-600">
+                <div className="flex items-center gap-[6px]">
+                  <User className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {getUserData.userData?.firstname}{" "}
+                    {getUserData.userData?.lastname}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-[6px]">
+                  <Target className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {mapPracticeSkill(
+                      getPracticeContent.practiceContent?.skill,
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-[6px]">
+                  <CalendarDays className="w-[14px] h-[14px] text-gray-500" />
+                  <span>
+                    {formatLocalDateTime(
+                      getPracticeSubmission.submission?.submittedAt,
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Right */}
-            <div className="text-right">
-              <p className="font-['Inter'] text-[28px] text-gray-900 mb-[4px]">
-                {getUserData.userData?.firstname}{" "}
-                {getUserData.userData?.lastname}
-              </p>
-              <p className="font-['Inter'] text-[14px] text-gray-600 leading-none">
-                {getUserData.userData?.email}
-              </p>
-            </div>
+            {isTutor && (
+              <TutorStatusButtons
+                submissionId={submissionId}
+                learnerId={userId}
+                skill="WRITING"
+                onTutorStatusChange={setCurrentTutorStatus}
+                canCompleteReview={hasWritingScore}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pt-[24px] px-[60px]">
+      <div className="pt-[24px] px-[60px] pb-[48px]">
         <div className="max-w-[1400px] mx-auto">
           {/* Test Information Cards */}
           <div className="grid grid-cols-3 gap-[24px] mb-[24px]">
@@ -221,8 +288,34 @@ export function WritingResultScreen({ submissionId }: Props) {
               </div>
             </div>
           </div>
+
+          {showTutorReviewedContent && (
+            <>
+              {/* Writing Overall Score */}
+              <WritingOverallScore
+                writingSubmissionId={writingSubmissionId}
+                taskType={taskType}
+                onScoreExistChange={setHasWritingScore}
+              />
+
+              {/* Writing Feedback Analysis */}
+              <WritingFeedbackAnalysis
+                submissionId={submissionId}
+                writingSubmissionId={writingSubmissionId}
+                taskType={taskType}
+                canEdit={canEditTutorReviewedContent}
+              />
+            </>
+          )}
+
+          {/* Get Feedback Section */}
+          {showFeedbackSection && (
+            <FeedbackSection submissionId={submissionId} />
+          )}
         </div>
       </div>
+
+      {/* Footer */}
       <Footer />
     </div>
   );

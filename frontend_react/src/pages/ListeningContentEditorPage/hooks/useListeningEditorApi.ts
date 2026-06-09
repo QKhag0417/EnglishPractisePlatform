@@ -5,14 +5,14 @@ import { apiPost } from "../../../utils/api/apiPost";
 import { apiPut } from "../../../utils/api/apiPut";
 
 export function useListeningEditorApi() {
-
   // ================================
   // Get detail (edit mode)
   // ================================
+
   const fetchDetail = async (id: string) => {
     const result = await apiGet<any>({
       apiBase: API_BASE,
-      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,task,questionTypeTags,topicTags,thumbnailUrl,audioUrl,durationMinutes,questionCount,createdOn,updatedOn,status,imageurls`,
+      path: `/api/practice-content/${id}?include=id,skill,title,instructions,instructionsParsed,transcript,transcriptParsed,task,questionTypeTags,topicTags,thumbnailUrl,audioUrl,durationMinutes,questionCount,createdOn,updatedOn,status,imageurls`,
     });
 
     if (!result.ok) {
@@ -25,6 +25,7 @@ export function useListeningEditorApi() {
   // ================================
   // Upload image
   // ================================
+
   const uploadImages = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -46,6 +47,7 @@ export function useListeningEditorApi() {
   // ================================
   // Upload thumbnail
   // ================================
+
   const uploadThumbnail = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -67,6 +69,7 @@ export function useListeningEditorApi() {
   // ================================
   //  Upload audio
   // ================================
+
   const uploadAudio = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -88,6 +91,7 @@ export function useListeningEditorApi() {
   // ================================
   // Delete Image
   // ================================
+
   const deleteImages = async (url: string) => {
     const result = await apiDelete<void>({
       apiBase: API_BASE,
@@ -107,6 +111,7 @@ export function useListeningEditorApi() {
   // ================================
   // Delete thumbnail
   // ================================
+
   const deleteThumbnail = async (url: string) => {
     const result = await apiDelete<void>({
       apiBase: API_BASE,
@@ -126,6 +131,7 @@ export function useListeningEditorApi() {
   // ================================
   // Delete audio
   // ================================
+
   const deleteAudio = async (url: string) => {
     const result = await apiDelete<void>({
       apiBase: API_BASE,
@@ -145,6 +151,7 @@ export function useListeningEditorApi() {
   // ================================
   // Create content
   // ================================
+
   const createContent = async (payload: any) => {
     const result = await apiPost<any>({
       apiBase: API_BASE,
@@ -162,6 +169,7 @@ export function useListeningEditorApi() {
   // ================================
   //  Update content
   // ================================
+
   const updateContent = async (id: string, payload: any) => {
     const result = await apiPut<any>({
       apiBase: API_BASE,
@@ -176,16 +184,14 @@ export function useListeningEditorApi() {
     return result.data;
   };
 
-
-
-
   // ================================
   //  Save (auto detect create/update)
   // ================================
+
   const saveContent = async (
     payload: any,
     isEditMode: boolean,
-    editId?: string
+    editId?: string,
   ) => {
     if (isEditMode && editId) {
       return await updateContent(editId, payload);
@@ -194,15 +200,13 @@ export function useListeningEditorApi() {
     return await createContent(payload);
   };
 
-
   // ================================
   // Get questions by practiceContentId
   // ================================
-  const fetchContentQuestions = async (
-    practiceContentId: string
-  ) => {
+
+  const fetchContentQuestions = async (practiceContentId: string) => {
     const FULL_INCLUDE =
-      "id,practiceContentId,orderIndex,type,correctAnswers";
+      "id,practiceContentId,orderIndex,type,topicTag,correctAnswers";
 
     const result = await apiGet<any[]>({
       apiBase: API_BASE,
@@ -219,9 +223,10 @@ export function useListeningEditorApi() {
   // ================================
   // Create question
   // ================================
+
   const createContentQuestion = async (
     practiceContentId: string,
-    payload: any
+    payload: any,
   ) => {
     const result = await apiPost<any>({
       apiBase: API_BASE,
@@ -239,6 +244,7 @@ export function useListeningEditorApi() {
   // ================================
   // Update question
   // ================================
+
   const updateContentQuestion = async (id: string, payload: any) => {
     const result = await apiPut<any>({
       apiBase: API_BASE,
@@ -256,6 +262,7 @@ export function useListeningEditorApi() {
   // ================================
   // Delete question
   // ================================
+
   const deleteContentQuestion = async (id: string) => {
     const result = await apiDelete<any>({
       apiBase: API_BASE,

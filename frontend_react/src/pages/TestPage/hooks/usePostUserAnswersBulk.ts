@@ -5,8 +5,6 @@ import type {
   BulkSubmissionAnswerPostBody,
   BulkSubmissionAnswerResponseDTO,
   BulkSubmissionAnswerResponse,
-  UserAnswers,
-  BulkSubmissionAnswerRowPostBody,
 } from "../types";
 
 const initialBody: BulkSubmissionAnswerPostBody = {
@@ -14,11 +12,11 @@ const initialBody: BulkSubmissionAnswerPostBody = {
   answers: [],
 };
 
-const initialResponse: BulkSubmissionAnswerResponse = {
+const initialBulkSubmissionAnswerResponse: BulkSubmissionAnswerResponse = {
   ids: [],
 };
 
-function mapBulkSubmissionAnswerResponseDTO(
+function mapBulkSubmissionAnswerResponseDTOToBulkSubmissionAnswerResponse(
   dto: BulkSubmissionAnswerResponseDTO,
 ): BulkSubmissionAnswerResponse {
   return {
@@ -26,35 +24,12 @@ function mapBulkSubmissionAnswerResponseDTO(
   };
 }
 
-export function mapBulkParamsToBody(params: {
-  userPracticeSubmissionId: string;
-  answers: UserAnswers;
-}): BulkSubmissionAnswerPostBody {
-  const rows: BulkSubmissionAnswerRowPostBody[] = Object.entries(params.answers)
-    .map(([orderIndex, answers]) => ({
-      orderIndex: Number(orderIndex),
-      answers: answers ?? [],
-    }))
-    .filter((row) => Number.isFinite(row.orderIndex) && row.answers.length > 0)
-    .sort((a, b) => a.orderIndex - b.orderIndex);
-
-  return {
-    userPracticeSubmissionId: params.userPracticeSubmissionId,
-    answers: rows,
-  };
-}
-
-export function usePostUserAnswersBulk(params?: {
-  userPracticeSubmissionId: string;
-  answers: UserAnswers;
-}) {
-  const body: BulkSubmissionAnswerPostBody = params
-    ? mapBulkParamsToBody(params)
-    : initialBody;
+export function usePostUserAnswersBulk(params?: BulkSubmissionAnswerPostBody) {
+  const defaultBody = params ?? initialBody;
 
   const {
-    item: bulkResult,
-    setItem: setBulkResult,
+    item: bulkSubmissionAnswerResponse,
+    setItem: setBulkSubmissionAnswerResponse,
     loading,
     error,
     post,
@@ -66,15 +41,15 @@ export function usePostUserAnswersBulk(params?: {
     request: {
       apiBase: API_BASE,
       path: "/api/practice-submission-answer/bulk",
-      body,
+      body: defaultBody,
     },
-    initialItem: initialResponse,
-    mapItem: mapBulkSubmissionAnswerResponseDTO,
+    initialItem: initialBulkSubmissionAnswerResponse,
+    mapItem: mapBulkSubmissionAnswerResponseDTOToBulkSubmissionAnswerResponse,
   });
 
   return {
-    bulkResult,
-    setBulkResult,
+    bulkSubmissionAnswerResponse,
+    setBulkSubmissionAnswerResponse,
     loading,
     error,
     post,

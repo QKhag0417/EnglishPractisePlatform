@@ -6,21 +6,32 @@ export async function apiPut<T>(params: {
   path: string;
   body?: unknown;
   signal?: AbortSignal;
+  isFormData?: boolean;
 }): Promise<ApiResult<T>> {
-  const { apiBase, path, body, signal } = params;
+  const { apiBase, path, body, signal, isFormData } = params;
 
   const url = new URL(path, apiBase);
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const res = await fetch(url.toString(), {
       method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       credentials: "include",
       ...(signal ? { signal } : {}),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? (body as BodyInit)
+            : JSON.stringify(body),
     });
 
     let json: ApiResponse<T> | null = null;
@@ -30,7 +41,7 @@ export async function apiPut<T>(params: {
       json = null;
     }
 
-    const apiSuccess = (json?.status ?? "").toLowerCase() === "success";
+    const apiSuccess = String(json?.status ?? "").toLowerCase() === "success";
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {
@@ -46,17 +57,6 @@ export async function apiPut<T>(params: {
     (ok ? console.info : console.error)("[apiPut]", result);
     return result;
   } catch (e: any) {
-    if (e?.name === "AbortError") {
-      const result: ApiResult<T> = {
-        ok: false,
-        data: null,
-        message: "Request aborted",
-        url: url.toString(),
-      };
-      console.info("[apiPut]", result);
-      return result;
-    }
-
     const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,

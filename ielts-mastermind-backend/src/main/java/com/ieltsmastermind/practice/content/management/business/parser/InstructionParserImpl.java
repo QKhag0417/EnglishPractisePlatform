@@ -28,6 +28,8 @@ public class InstructionParserImpl implements InstructionParser {
     @Override
     public List<DocNode> parseInstruction(String input) {
         List<DocNode> nodes = new ArrayList<>();
+        ParseContext context = new ParseContext();
+
         int i = 0;
 
         final String TABLE_OPEN = "[table";
@@ -44,29 +46,28 @@ public class InstructionParserImpl implements InstructionParser {
 
             int nextPos = minNonNegative(nextTable, nextImg, nextMc);
             if (nextPos == -1) {
-                pushParagraphNodes(nodes, input.substring(i));
+                pushParagraphNodes(nodes, input.substring(i), context);
                 break;
             }
 
             if (nextPos > i) {
-                pushParagraphNodes(nodes, input.substring(i, nextPos));
+                pushParagraphNodes(nodes, input.substring(i, nextPos), context);
             }
 
             if (nextPos == nextTable) {
                 int end = input.indexOf(TABLE_CLOSE, nextPos);
                 if (end == -1) {
-                    // malformed table; fall back to text
-                    pushParagraphNodes(nodes, input.substring(nextPos));
+                    pushParagraphNodes(nodes, input.substring(nextPos), context);
                     break;
                 }
                 String block = input.substring(nextPos, end + TABLE_CLOSE.length());
-                nodes.add(tableParser.parseTable(block));
+                nodes.add(tableParser.parseTable(block, context));
                 i = end + TABLE_CLOSE.length();
 
             } else if (nextPos == nextImg) {
                 int end = input.indexOf(IMG_CLOSE, nextPos);
                 if (end == -1) {
-                    pushParagraphNodes(nodes, input.substring(nextPos));
+                    pushParagraphNodes(nodes, input.substring(nextPos), context);
                     break;
                 }
                 String tag = input.substring(nextPos, end + 1);
@@ -76,11 +77,11 @@ public class InstructionParserImpl implements InstructionParser {
             } else {
                 int end = input.indexOf(MC_CLOSE, nextPos);
                 if (end == -1) {
-                    pushParagraphNodes(nodes, input.substring(nextPos));
+                    pushParagraphNodes(nodes, input.substring(nextPos), context);
                     break;
                 }
                 String block = input.substring(nextPos, end + MC_CLOSE.length());
-                nodes.add(multipleChoiceParser.parseMultipleChoice(block));
+                nodes.add(multipleChoiceParser.parseMultipleChoice(block, context));
                 i = end + MC_CLOSE.length();
             }
         }
@@ -88,17 +89,16 @@ public class InstructionParserImpl implements InstructionParser {
         return nodes;
     }
 
-    public void pushParagraphNodes(List<DocNode> out, String text) {
+    public void pushParagraphNodes(List<DocNode> out, String text, ParseContext context) {
         if (text == null || text.isBlank()) return;
 
-        // Split on blank lines: /\n\s*\n/g
         String[] rawParts = text.split("\\n\\s*\\n");
 
         for (String part : rawParts) {
             String p = part == null ? "" : part.trim();
             if (p.isEmpty()) continue;
 
-            out.add(new ParagraphNode(inlineParser.parseInline(p)));
+            out.add(new ParagraphNode(inlineParser.parseInline(p, context)));
         }
     }
 
@@ -110,4 +110,3 @@ public class InstructionParserImpl implements InstructionParser {
         return best == Integer.MAX_VALUE ? -1 : best;
     }
 }
-

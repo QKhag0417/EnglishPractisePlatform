@@ -10,33 +10,39 @@ export async function apiGet<T>(params: {
   const { apiBase, path, include, signal } = params;
 
   const url = new URL(path, apiBase);
-  if (include) url.searchParams.set("include", include);
+
+  if (include) {
+    url.searchParams.set("include", include);
+  }
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
 
   try {
     const res = await fetch(url.toString(), {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers,
       credentials: "include",
       ...(signal ? { signal } : {}),
     });
 
-    let body: ApiResponse<T> | null = null;
+    let json: ApiResponse<T> | null = null;
     try {
-      body = (await res.json()) as ApiResponse<T>;
+      json = (await res.json()) as ApiResponse<T>;
     } catch {
-      body = null;
+      json = null;
     }
 
-    const rawStatus = body?.status;
-    const apiSuccess = typeof rawStatus === "string" ? rawStatus.toLowerCase() === "success" : false;
+    const apiSuccess = String(json?.status ?? "").toLowerCase() === "success";
     const ok = res.ok && apiSuccess;
 
     const result: ApiResult<T> = {
       ok,
-      data: ok ? (body?.data ?? null) : null,
+      data: ok ? (json?.data ?? null) : null,
       message:
-        body?.message ?? (ok ? "OK" : `Request failed (HTTP ${res.status})`),
-      apiStatus: body?.status,
+        json?.message ?? (ok ? "OK" : `Request failed (HTTP ${res.status})`),
+      apiStatus: json?.status,
       httpStatus: res.status,
       url: url.toString(),
     };
@@ -44,17 +50,6 @@ export async function apiGet<T>(params: {
     (ok ? console.info : console.error)("[apiGet]", result);
     return result;
   } catch (e: any) {
-    if (e?.name === "AbortError") {
-      const result: ApiResult<T> = {
-        ok: false,
-        data: null,
-        message: "Request aborted",
-        url: url.toString(),
-      };
-      console.info("[apiGet]", result);
-      return result;
-    }
-
     const message = e?.message ?? "Network error";
     const result: ApiResult<T> = {
       ok: false,
@@ -62,6 +57,7 @@ export async function apiGet<T>(params: {
       message,
       url: url.toString(),
     };
+
     console.error("[apiGet]", result, e);
     return result;
   }

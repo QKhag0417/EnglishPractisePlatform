@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 
 import { formatTime, countWords } from "../utils";
 
-import { useEffect, useRef, use } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import {
   useExitModal,
@@ -12,9 +12,10 @@ import {
   useCountdownTimer,
   useUserAnswer,
   usePostUserSubmission,
-  useSubmitModal,
   usePostUserPracticeWritingAnswer,
   usePostUserPracticeContentProgressAttemptIncrement,
+  useTestActivityLogger,
+  usePostCreateWritingAIFeedback,
 } from "../hooks";
 
 import { useAuth } from "../../../contexts/AuthContext.tsx";
@@ -59,36 +60,41 @@ export function WritingTestScreen({ exerciseId }: Props) {
   // Countdown Timer
   // =========================
 
-  const onExpireRef = useRef<() => void>(() => {});
-
   const countdownTimer = useCountdownTimer({
     durationMinutes: getWritingExercise.exercise.duration,
-    isRunning: getWritingExercise.exercise.duration > 0,
-    onExpire: () => onExpireRef.current(),
   });
+
+  // =========================
+  // Test Activity Logger
+  // =========================
+
+  const testActivityLogger = useTestActivityLogger({
+    getElapsedMs: countdownTimer.getElapsedMs,
+  });
+
+  // =========================
+  // Log test start activity on component mount
+  // =========================
+
+  useEffect(() => {
+    if (!exerciseId) return;
+
+    testActivityLogger.logActivity({
+      activityType: "TEST_START",
+    });
+  }, [exerciseId]);
 
   // =========================
   // Post User Submission
   // =========================
 
-  const postUserSubmission = usePostUserSubmission({
-    userId: user?.id || "",
-    practiceContentId: exerciseId,
-    timeSpentSeconds:
-      getWritingExercise.exercise.duration * 60 -
-      countdownTimer.secondsRemaining,
-  });
+  const postUserSubmission = usePostUserSubmission();
 
   // =========================
   // Post User Practice Writing Answer
   // =========================
 
-  const postUserPracticeWritingAnswer = usePostUserPracticeWritingAnswer({
-    userPracticeSubmissionId:
-      postUserSubmission.submission.practiceSubmissionId || "",
-    orderIndex: "1",
-    essayText: writingText,
-  });
+  const postUserPracticeWritingAnswer = usePostUserPracticeWritingAnswer();
 
   // =========================
   // Post User Attempt Increment
@@ -101,22 +107,57 @@ export function WritingTestScreen({ exerciseId }: Props) {
     );
 
   // =========================
+  // Post Create Writing AI Feedback
+  // =========================
+
+  const postCreateWritingAIFeedback = usePostCreateWritingAIFeedback();
+
+  // =========================
   // Submit Modal
   // =========================
 
-  const submitModal = useSubmitModal({
-    onGoToResults: () =>
-      navigate(
-        `/test/result/${postUserSubmission.submission.practiceSubmissionId}`,
-      ),
-    onPostSubmission: postUserSubmission.post,
-    onPostSubmissionAnswers: postUserPracticeWritingAnswer.post,
-    onPostAttemptIncrement: postAttemptIncrement.post,
-  });
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  const openSubmitModal = useCallback(() => setShowSubmitModal(true), []);
+  const cancelSubmitModal = useCallback(() => setShowSubmitModal(false), []);
+
+  const confirmSubmit = async () => {
+    testActivityLogger.logActivity({
+      activityType: "TEST_SUBMIT",
+    });
+
+    const submission = await postUserSubmission.post({
+      userId: user?.id || "",
+      practiceContentId: exerciseId,
+      timeSpentSeconds:
+        getWritingExercise.exercise.duration * 60 -
+        countdownTimer.secondsRemaining,
+      learnerTestActivities: testActivityLogger.getQueuedActivities(),
+    });
+
+    const submissionId = submission?.practiceSubmissionId;
+
+    await postUserPracticeWritingAnswer.post({
+      userPracticeSubmissionId: submissionId || "",
+      orderIndex: "1",
+      essayText: writingText,
+    });
+
+    await postCreateWritingAIFeedback.post({
+      submissionId: submissionId || "",
+    });
+
+    await postAttemptIncrement.post();
+
+    setShowSubmitModal(false);
+    navigate(`/test/result/${submissionId}`);
+  };
 
   useEffect(() => {
-    onExpireRef.current = submitModal.openSubmitModal;
-  }, [submitModal.openSubmitModal]);
+    if (countdownTimer.isExpired) {
+      openSubmitModal();
+    }
+  }, [countdownTimer.isExpired, openSubmitModal]);
 
   // =========================
   // Exit Modal
@@ -190,7 +231,7 @@ export function WritingTestScreen({ exerciseId }: Props) {
       <div className="border-t-2 border-gray-300 bg-white px-6 py-4 fixed bottom-0 left-0 right-0">
         <div className="flex items-center justify-end">
           <button
-            onClick={submitModal.openSubmitModal}
+            onClick={openSubmitModal}
             className="px-8 py-3 bg-[#fcbf65] hover:bg-[#e5ab52] text-black rounded font-['Inter'] font-bold text-[16px] transition-colors"
           >
             Submit
@@ -228,26 +269,31 @@ export function WritingTestScreen({ exerciseId }: Props) {
       )}
 
       {/* Submit Modal */}
-      {submitModal.showSubmitModal && (
+      {showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 max-w-[500px] w-full mx-4 shadow-2xl">
             <h2 className="font-['Inter'] font-bold text-[24px] mb-4 text-black">
               Submit Test?
             </h2>
             <p className="font-['Inter'] text-[16px] text-gray-700 mb-6">
-              Are you sure you want to submit your test? You cannot change your
-              answers after submission.
+              {countdownTimer.secondsRemaining === 0
+                ? "Time is up! Your test will be submitted automatically."
+                : "Are you sure you want to submit your test? You cannot change your answers after submission."}
             </p>
             <div className="flex gap-4">
+              {countdownTimer.secondsRemaining > 0 && (
+                <button
+                  onClick={() => setShowSubmitModal(false)}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
+                  type="button"
+                >
+                  Continue Test
+                </button>
+              )}
               <button
-                onClick={() => submitModal.setShowSubmitModal(false)}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-['Inter'] font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Continue Test
-              </button>
-              <button
-                onClick={submitModal.confirmSubmit}
+                onClick={confirmSubmit}
                 className="flex-1 px-6 py-3 bg-[#1977f3] hover:bg-[#1567d3] text-white rounded-lg font-['Inter'] font-bold transition-colors"
+                type="button"
               >
                 Submit
               </button>

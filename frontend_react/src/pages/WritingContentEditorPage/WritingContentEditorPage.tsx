@@ -12,23 +12,23 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router";
 import { useWritingEditorState } from "./hooks/useWritingEditorState";
 import { SupportingImagesBlock } from "./components/SupportingImagesBlock";
+import { TopicTagPanel } from "../WritingContentEditorPage/components/TopicTagPanel";
+import { QuestionTypePane } from "./components/QuestionTypePane";
+import { NavBarUnified } from "../../components/NavBarUnified";
 
 export function WritingContentEditorPage() {
   // ===== HANDLERS =====
-  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
   const handleCancel = () => {
-    navigate("/admin/content-management");
+    navigate("/content-management");
   };
+
   const { exerciseId } = useParams();
   const isEditMode = !!exerciseId;
 
   const {
+    // meta
     title,
     setTitle,
     instructions,
@@ -39,25 +39,30 @@ export function WritingContentEditorPage() {
     setDurationMinutes,
     status,
     setStatus,
+
+    questionTypes,
+    setQuestionTypes,
     topicTags,
     setTopicTags,
-    handleSaveExit,
-    thumbnailPreview,
-    setThumbnailPreview,
+
+    //thumbnail && audio
     thumbnailFile,
     setThumbnailFile,
+    thumbnailPreview,
+    setThumbnailPreview,
     thumbnailInputRef,
     handleThumbnailChange,
-    handleSaveThumbnail,
-    thumbnailSaved,
-    handleRemoveThumbnail,
-    safeRevokeObjectUrl,
     handleThumbnailDrop,
     handleDragOver,
     displayUpdatedOn,
     updatedOn,
     setUpdatedOn,
+    safeRevokeObjectUrl,
+    handleSaveThumbnail,
+    thumbnailSaved,
+    handleRemoveThumbnail,
 
+    // supporting images
     multiImageInputRef,
     uploadedImages,
     handleMultiImageChange,
@@ -67,11 +72,12 @@ export function WritingContentEditorPage() {
 
     hasImageChanges,
     setHasImageChanges,
+    handleSaveExit,
   } = useWritingEditorState(isEditMode, exerciseId);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <NavBarAdmin onLogout={handleLogout} />
+      <NavBarUnified />
 
       <EditorHeader
         isEditMode={isEditMode}
@@ -100,6 +106,16 @@ export function WritingContentEditorPage() {
                  focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
+
+              <QuestionTypePane
+                questionTypes={questionTypes}
+                onQuestionTypesChange={setQuestionTypes}
+              />
+
+              <TopicTagPanel
+                topicTags={topicTags}
+                onTopicTagsChange={setTopicTags}
+              />
 
               <SupportingImagesBlock
                 multiImageInputRef={
@@ -132,6 +148,8 @@ export function WritingContentEditorPage() {
                 onTitleChange={setTitle}
                 task={task}
                 onTaskChange={setTask}
+                questionTypes={questionTypes}
+                onQuestionTypesChange={setQuestionTypes}
                 topicTags={topicTags}
                 onTopicTagsChange={setTopicTags}
                 updatedOn={displayUpdatedOn}

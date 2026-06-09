@@ -1,12 +1,6 @@
 import { Search } from "lucide-react";
 import { Input } from "../../../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
+import { SelectV2 } from "../../TutorDashboardPage/components";
 
 interface Props {
   searchQuery: string;
@@ -14,6 +8,14 @@ interface Props {
   filterSkill: string;
   setFilterSkill: (value: string) => void;
 }
+
+const skillOptions = [
+  { value: "all", label: "All Skills" },
+  { value: "Listening", label: "Listening" },
+  { value: "Reading", label: "Reading" },
+  { value: "Writing", label: "Writing" },
+  { value: "Speaking", label: "Speaking" },
+];
 
 export function PracticeContentFilter({
   searchQuery,
@@ -35,18 +37,14 @@ export function PracticeContentFilter({
       </div>
 
       {/* Skill Filter */}
-      <Select value={filterSkill} onValueChange={setFilterSkill}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Filter by skill" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Skills</SelectItem>
-          <SelectItem value="Listening">Listening</SelectItem>
-          <SelectItem value="Reading">Reading</SelectItem>
-          <SelectItem value="Writing">Writing</SelectItem>
-          <SelectItem value="Speaking">Speaking</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="w-[200px]">
+        <SelectV2
+          value={filterSkill}
+          onChange={setFilterSkill}
+          options={skillOptions}
+          placeholder="Skill"
+        />
+      </div>
     </div>
   );
 }

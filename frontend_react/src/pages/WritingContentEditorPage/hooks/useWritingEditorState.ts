@@ -1,15 +1,20 @@
 import { useState, useRef, useEffect } from "react";
-import { Question, QuestionType, Option } from "../types";
-import { DEFAULT_OPTIONS } from "../types";
 import { useWritingEditorApi } from "./useWritingEditorApi";
 import { useNavigate, useParams } from "react-router";
 import { API_BASE } from "../../../env";
 import { useSupportingImagesState } from "./useSupportingImagesState";
+import {
+  mapTopicTagApiToUi,
+  mapTopicTagUiToApi,
+  TopicTag,
+} from "../../ListeningContentEditorPage/types";
+import {
+  mapWritingApiTypeToUi,
+  mapWritingUiTypeToApi,
+  WritingQuestionType,
+} from "../types";
 
-export function useWritingEditorState(
-  isEditMode: boolean,
-  id?: string
-) {
+export function useWritingEditorState(isEditMode: boolean, id?: string) {
   const navigate = useNavigate();
 
   const [hasImageChanges, setHasImageChanges] = useState(false);
@@ -18,8 +23,12 @@ export function useWritingEditorState(
   };
   const {
     fetchDetail,
+
+    uploadImages,
+    deleteImages,
     uploadThumbnail,
     deleteThumbnail,
+
     createContent,
     updateContent,
     saveContent,
@@ -33,30 +42,31 @@ export function useWritingEditorState(
     handleRemoveImage,
     handleCopyUrl,
     getSavedImageUrls,
-    loadExistingImages
+    loadExistingImages,
   } = useSupportingImagesState(id, markImageChanged);
 
   // ================= META =================
   const [title, setTitle] = useState("");
   const [instructions, setInstructions] = useState("");
   const [task, setTask] = useState("");
-  const [durationMinutes, setDurationMinutes] = useState(15);
+  const [durationMinutes, setDurationMinutes] = useState(20);
   const [status, setStatus] = useState<"Draft" | "Published">("Draft");
 
-  const [topicTags, setTopicTags] = useState<string[]>([]);
-
-
+  const [questionTypes, setQuestionTypes] = useState<WritingQuestionType[]>([]);
+  const [topicTags, setTopicTags] = useState<TopicTag[]>([]);
 
   // ================= THUMBNAIL&AUDIO =================
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | string | null>(
+    null,
+  );
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [thumbnailSaved, setThumbnailSaved] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const safeRevokeObjectUrl = (url: string | null) => {
-      if (!url) return;
-      if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+    if (!url) return;
+    if (url.startsWith("blob:")) URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -67,15 +77,12 @@ export function useWritingEditorState(
 
   const [updatedOn, setUpdatedOn] = useState<string>("");
 
-
-
   // ================= EDIT MODE LOAD =================
   useEffect(() => {
     if (!isEditMode || !id) return;
 
     const loadData = async () => {
       try {
-
         const content = await fetchDetail(id);
 
         if (content.imageUrls && content.imageUrls.length > 0) {
@@ -87,7 +94,10 @@ export function useWritingEditorState(
         setTask(content.task || "");
         setDurationMinutes(content.durationMinutes || 15);
         setStatus(content.status === "PUBLISHED" ? "Published" : "Draft");
-        setTopicTags(content.topicTags || []);
+        setQuestionTypes(
+          (content.questionTypeTags || []).map(mapWritingApiTypeToUi),
+        );
+        setTopicTags((content.topicTags || []).map(mapTopicTagApiToUi));
         setUpdatedOn(formatDateArrayToInput(content.updatedOn) || "");
 
         if (content.thumbnailUrl) {
@@ -95,8 +105,6 @@ export function useWritingEditorState(
           setThumbnailUrl(content.thumbnailUrl);
           setThumbnailSaved(true);
         }
-
-
       } catch (err) {
         console.error("Failed to load content", err);
         alert("Cannot load content for editing");
@@ -104,7 +112,6 @@ export function useWritingEditorState(
     };
     loadData();
   }, [isEditMode, id]);
-
 
   const formatDateArrayToInput = (arr: number[]) => {
     if (!arr || arr.length < 3) return "";
@@ -117,9 +124,8 @@ export function useWritingEditorState(
     return `${year}-${mm}-${dd}`;
   };
 
-
   const handleSaveThumbnail = async () => {
-    if (!thumbnailFile) return;
+    if (!thumbnailFile || !(thumbnailFile instanceof File)) return;
 
     try {
       const url = await uploadThumbnail(thumbnailFile);
@@ -161,38 +167,29 @@ export function useWritingEditorState(
     }
   };
 
-
-
   const handleSaveExit = async () => {
     try {
-
-
       const contentPayload = {
         skill: "WRITING",
         title,
         instructions,
         task,
-        topicTags,
+        questionTypeTags: questionTypes.map(mapWritingUiTypeToApi),
+        topicTags: topicTags.map(mapTopicTagUiToApi),
         durationMinutes,
         status: status === "Draft" ? "DRAFT" : "PUBLISHED",
         thumbnailUrl,
-        imageUrls: getSavedImageUrls()
+        imageUrls: getSavedImageUrls(),
       };
 
-      const contentResponse = await saveContent(
-        contentPayload,
-        isEditMode,
-        id
-      );
+      const contentResponse = await saveContent(contentPayload, isEditMode, id);
 
       if (!contentResponse?.id) {
         throw new Error("Cannot get content ID from response");
       }
 
-
       setHasImageChanges(false);
-      navigate("/admin/content-management");
-
+      navigate("/content-management");
     } catch (err: any) {
       alert(err?.message || "Save failed");
     }
@@ -207,10 +204,6 @@ export function useWritingEditorState(
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -219,10 +212,7 @@ export function useWritingEditorState(
     setThumbnailPreview(url);
     setThumbnailUrl(null);
     setThumbnailSaved(false);
-
   };
-
-
 
   const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -234,10 +224,6 @@ export function useWritingEditorState(
       alert("Please upload a .jpg or .png file");
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File size must be less than 25 MB");
-      return;
-    }
 
     safeRevokeObjectUrl(thumbnailPreview);
     const url = URL.createObjectURL(file);
@@ -246,9 +232,7 @@ export function useWritingEditorState(
     setThumbnailPreview(url);
     setThumbnailUrl(null);
     setThumbnailSaved(false);
-
   };
-
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -269,10 +253,10 @@ export function useWritingEditorState(
     status,
     setStatus,
 
-
+    questionTypes,
+    setQuestionTypes,
     topicTags,
     setTopicTags,
-
 
     //thumbnail && audio
     thumbnailFile,

@@ -25,5 +25,9 @@ public class UserUpdateRequestDto {
     private String timezone;
     private String avatarUrl;
     private Integer targetBand;
+    private Double targetListeningBand;
+    private Double targetReadingBand;
+    private Double targetWritingBand;
+    private Double targetSpeakingBand;
     private LocalDateTime examDate;
 }

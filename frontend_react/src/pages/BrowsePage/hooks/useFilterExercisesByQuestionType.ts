@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ExerciseMetadata, TagFilter } from "../types";
+import { UIQuestionType } from "../../MyProfilePage/types";
 
 export function useFilterExercisesByQuestionType(params: {
   exercises: ExerciseMetadata[];
@@ -10,7 +11,7 @@ export function useFilterExercisesByQuestionType(params: {
     useState<TagFilter>("all");
 
   const availableQuestionTypes = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<UIQuestionType>();
     for (const ex of exercises) {
       for (const qt of ex.questionTypes ?? []) set.add(qt);
     }

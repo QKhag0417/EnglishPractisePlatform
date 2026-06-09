@@ -1,57 +1,58 @@
-import { useState } from 'react';
-import { NavBarGuest } from '../components/NavBar';
-import { Footer } from '../components/Footer';
-import { Page } from '../App';
-import { Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useState } from "react";
+import { NavBarGuest } from "../components/NavBar";
+import { Footer } from "../components/Footer";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useNavigate } from "react-router";
 
-
-type Step = 'email' | 'code' | 'new-password' | 'success';
+type Step = "email" | "code" | "new-password" | "success";
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState(['', '', '', '']);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentStep, setCurrentStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState(["", "", "", ""]);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSendCode = async () => {
     if (!email) {
-      setError('Please enter your email address');
+      setError("Please enter your email address");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
-      const res = await fetch('http://localhost:8080/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        "http://localhost:8080/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        },
+      );
 
       if (!res.ok) {
-        throw new Error('Failed to send reset code');
+        throw new Error("Failed to send reset code");
       }
 
-      setCode(['', '', '', '']);
-      setCurrentStep('code');
+      setCode(["", "", "", ""]);
+      setCurrentStep("code");
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -72,42 +73,48 @@ export function ForgotPasswordPage() {
     }
   };
 
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
+  const handleCodeKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
       const prevInput = document.getElementById(`code-input-${index - 1}`);
       prevInput?.focus();
     }
   };
 
   const handleVerifyCode = async () => {
-    const enteredCode = code.join('');
+    const enteredCode = code.join("");
 
     if (enteredCode.length !== 4) {
-      setError('Please enter the 4-digit code');
+      setError("Please enter the 4-digit code");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
-      const res = await fetch('http://localhost:8080/api/auth/verify-reset-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          code: enteredCode,
-        }),
-      });
+      const res = await fetch(
+        "http://localhost:8080/api/auth/verify-reset-code",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            code: enteredCode,
+          }),
+        },
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || 'Invalid or expired code');
+        throw new Error(data?.message || "Invalid or expired code");
       }
 
       setResetToken(data.data.resetToken);
-      setCurrentStep('new-password');
+      setCurrentStep("new-password");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -117,32 +124,32 @@ export function ForgotPasswordPage() {
 
   const handleResetPassword = async () => {
     if (!resetToken) {
-      setError('Reset token missing. Please retry forgot password.');
+      setError("Reset token missing. Please retry forgot password.");
       return;
     }
 
     if (!newPassword || !confirmPassword) {
-      setError('Please fill all fields');
+      setError("Please fill all fields");
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError("Password must be at least 8 characters long");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
-      const res = await fetch('http://localhost:8080/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:8080/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resetToken,
           newPassword,
@@ -152,10 +159,10 @@ export function ForgotPasswordPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || 'Failed to reset password');
+        throw new Error(data?.message || "Failed to reset password");
       }
 
-      setCurrentStep('success');
+      setCurrentStep("success");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -163,9 +170,8 @@ export function ForgotPasswordPage() {
     }
   };
 
-
   const handleContinue = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -180,10 +186,14 @@ export function ForgotPasswordPage() {
 
         <div className="absolute inset-0 bg-gradient-to-br from-[#fcbf65]/90 via-[#ffd491]/85 to-[#1977f3]/80"></div>
 
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-          backgroundSize: '30px 30px'
-        }}></div>
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+          }}
+        ></div>
       </div>
 
       {/* Content */}
@@ -192,15 +202,15 @@ export function ForgotPasswordPage() {
 
         <div className="flex-1 flex items-center justify-center px-8 py-[80px]">
           <div className="bg-white rounded-[12px] border-4 border-[#4880ff] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-[60px] w-[738px]">
-            
             {/* Step 1: Enter Email */}
-            {currentStep === 'email' && (
+            {currentStep === "email" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Forgot Password?
                 </h1>
                 <p className="font-['Inter'] text-[18px] text-gray-600 text-center mb-[40px]">
-                  Enter your email address and we'll send you a verification code
+                  Enter your email address and we'll send you a verification
+                  code
                 </p>
 
                 {/* Email */}
@@ -229,14 +239,14 @@ export function ForgotPasswordPage() {
                   disabled={loading}
                   className="w-full h-[60px] bg-[#fcbf65] border-2 border-black rounded-[10px] font-['Inter'] font-extrabold text-[24px] text-black hover:bg-[#e5ab52] transition-colors mb-[30px]"
                 >
-                  {loading ? 'Processing...' : 'Send Code'}
+                  {loading ? "Processing..." : "Send Code"}
                 </button>
 
                 {/* Back to Login */}
                 <p className="font-['Inter'] text-[22px] text-black text-center">
-                  Remember your password?{' '}
+                  Remember your password?{" "}
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate("/login")}
                     className="font-['Inter'] font-semibold italic text-[#4880ff] hover:underline"
                   >
                     Back to Login
@@ -246,7 +256,7 @@ export function ForgotPasswordPage() {
             )}
 
             {/* Step 2: Enter Verification Code */}
-            {currentStep === 'code' && (
+            {currentStep === "code" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Enter Verification Code
@@ -271,7 +281,9 @@ export function ForgotPasswordPage() {
                         type="text"
                         maxLength={1}
                         value={digit}
-                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleCodeChange(index, e.target.value)
+                        }
                         onKeyDown={(e) => handleCodeKeyDown(index, e)}
                         className="w-[80px] h-[80px] text-center text-[32px] font-bold border-2 border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
                       />
@@ -295,7 +307,7 @@ export function ForgotPasswordPage() {
 
                 {/* Resend Code */}
                 <p className="font-['Inter'] text-[18px] text-black text-center">
-                  Didn't receive the code?{' '}
+                  Didn't receive the code?{" "}
                   <button
                     onClick={handleSendCode}
                     className="font-['Inter'] font-semibold text-[#4880ff] hover:underline"
@@ -307,7 +319,7 @@ export function ForgotPasswordPage() {
             )}
 
             {/* Step 3: Enter New Password */}
-            {currentStep === 'new-password' && (
+            {currentStep === "new-password" && (
               <>
                 <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                   Create New Password
@@ -323,7 +335,7 @@ export function ForgotPasswordPage() {
                   </label>
                   <div className="relative">
                     <input
-                      type={showNewPassword ? 'text' : 'password'}
+                      type={showNewPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -350,7 +362,7 @@ export function ForgotPasswordPage() {
                   </label>
                   <div className="relative">
                     <input
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full h-[60px] px-[20px] pr-[60px] border border-[rgba(0,0,0,0.44)] rounded-[10px] focus:outline-none focus:border-[#4880ff]"
@@ -358,7 +370,9 @@ export function ForgotPasswordPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-[20px] top-1/2 -translate-y-1/2"
                     >
                       {showConfirmPassword ? (
@@ -387,19 +401,20 @@ export function ForgotPasswordPage() {
             )}
 
             {/* Step 4: Success */}
-            {currentStep === 'success' && (
+            {currentStep === "success" && (
               <>
                 <div className="flex flex-col items-center">
                   <div className="w-[100px] h-[100px] bg-green-100 rounded-full flex items-center justify-center mb-[30px]">
                     <CheckCircle className="w-[60px] h-[60px] text-green-600" />
                   </div>
-                  
+
                   <h1 className="font-['Inter'] font-extrabold text-[#4880ff] text-[32px] text-center mb-[20px]">
                     Password Reset Successful!
                   </h1>
-                  
+
                   <p className="font-['Inter'] text-[20px] text-gray-600 text-center mb-[50px]">
-                    Your password has been successfully updated. You can now login with your new password.
+                    Your password has been successfully updated. You can now
+                    login with your new password.
                   </p>
 
                   {/* Continue Button */}

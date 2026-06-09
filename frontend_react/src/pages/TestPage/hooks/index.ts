@@ -11,3 +11,5 @@ export { useGetReadingExercise } from "./useGetReadingExercise";
 export { useGetWritingExercise } from "./useGetWritingExercise";
 export { usePostUserPracticeWritingAnswer } from "./usePostUserPracticeWritingAnswer";
 export { usePostUserPracticeContentProgressAttemptIncrement } from "./usePostUserPracticeContentProgressAttemptIncrement";
+export { useTestActivityLogger } from "./useTestActivityLogger";
+export { usePostCreateWritingAIFeedback } from "./usePostCreateWritingAIFeedback";

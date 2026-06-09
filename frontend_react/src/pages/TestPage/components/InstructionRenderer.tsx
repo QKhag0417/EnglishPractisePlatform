@@ -1,6 +1,6 @@
 // InstructionRenderer.tsx
 import React, { useMemo } from "react";
-import { UserAnswers } from "../types";
+import { LogActivityInput, UserAnswers } from "../types";
 import { buildImageUrl } from "../utils";
 
 type FontWeight = React.CSSProperties["fontWeight"];
@@ -44,22 +44,47 @@ function GapInput({
   n,
   userAnswers,
   onAnswerChange,
+  onLogActivity,
 }: {
   n: number;
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   const selectedAnswers = userAnswers[n] ?? [];
 
   return (
-    <span className="inline-flex items-center gap-2 align-middle">
+    <span className="inline-flex max-w-full items-center gap-2 align-middle">
       <span className="flex items-center justify-center w-6 h-6 bg-[#1977f3] text-white rounded-full font-bold text-[12px] flex-shrink-0">
         {n}
       </span>
       <input
-        className="h-8 w-[220px] rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
+        className="h-8 min-w-0 flex-1 rounded-full border border-gray-300 px-3 text-[14px] outline-none focus:ring-2 focus:ring-[#1977f3]"
         value={selectedAnswers[0] ?? ""}
-        onChange={(e) => onAnswerChange?.(n, [e.target.value])}
+        onFocus={() =>
+          onLogActivity?.({
+            activityType: "GAP_FOCUS",
+            questionNumber: n,
+          })
+        }
+        onChange={(e) => {
+          const nextValue = e.target.value;
+
+          onAnswerChange?.(n, [nextValue]);
+
+          onLogActivity?.({
+            activityType: "GAP_INPUT",
+            questionNumber: n,
+            value: nextValue,
+          });
+        }}
+        onBlur={(e) =>
+          onLogActivity?.({
+            activityType: "GAP_BLUR",
+            questionNumber: n,
+            value: e.target.value,
+          })
+        }
         placeholder=""
       />
     </span>
@@ -70,10 +95,12 @@ function InlineRenderer({
   nodes,
   userAnswers,
   onAnswerChange,
+  onLogActivity,
 }: {
   nodes: InlineNode[];
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   return (
     <>
@@ -98,6 +125,7 @@ function InlineRenderer({
               n={node.n}
               userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
+              onLogActivity={onLogActivity}
             />
           );
         }
@@ -112,10 +140,12 @@ function ParagraphRenderer({
   node,
   userAnswers,
   onAnswerChange,
+  onLogActivity,
 }: {
   node: Extract<DocNode, { type: "paragraph" }>;
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   return (
     <p className={"text-[14px] text-gray-700 leading-relaxed"}>
@@ -123,6 +153,7 @@ function ParagraphRenderer({
         nodes={node.inlines}
         userAnswers={userAnswers}
         onAnswerChange={onAnswerChange}
+        onLogActivity={onLogActivity}
       />
     </p>
   );
@@ -150,10 +181,12 @@ function TableRenderer({
   node,
   userAnswers,
   onAnswerChange,
+  onLogActivity,
 }: {
   node: Extract<DocNode, { type: "table" }>;
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   const colCount = Math.max(
     1,
@@ -192,6 +225,7 @@ function TableRenderer({
                       nodes={cell.content}
                       userAnswers={userAnswers}
                       onAnswerChange={onAnswerChange}
+                      onLogActivity={onLogActivity}
                     />
                   </div>
                 </div>
@@ -208,10 +242,12 @@ function MultipleChoiceRender({
   node,
   userAnswers,
   onAnswerChange,
+  onLogActivity,
 }: {
   node: Extract<DocNode, { type: "multiple-choice" }>;
   userAnswers: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   const pick = node.pick ?? 1;
   const startQuestionNumber = node.n;
@@ -249,14 +285,34 @@ function MultipleChoiceRender({
 
     if (isSinglePick) {
       setSelected([letter]);
+
+      onLogActivity?.({
+        activityType: "MCQ_SELECT",
+        questionNumber: startQuestionNumber,
+        value: letter,
+      });
+
       return;
     }
 
     if (isChecked) {
       setSelected(selectedAnswers.filter((x) => x !== letter));
+
+      onLogActivity?.({
+        activityType: "MCQ_DESELECT",
+        questionNumber: startQuestionNumber,
+        value: letter,
+      });
     } else {
       if (selectedAnswers.length >= pick) return;
+
       setSelected([...selectedAnswers, letter]);
+
+      onLogActivity?.({
+        activityType: "MCQ_SELECT",
+        questionNumber: startQuestionNumber,
+        value: letter,
+      });
     }
   };
 
@@ -319,10 +375,12 @@ export function InstructionRenderer({
   instruction,
   userAnswers = {},
   onAnswerChange,
+  onLogActivity,
 }: {
   instruction: string | DocNode[];
   userAnswers?: UserAnswers;
   onAnswerChange?: (questionNumber: number, value: string[]) => void;
+  onLogActivity?: (input: LogActivityInput) => void;
 }) {
   const doc = useMemo(() => toDocNodes(instruction), [instruction]);
 
@@ -336,6 +394,7 @@ export function InstructionRenderer({
               node={node}
               userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
+              onLogActivity={onLogActivity}
             />
           );
         }
@@ -351,6 +410,7 @@ export function InstructionRenderer({
               node={node}
               userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
+              onLogActivity={onLogActivity}
             />
           );
         }
@@ -362,6 +422,7 @@ export function InstructionRenderer({
               node={node}
               userAnswers={userAnswers}
               onAnswerChange={onAnswerChange}
+              onLogActivity={onLogActivity}
             />
           );
         }

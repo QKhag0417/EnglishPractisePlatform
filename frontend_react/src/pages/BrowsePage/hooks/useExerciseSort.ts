@@ -29,9 +29,7 @@ export function useExerciseSort(params: { exercises: ExerciseMetadata[] }) {
           (a, b) => dateToMillis(a.updated) - dateToMillis(b.updated),
         );
       case "attempts":
-        return arr.sort(
-          (a, b) => attemptsToNumber(b.attempts) - attemptsToNumber(a.attempts),
-        );
+        return arr.sort((a, b) => b.attempts - a.attempts);
       case "a-z":
         return arr.sort((a, b) => a.title.localeCompare(b.title));
       case "z-a":

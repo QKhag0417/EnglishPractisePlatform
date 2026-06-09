@@ -1,8 +1,10 @@
 package com.ieltsmastermind.practice.content.management.domain.entity;
 
 import com.ieltsmastermind.practice.content.management.domain.enums.PracticeQuestionType;
+import com.ieltsmastermind.practice.content.management.domain.enums.PracticeTopicTag;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(
         name = "practice_question",
         uniqueConstraints = {
@@ -33,10 +36,14 @@ public class PracticeQuestion {
     private Integer orderIndex;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false)
     private PracticeQuestionType type;
 
-    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Column(name = "topic_tag", nullable = false)
+    private PracticeTopicTag topicTag;
+
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "practice_question_answer",
             joinColumns = @JoinColumn(name = "practice_question_id")
